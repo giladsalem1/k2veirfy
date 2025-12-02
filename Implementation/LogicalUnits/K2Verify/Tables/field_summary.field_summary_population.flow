@@ -1,0 +1,454 @@
+stages:
+  Input:
+    actors:
+      PopulationArgs:
+        parent: PopulationArgs
+        readonly: true
+        in:
+          iid:
+            external: iid
+            schema: any
+            mandatory: false
+        out:
+          parent_rows:
+            schema: '#ref'
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
+      TAR Interface:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_INTERFACE_TAR
+      TAR SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SCHEMA_TAR
+      TAR TABLE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TABLE_TAR
+      SRC Interface:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_INTERFACE_SRC
+      SRC SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SCHEMA_SRC
+      SRC TABLE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TABLE_SRC
+      TASK ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TASK_ID
+      EXEC ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_EXEC_ID
+  Get Details:
+    actors:
+      SplitIID:
+        parent: Split
+        in:
+          delimiter:
+            const: _@_
+          string:
+            link: PopulationArgs/iid
+      IID:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: SplitIID/strings
+            schema: any
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 2:
+    actors:
+      MTableLookup1:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: mtK2VerifyConfig
+          Source_Table_Name:
+            link: SRC TABLE/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Source_Interface:
+            link: SRC Interface/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Source_Schema:
+            link: SRC SCHEMA/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Table_Name:
+            link: TAR TABLE/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Interface:
+            link: TAR Interface/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Schema:
+            link: TAR SCHEMA/result
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+  Process Table by Table:
+    transactional: false
+    actors:
+      Row Info:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Get PII Columns:
+    transactional: false
+    actors:
+      bwGetPiiColumns:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPiiColumns
+          interface:
+            link: Row Info/value/Source_Interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: Row Info/value/Source_Schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: Row Info/value/Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_pii:
+            link: Row Info/value/Pii_Columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          pii_columns:
+            schema: string
+  Get PK Columns:
+    transactional: false
+    actors:
+      bwGetPKColumns:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPKColumns
+          interface:
+            link: Row Info/value/Source_Interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: Row Info/value/Source_Schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: Row Info/value/Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            link: Row Info/value/Customized_Key_Comparison
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          pk_columns:
+            schema: string
+  Execluded columns:
+    transactional: false
+    actors:
+      UpperExcluded:
+        parent: Uppercase
+        in:
+          string:
+            link: Row Info/value/Excluded_Columns_Names
+  If Active in Config:
+    last: 1
+    transactional: false
+    actors:
+      Check Active:
+        parent: ToBool
+        condition: bool
+        in:
+          value:
+            link: Row Info/value/Active
+      VerifyTargetData:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwVerifySourceNTargetData
+          schema:
+            external: schema
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          IID:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: Row Info/value/Excluded_Rows_Sql
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          ColumnMapping:
+            link: Row Info/value/Column_Mapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Pii_Columns:
+            link: bwGetPiiColumns/pii_columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceInterface:
+            link: Row Info/value/Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceSchema:
+            link: Row Info/value/Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceTable:
+            link: Row Info/value/Source_Table_Name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetInterface:
+            link: Row Info/value/Target_Interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetSchema:
+            link: Row Info/value/Target_Schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetTable:
+            link: Row Info/value/Target_Table_Name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            link: UpperExcluded/string
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: bwGetPKColumns/pk_columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          table:
+            external: table
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          source_columns_to_Ignore_null:
+            link: Row Info/value/source_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          target_columns_to_Ignore_null:
+            link: Row Info/value/target_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          bucketMethod:
+            link: Row Info/value/Buckets_Method
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucketsNum:
+            link: Row Info/value/Buckets
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            link: EXEC ID/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            link: TASK ID/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          source_transformation_function:
+            link: Row Info/value/Source_Transformation_Function_Name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_transformation_function:
+            link: Row Info/value/Target_Transformation_Function_Name
+            schema: any
+            mandatory: false
+            createdBy: flowName
+  Post Load: {
+    }
+schemas:
+  PopulationArgs.out.parent_rows:
+    type: array
+    items:
+      type: object
+      properties:
+        iid:
+          type: string
+  MTableLookup1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        Source_Table_Name:
+          type: string
+        Source_Interface:
+          type: string
+        Source_Schema:
+          type: string
+        Source_Transformation_Function_Name: {
+          }
+        source_columns_to_Ignore_null: {
+          }
+        Target_Table_Name:
+          type: string
+        Target_Interface:
+          type: string
+        Target_Schema:
+          type: string
+        Target_Transformation_Function_Name: {
+          }
+        target_columns_to_Ignore_null: {
+          }
+        Customized_Key_Comparison:
+          type: string
+        Pii_Columns: {
+          }
+        Excluded_Columns_Names: {
+          }
+        Active:
+          type: string
+        Mode: {
+          }
+        Excluded_Rows_Sql: {
+          }
+        Column_Mapping: {
+          }
+  Row Info.out.value:
+    type: object
+    properties:
+      Source_Table_Name:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Transformation_Function_Name: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Target_Table_Name:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Customized_Key_Comparison:
+        type: string
+      Pii_Columns:
+        type: string
+      Excluded_Columns_Names: {
+        }
+      Active:
+        type: string
+      Mode: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Column_Mapping: {
+        }
+      Buckets:
+        type: string
+      Buckets_Method:
+        type: string

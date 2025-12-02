@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DBConn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="DBConnGenericAdoJdbc" name="d2d_oracle" type="genericdb" version="8.3.1">
+    <JdbcDriverName>Oracle</JdbcDriverName>
+    <Active>true</Active>
+    <ConnectionProperties>
+        <Property name="includeSynonyms">
+            <Value><![CDATA[true]]></Value>
+        </Property>
+    </ConnectionProperties>
+    <ConnectionStringServerSide>jdbc:oracle:thin:@34.89.246.193:1525/ORCLCDB</ConnectionStringServerSide>
+    <PortNum>1525</PortNum>
+    <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
+    <MinConnectionsNumber>0</MinConnectionsNumber>
+    <MaxConnectionsNumber>60</MaxConnectionsNumber>
+    <UseSelectAsteriskInAutoCreatedQueries>true</UseSelectAsteriskInAutoCreatedQueries>
+    <AutomaticMetadataLoading>false</AutomaticMetadataLoading>
+    <OfflineMode>true</OfflineMode>
+    <DataSource>34.89.246.193</DataSource>
+    <DataBase>ORCLCDB</DataBase>
+    <UserId>customer</UserId>
+    <Password>~encs2~WWEIOcInaIGLGQsJ/CFou+TLTd/1apvx+tfR1jfruxJ2UKtrmRUIxseOug==</Password>
+    <Certificate></Certificate>
+    <SchemaFilter></SchemaFilter>
+    <CommandList></CommandList>
+</DBConn>

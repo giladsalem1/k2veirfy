@@ -1,0 +1,527 @@
+tags: k2verify
+stages:
+  Inputs:
+    actors:
+      JavaScript3:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: columns!=null && columns!=''
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+      CaseSensitive:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: case_sensitive
+            schema: string
+        out:
+          value:
+            schema: string
+      ValidationEnv:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: validation_env
+        out:
+          value:
+            schema: string
+  Validation queries:
+    actors:
+      SRC Validation SQL:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetMetadataValidationSql
+          interface:
+            external: src_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: '#ref'
+      TAR Validation SQL:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetMetadataValidationSql
+          interface:
+            external: tar_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: '#ref'
+  Stage 20:
+    dependsOn: Validation queries
+    actors:
+      EqualsIgnoreCase1:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: 'false'
+            schema: string
+          a:
+            link: CaseSensitive/value
+    split: '--------------------'
+  Stage 3:
+    else: true
+    dependsOn: Validation queries
+    actors:
+      bwValidateCSColumnsNames1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateCSColumnsNames
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          case_sensitive:
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            external: validation_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            external: src_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            external: tar_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            external: src_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            external: src_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            external: tar_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            external: tar_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            external: column_mapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+  Stage 6:
+    dependsOn: Stage 20
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: env=='SRC' || env=='BOTH'
+          env:
+            link: ValidationEnv/value
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      Validate src column:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: src_interface
+          sql:
+            const: null
+            link: SRC Validation SQL/sql/column_ci
+          schema:
+            external: src_schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: src_table
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 13:
+    dependsOn: Stage 20
+    actors:
+      JavaScript2:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: env=='TAR' || env=='BOTH'
+          env:
+            link: ValidationEnv/value
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      Validate tar column:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: tar_interface
+          sql:
+            const: null
+            link: TAR Validation SQL/sql/column_ci
+          schema:
+            external: tar_schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: tar_table
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 3
+  Stage 7:
+    dependsOn: Stage 6
+    actors:
+      Mapper1:
+        parent: Mapper
+        in:
+          script:
+            const: value[0].toUpperCase();
+          values:
+            link: Validate src column/result
+        out:
+          values:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 14:
+    dependsOn: Stage 13
+    actors:
+      Mapper2:
+        parent: Mapper
+        in:
+          script:
+            const: value[0].toUpperCase();
+          values:
+            link: Validate tar column/result
+        out:
+          values:
+            schema: '#ref'
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            external: columns
+    split: '--------------------'
+  Stage 5:
+    dependsOn: Stage 4
+  LoopKeys:
+    dependsOn: Stage 7
+    actors:
+      ColsFromTable:
+        parent: DeepCopy
+        in:
+          value:
+            link: Mapper1/values
+        out:
+          value:
+            schema: '#ref'
+      ColsFromMtable:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            external: columns
+    split: '--------------------'
+  Stage 15:
+    dependsOn: Stage 14
+    actors:
+      DeepCopy2:
+        parent: DeepCopy
+        in:
+          value:
+            link: Mapper2/values
+        out:
+          value:
+            schema: '#ref'
+      MappedCols:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetColsForSelectStmt
+          env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            external: column_mapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          select_columns:
+            link: Split1/strings
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          colsFromPII:
+            const: 'true'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          columns_for_select:
+            schema: string
+          columns:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 8:
+    dependsOn: Stage 5
+  Validate column name in source:
+    dependsOn: LoopKeys
+    actors:
+      Filter2:
+        parent: Filter
+        in:
+          script:
+            const: value==col.toUpperCase()
+          col:
+            link:
+              path: ColsFromMtable/strings
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          values:
+            link: ColsFromTable/value
+        out:
+          values:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 16:
+    dependsOn: Stage 15
+    actors:
+      Filter1:
+        parent: Filter
+        in:
+          script:
+            const: value==col.toUpperCase()
+          col:
+            link:
+              path: MappedCols/columns
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          values:
+            link: DeepCopy2/value
+        out:
+          values:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 9:
+    dependsOn: Stage 8
+  Stage 1:
+    dependsOn: Validate column name in source
+    actors:
+      DeepCopy1:
+        parent: DeepCopy
+        in:
+          value:
+            link: Filter2/values
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 17:
+    dependsOn: Stage 16
+    actors:
+      DeepCopy3:
+        parent: DeepCopy
+        in:
+          value:
+            link: Filter1/values
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 10:
+    dependsOn: Stage 9
+  Stage 2:
+    last: 1
+    dependsOn: Stage 1
+    actors:
+      assertNotEquals1:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: [
+              ]
+            schema: '#ref'
+          message:
+            const: Column '${column}' doesn't exist in the source table. If it is
+              a key column, ensure it is case-sensitive.
+          column:
+            link:
+              path: ColsFromMtable/strings
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: message
+          actual:
+            link:
+              path: DeepCopy1/value
+              iterate: First
+    split: '--------------------'
+  Stage 18:
+    last: 1
+    dependsOn: Stage 17
+    actors:
+      assertNotEquals2:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: [
+              ]
+            schema: '#ref'
+          message:
+            const: Column '${column}' doesn't exist in the target table. If it is
+              a key column, ensure it is case-sensitive.
+          column:
+            link:
+              path: MappedCols/columns
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: message
+          actual:
+            link:
+              path: DeepCopy3/value
+              iterate: First
+    split: '--------------------'
+  Stage 11:
+    last: 1
+    dependsOn: Stage 10
+  Stage 12: {
+    }
+schemas:
+  SRC Validation SQL.out.sql:
+    type: object
+    properties:
+      schema: {
+        }
+      table: {
+        }
+      column: {
+        }
+      column_ci: {
+        }
+  TAR Validation SQL.out.sql:
+    type: object
+    properties:
+      schema:
+        type: string
+      table:
+        type: string
+      column:
+        type: string
+      column_ci:
+        type: string
+  Validate src column.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        column_name:
+          type: string
+  Validate tar column.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        '1':
+          type: integer
+  Mapper1.out.values:
+    type: array
+    items:
+      type: string
+  Mapper2.out.values:
+    type: array
+    items:
+      type: string
+  ColsFromTable.out.value:
+    type: array
+    items:
+      type: string
+  DeepCopy2.out.value:
+    type: array
+    items:
+      type: string
+  MappedCols.out.columns:
+    type: array
+    items:
+      type: string
+  Filter2.out.values:
+    type: array
+    items:
+      type: string
+  Filter1.out.values:
+    type: array
+    items:
+      type: string
+  assertNotEquals1.in.unexpected:
+    type: array
+    items: {
+      }
+  assertNotEquals2.in.unexpected:
+    type: array
+    items: {
+      }

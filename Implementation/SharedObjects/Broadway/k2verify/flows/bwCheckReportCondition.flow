@@ -1,0 +1,249 @@
+{
+    "tags": [
+        "D2D",
+        "D2D\flows"
+    ],
+    "levels": [
+        {
+            "stages": [
+                {
+                    "name": "LOG PASSED",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "LOG_PASSED",
+                            "remark": "Global Value",
+                            "actorType": {
+                                "parentType": "GetLUVariable",
+                                "inputs": [
+                                    {
+                                        "name": "variableName",
+                                        "const": "K2VERIFY_LOG_PASS"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "PASSED/NOT PASSED",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 1",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "ToBool",
+                            "actorType": {
+                                "parentType": "ToBool",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "EqualsIgnoreCase1",
+                            "actorType": {
+                                "parentType": "EqualsIgnoreCase",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "PASSED"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "EqualsIgnoreCase2",
+                            "actorType": {
+                                "parentType": "EqualsIgnoreCase",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "NOT PASSED"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 19",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "And1",
+                            "actorType": {
+                                "parentType": "And",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 4",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Or3",
+                            "actorType": {
+                                "parentType": "Or",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 2",
+                    "dependsOnList": [],
+                    "actors": []
+                }
+            ]
+        }
+    ],
+    "connections": [
+        {
+            "leftPort": {
+                "actor": "LOG_PASSED",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "ToBool",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "PASSED/NOT PASSED",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "EqualsIgnoreCase1",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "PASSED/NOT PASSED",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "EqualsIgnoreCase2",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToBool",
+                "name": "bool"
+            },
+            "rightPort": {
+                "actor": "And1",
+                "name": "b"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "EqualsIgnoreCase1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "And1",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "EqualsIgnoreCase2",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Or3",
+                "name": "b"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "And1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Or3",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "schema"
+            },
+            "rightPort": {
+                "actor": "LOG_PASSED",
+                "name": "luName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "PASSED/NOT PASSED",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Or3",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "flowArgs",
+                "name": "insert"
+            }
+        }
+    ]
+}

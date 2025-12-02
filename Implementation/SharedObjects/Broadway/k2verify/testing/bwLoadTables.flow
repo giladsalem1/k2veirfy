@@ -1,0 +1,391 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      DbCreateTable1:
+        parent: DbCreateTable
+        disabled: true
+        in:
+          interface:
+            const: Db2T2T
+          schema:
+            const: DB2INST1
+          table:
+            const: TEST_TABLE
+          fields:
+            const:
+            - name: customer_id
+              type: INT
+              pk: true
+              mandatory: true
+            - name: ssn
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: first_name
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: last_name
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+      DbCreateTable2:
+        parent: DbCreateTable
+        disabled: true
+        in:
+          interface:
+            const: OracleT2T
+          schema:
+            const: CUSTOMER
+          table:
+            const: TEST_TABLE_TAR
+          fields:
+            const:
+            - name: customer_id
+              type: VARCHAR2(50)
+              pk: true
+              mandatory: false
+            - name: ssn
+              type: VARCHAR2(50)
+              pk: false
+              mandatory: false
+            - name: first_name
+              type: VARCHAR2(50)
+              pk: false
+              mandatory: false
+            - name: last_name
+              type: VARCHAR2(50)
+              pk: false
+              mandatory: false
+          dialect:
+            const: oracle
+      DbCassandraCreateTable1:
+        parent: DbCassandraCreateTable
+        disabled: true
+        in:
+          interface:
+            const: dbCassandra
+          schema:
+            const: k2system_mar_compliance_solutions
+          table:
+            const: customer_src
+          fields:
+            const:
+            - name: customer_id
+              type: text
+              partition_key: true
+              clustering_key: false
+              mandatory: false
+            - name: ssn
+              type: text
+              partition_key: true
+              clustering_key: false
+              mandatory: false
+            - name: first_name
+              type: text
+              partition_key: false
+              clustering_key: false
+              mandatory: false
+            - name: last_name
+              type: text
+              partition_key: false
+              clustering_key: false
+              mandatory: false
+      DbCassandraCreateTable2:
+        parent: DbCassandraCreateTable
+        disabled: true
+        in:
+          interface:
+            const: dbCassandra
+          schema:
+            const: k2system_mar_compliance_solutions
+          table:
+            const: customer_tar
+          fields:
+            const:
+            - name: customer_id
+              type: text
+              partition_key: true
+              clustering_key: false
+              mandatory: false
+            - name: ssn
+              type: text
+              partition_key: true
+              clustering_key: false
+              mandatory: false
+            - name: first_name
+              type: text
+              partition_key: false
+              clustering_key: false
+              mandatory: false
+            - name: last_name
+              type: text
+              partition_key: false
+              clustering_key: false
+              mandatory: false
+      DbCreateTable3:
+        parent: DbCreateTable
+        disabled: true
+        in:
+          interface:
+            const: Db2T2T
+          schema:
+            const: DB2INST1
+          table:
+            const: TEST_TABLE_SRC
+          fields:
+            const:
+            - name: customer_id
+              type: INT
+              pk: true
+              mandatory: true
+            - name: ssn
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: first_name
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: last_name
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+      DbCreateTable4:
+        parent: DbCreateTable
+        in:
+          interface:
+            const: Db2T2T
+          schema:
+            const: DB2INST1
+          table:
+            const: TEST_TABLE_TAR2
+          fields:
+            const:
+            - name: cust_id
+              type: INT
+              pk: true
+              mandatory: true
+            - name: ssn
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: first_n
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+            - name: last_name
+              type: VARCHAR(20)
+              pk: false
+              mandatory: false
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: OracleT2T
+          sql:
+            const: SELECT * FROM CUSTOMER.CUSTOMERS FETCH FIRST 30000 ROWS ONLY
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      DbLoad1:
+        parent: DbLoad
+        disabled: true
+        in:
+          interface:
+            const: Db2T2T
+          schema:
+            const: DB2INST1
+          table:
+            const: TEST_TABLE_SRC
+          fields:
+            const:
+            - CUSTOMER_ID
+            - SSN
+            - FIRST_NAME
+            - LAST_NAME
+          CUSTOMER_ID:
+            schema: any
+            mandatory: false
+            createdBy: fields
+          SSN:
+            schema: any
+            mandatory: false
+            createdBy: fields
+          FIRST_NAME:
+            schema: any
+            mandatory: false
+            createdBy: fields
+          LAST_NAME:
+            schema: any
+            mandatory: false
+            createdBy: fields
+          params:
+            link:
+              path: DbCommand1/result
+              iterate: Iterate
+  Stage 4:
+    actors:
+      DbLoad2:
+        parent: DbLoad
+        in:
+          interface:
+            const: Db2T2T
+          command:
+            const: upsert
+          schema:
+            const: DB2INST1
+          table:
+            const: TEST_TABLE_TAR2
+          fields:
+            const:
+            - CUST_ID
+            - SSN
+            - FIRST_N
+            - LAST_NAME
+          keys:
+            const:
+            - CUST_ID
+          dialect:
+            const: db2
+          SSN:
+            link:
+              path: DbCommand1/result/SSN
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: fields
+          FIRST_N:
+            link:
+              path: DbCommand1/result/FIRST_NAME
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: fields
+          CUST_ID:
+            link:
+              path: DbCommand1/result/CUSTOMER_ID
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: fields
+          LAST_NAME:
+            link:
+              path: DbCommand1/result/LAST_NAME
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: fields
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: integer
+        FIRST_NAME:
+          type: string
+        MIDDLE_NAME:
+          type: string
+        LAST_NAME:
+          type: string
+        EMAIL:
+          type: string
+        ALT_EMAIL:
+          type: string
+        PHONE:
+          type: string
+        ALT_PHONE:
+          type: string
+        SSN:
+          type: string
+        DATE_OF_BIRTH:
+          type: date
+        ADDRESS_LINE1:
+          type: string
+        ADDRESS_LINE2:
+          type: string
+        CITY:
+          type: string
+        STATE_PROVINCE:
+          type: string
+        POSTAL_CODE:
+          type: string
+        COUNTRY:
+          type: string
+        GENDER:
+          type: string
+        MARITAL_STATUS:
+          type: string
+        NATIONAL_ID:
+          type: string
+        PASSPORT_NO:
+          type: string
+        SIGNUP_DATE:
+          type: date
+        LAST_LOGIN_TS:
+          type: date
+        LAST_LOGIN_TZ: {
+          }
+        BALANCE:
+          type: integer
+        CREDIT_LIMIT:
+          type: integer
+        RISK_SCORE:
+          type: integer
+        LOYALTY_POINTS:
+          type: integer
+        IS_VIP:
+          type: string
+        PREFERRED_LANGUAGE:
+          type: string
+        TIMEZONE:
+          type: string
+        MARKETING_OPT_IN:
+          type: string
+        COMM_CHANNEL:
+          type: string
+        AVATAR_RAW:
+          type: array
+          items: {
+            }
+        PROFILE_BLOB: {
+          }
+        NOTES: {
+          }
+        PREFERENCES_JSON: {
+          }
+        HOME_LAT:
+          type: integer
+        HOME_LON:
+          type: integer
+        FAVORITE_NUMBER:
+          type: integer
+        SMALL_FLAG:
+          type: integer
+        FLOAT_SCORE: {
+          }
+        DOUBLE_SCORE: {
+          }
+        HEIGHT_CM:
+          type: integer
+        WEIGHT_KG:
+          type: integer
+        CHILDREN_COUNT:
+          type: integer
+        CREATED_AT:
+          type: date
+        UPDATED_AT:
+          type: date
+        VALID_FROM:
+          type: date
+        VALID_TO:
+          type: date
+        ROW_VERSION:
+          type: integer

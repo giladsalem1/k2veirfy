@@ -1,0 +1,46 @@
+tags: D2D
+stages:
+  Check Db Type:
+    actors:
+      Test Connection:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: test_connection Interface=${testInterface}
+          testInterface:
+            external: interface
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Output:
+    actors:
+      Type:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Test Connection/result/type
+        out:
+          value:
+            external: type
+            schema: string
+schemas:
+  Test Connection.out.result:
+    type: object
+    properties:
+      interface:
+        type: string
+      type:
+        type: string
+      environment:
+        type: string
+      active:
+        type: boolean
+      passed:
+        type: boolean
+      error_message:
+        type: string

@@ -1,0 +1,969 @@
+tags: k2verify
+stages:
+  Stage 2:
+    actors:
+      TaskProperties:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: taskProps
+        out:
+          value:
+            schema: '#ref'
+  Stage 1:
+    actors:
+      MTableLookup1:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: mtK2VerifyConfig
+          Source_Table_Name:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
+              iterate: Iterate
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Source_Interface:
+            link: TaskProperties/value/K2VERIFY_INTERFACE_SRC
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Source_Schema:
+            link: TaskProperties/value/K2VERIFY_SCHEMA_SRC
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Table_Name:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/tar
+              iterate: Iterate
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Interface:
+            link: TaskProperties/value/K2VERIFY_INTERFACE_TAR
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Target_Schema:
+            link: TaskProperties/value/K2VERIFY_SCHEMA_TAR
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+  Validation params:
+    actors:
+      SRC Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Interface
+              iterate: First
+        out:
+          value:
+            schema: string
+      SRC Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Schema
+              iterate: First
+        out:
+          value:
+            schema: string
+      SRC Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Table_Name
+              iterate: First
+        out:
+          value:
+            schema: string
+      TAR Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Target_Interface
+              iterate: First
+        out:
+          value:
+            schema: string
+      TAR Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Target_Schema
+              iterate: First
+        out:
+          value:
+            schema: string
+      TAR Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Target_Table_Name
+              iterate: First
+        out:
+          value:
+            schema: string
+      Buckets Count:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Buckets
+              iterate: First
+        out:
+          value:
+            schema: string
+      Buckets Method:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Buckets_Method
+              iterate: First
+        out:
+          value:
+            schema: string
+  Validate interfaces:
+    actors:
+      Validate SRC Interface:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckDBType
+          interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          type:
+            schema: string
+      assertSrcInterface:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: Unknown
+            schema: string
+          message:
+            const: Please provice a valid source DB interface name
+          actual:
+            link: Validate SRC Interface/type
+      Validate TAR Interface:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckDBType
+          interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          type:
+            schema: string
+      assertTarInterface:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: Unknown
+            schema: string
+          message:
+            const: Please provice a valid target DB interface name
+          actual:
+            link: Validate TAR Interface/type
+  Validation queries:
+    actors:
+      SRC Validation SQL:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetMetadataValidationSql
+          interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: '#ref'
+      TAR Validation SQL:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetMetadataValidationSql
+          interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: '#ref'
+  Validate schemas:
+    actors:
+      Validate src schema:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: SRC Interface/value
+          sql:
+            const: null
+            link: SRC Validation SQL/sql/schema
+          schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertSrcSchema:
+        parent: assertNotNull
+        in:
+          message:
+            const: Please provice a valid source schema name
+          object:
+            link:
+              path: Validate src schema/result
+              iterate: First
+      Validate tar schema:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: TAR Interface/value
+          sql:
+            const: null
+            link: TAR Validation SQL/sql/schema
+          schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertTarSchema:
+        parent: assertNotNull
+        in:
+          message:
+            const: Please provice a valid target schema name
+          object:
+            link:
+              path: Validate tar schema/result
+              iterate: First
+  Validate tables:
+    actors:
+      Validate src table:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: SRC Interface/value
+          sql:
+            const: null
+            link: SRC Validation SQL/sql/table
+          schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertSrcTable:
+        parent: assertNotNull
+        in:
+          message:
+            const: Please provice a valid source table name
+          object:
+            link:
+              path: Validate src table/result
+              iterate: First
+      Validate tar table:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: TAR Interface/value
+          sql:
+            const: null
+            link: TAR Validation SQL/sql/table
+          schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertTarTable:
+        parent: assertNotNull
+        in:
+          message:
+            const: Please provice a valid target table name
+          object:
+            link:
+              path: Validate tar table/result
+              iterate: First
+  Validate buckets:
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: No results found for the given
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      Buckets > 0:
+        parent: GreaterThan
+        in:
+          b:
+            const: 0
+          a:
+            link: Buckets Count/value
+      assertBucketsCnt:
+        parent: assertTrue
+        in:
+          message:
+            const: Buckets count must be greater than 0
+          condition:
+            link: Buckets > 0/result
+      BucketsMethodExists:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: list BF LU_NAME='K2Verify' name='${@buckets_method}'
+          buckets_method:
+            link: Buckets Method/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertMethodExists:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: true
+            schema: boolean
+          message:
+            const: Buckets method flow does not exist
+          actual:
+            link: ErrorHandler1/result
+  Validate column mapping:
+    dependsOn: Validate buckets
+    actors:
+      bwValidateColumnMapping1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnMapping
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Validate keys:
+    dependsOn: Validate buckets
+    actors:
+      bwValidateColumnsNames1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          case_sensitive:
+            const: 'true'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link:
+              path: MTableLookup1/result/Customized_Key_Comparison
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: BOTH
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Validate pii cols:
+    dependsOn: Validate buckets
+    actors:
+      bwValidateColumnsNames112:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link:
+              path: MTableLookup1/result/Pii_Columns
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: BOTH
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Validate excluded cols:
+    dependsOn: Validate buckets
+    actors:
+      bwValidateColumnsNames11:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link:
+              path: MTableLookup1/result/Excluded_Columns_Names
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: BOTH
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Validate ignore null cols:
+    dependsOn: Validate buckets
+    actors:
+      bwValidateColumnsNames111:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link:
+              path: MTableLookup1/result/source_columns_to_Ignore_null
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+      bwValidateColumnsNames1111:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link:
+              path: MTableLookup1/result/target_columns_to_Ignore_null
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            link:
+              path: MTableLookup1/result/Column_Mapping
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+  Validate transformation function:
+    actors:
+      bwValidateTransformationFunc1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateTransformationFunc
+          src_trn_fun:
+            link:
+              path: MTableLookup1/result/Source_Transformation_Function_Name
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            link: TAR Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            link: SRC Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            link: SRC Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            link: TAR Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            link: TAR Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_trn_fun:
+            link:
+              path: MTableLookup1/result/Target_Transformation_Function_Name
+              iterate: First
+            schema: any
+            mandatory: false
+            createdBy: flowName
+  Stage 3: {
+    }
+schemas:
+  TaskProperties.out.value:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_SCHEMA_SRC:
+        type: string
+      K2VERIFY_SCHEMA_TAR:
+        type: string
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
+  MTableLookup1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        Source_Table_Name:
+          type: string
+        Source_Interface:
+          type: string
+        Source_Schema:
+          type: string
+        Source_Transformation_Function_Name: {
+          }
+        source_columns_to_Ignore_null: {
+          }
+        Target_Table_Name:
+          type: string
+        Target_Interface:
+          type: string
+        Target_Schema:
+          type: string
+        Target_Transformation_Function_Name: {
+          }
+        target_columns_to_Ignore_null: {
+          }
+        Customized_Key_Comparison:
+          type: string
+        Pii_Columns: {
+          }
+        Excluded_Columns_Names:
+          type: string
+        Active:
+          type: string
+        Mode: {
+          }
+        Excluded_Rows_Sql: {
+          }
+        Column_Mapping: {
+          }
+        Buckets:
+          type: string
+        Buckets_Method:
+          type: string
+  SRC Validation SQL.out.sql:
+    type: object
+    properties:
+      schema:
+        type: string
+      table:
+        type: string
+      column:
+        type: string
+      column_ci:
+        type: string
+  TAR Validation SQL.out.sql:
+    type: object
+    properties:
+      schema:
+        type: string
+      table:
+        type: string
+      column:
+        type: string
+      column_ci:
+        type: string
+  Validate src schema.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        '1':
+          type: integer
+  Validate tar schema.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        '1':
+          type: integer
+  Validate src table.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        '1':
+          type: integer
+  Validate tar table.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        '1':
+          type: integer
+  BucketsMethodExists.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        param:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        schema: {
+          }
+        mandatory:
+          type: boolean
+        default: {
+          }
+        remark:
+          type: string
+        editor: {
+          }
+        context: {
+          }
+        hidden:
+          type: boolean
+        object_name:
+          type: string

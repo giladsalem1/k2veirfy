@@ -1,0 +1,2030 @@
+tags: d2d,d2dv2,D2D,k2verify
+stages:
+  Execution params:
+    actors:
+      FETCH_SIZE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_KEYS_FETCH_SIZE
+          luName:
+            external: schema
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
+      RESULT_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            external: schema
+      LOAD_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            external: schema
+      K2VERIFY_LOG_PASS:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_LOG_PASS
+  Table config:
+    actors:
+      IID:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: IID
+        out:
+          value:
+            schema: string
+      Exclude Condition:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: excludeCondition
+        out:
+          value:
+            schema: string
+      CustomizedKey:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customizedKeyComparison
+            schema: string
+        out:
+          value:
+            schema: string
+      PIIColumns:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: Pii_Columns
+            schema: string
+        out:
+          value:
+            schema: string
+      BucketRowsFlow:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: bucketMethod
+            schema: string
+        out:
+          value:
+            schema: string
+  Tables details:
+    actors:
+      SRC DB Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceInterface
+        out:
+          value:
+            schema: string
+      SRC DB Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceSchema
+        out:
+          value:
+            schema: string
+      SRC DB Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceTable
+        out:
+          value:
+            schema: string
+      TAR DB Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetInterface
+        out:
+          value:
+            schema: string
+      TAR DB Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetSchema
+        out:
+          value:
+            schema: string
+      TAR DB Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetTable
+        out:
+          value:
+            schema: string
+  Prepare Data:
+    actors:
+      ReplaceDelimeter:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: SEPERATOR/variableValue
+          replace:
+            const: ','
+          string:
+            link: CustomizedKey/value
+      Split2:
+        parent: Split
+        in:
+          string:
+            link: ReplaceDelimeter/string
+      bwGetColsForSelectStmt1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetColsForSelectStmt
+          env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          select_columns:
+            link: Split2/strings
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          colsFromPII:
+            const: 'true'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          columns_for_select:
+            schema: string
+          columns:
+            schema: '#ref'
+  Prep Data Queries:
+    actors:
+      Source Env Query:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGenerateSelectStmt
+          interface:
+            link: SRC DB Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: SRC DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env_prefix:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            external: excludedColumnsNames
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delimiter:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          ColumnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          pii_columns:
+            link: PIIColumns/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: Exclude Condition/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: string
+      Target Env Query:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGenerateSelectStmt
+          interface:
+            link: TAR DB Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: TAR DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: TAR DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env_prefix:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            external: excludedColumnsNames
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delimiter:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          ColumnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          pii_columns:
+            link: PIIColumns/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: Exclude Condition/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+        out:
+          sql:
+            schema: string
+          columns:
+            schema: '#ref'
+      GetSummaryTables:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetSummaryTableNames
+          interface:
+            link: RESULT_INTERFACE/variableValue
+            schema: string
+            mandatory: false
+        out:
+          field_summary:
+            schema: string
+          record_summary:
+            schema: string
+          table_summary:
+            schema: string
+          entity_summary:
+            schema: string
+          schema:
+            schema: string
+  Stage 5:
+    transactional: false
+    actors:
+      bwGetBucketKeysList1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetBucketKeysList
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          IID:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucketMethod:
+            link: BucketRowsFlow/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceInterface:
+            link: SRC DB Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceSchema:
+            link: SRC DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          sourceTable:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetInterface:
+            link: TAR DB Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetSchema:
+            link: TAR DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          targetTable:
+            link: TAR DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: Exclude Condition/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          columnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          keys_list:
+            schema: '#ref'
+  Stage 27:
+    transactional: false
+    actors:
+      Num of records:
+        parent: JavaScript
+        in:
+          script:
+            const: arr.length
+          arr:
+            link: bwGetBucketKeysList1/keys_list
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: integer
+  Stage 21:
+    transactional: false
+    actors:
+      ArrayGrouper1:
+        parent: ArrayGrouper
+        in:
+          size:
+            const: null
+            link: FETCH_SIZE/variableValue
+          input:
+            link: bwGetBucketKeysList1/keys_list
+        out:
+          result:
+            schema: '#ref'
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution_buckets set total_records = ${total_records}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
+              and bucket_id=${bucket_id}
+          schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          total_records:
+            link: Num of records/result
+            schema: integer
+            mandatory: false
+            createdBy: sql
+  Stage 22:
+    transactional: true
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: ArrayGrouper1/result
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Deep Copy One:
+    transactional: true
+    actors:
+      bwGetKeysMapsList1:
+        parent: InnerFlow
+        height: 234
+        in:
+          flowName:
+            const: bwGetKeysMapsList
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          keyValues:
+            link: Const1/value
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          customizedKey:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          columnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          SrcCustomKeysList:
+            schema: '#ref'
+          SrcKeysMapsList:
+            schema: '#ref'
+          SrcKeysCombinations:
+            schema: '#ref'
+          TarCustomKeysList:
+            schema: '#ref'
+          TarKeysMapsList:
+            schema: '#ref'
+          TarKeysCombinations:
+            schema: '#ref'
+  Stage 4:
+    transactional: true
+    actors:
+      DeepCopy1:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwGetKeysMapsList1/SrcKeysMapsList
+        out:
+          value:
+            schema: '#ref'
+      DeepCopy2:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwGetKeysMapsList1/TarKeysMapsList
+        out:
+          value:
+            schema: '#ref'
+  Execute Query - Source:
+    transactional: true
+    actors:
+      SourceDbQuery:
+        parent: SourceDbQuery
+        in:
+          interface:
+            const: null
+            link: SRC DB Interface/value
+          sql:
+            const: null
+            link: Source Env Query/sql
+          parent_rows:
+            link: DeepCopy1/value
+        out:
+          result:
+            schema: '#ref'
+      bwApplyTransformationBW1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwApplyTransformationBW
+          records:
+            link: SourceDbQuery/result
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          transformationFunction:
+            external: source_transformation_function
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          transformedRecords:
+            schema: '#ref'
+      DeepCopy Source RS:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwApplyTransformationBW1/transformedRecords
+        out:
+          value:
+            schema: '#ref'
+  Execute Query - Target:
+    transactional: true
+    actors:
+      TargetDbQuery:
+        parent: SourceDbQuery
+        in:
+          interface:
+            const: null
+            link: TAR DB Interface/value
+          sql:
+            const: null
+            link: Target Env Query/sql
+          parent_rows:
+            link: DeepCopy2/value
+        out:
+          result:
+            schema: '#ref'
+      bwApplyTransformationBW11:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwApplyTransformationBW
+          records:
+            link: TargetDbQuery/result
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          transformationFunction:
+            external: target_transformation_function
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          transformedRecords:
+            schema: '#ref'
+      DeepCopy Target RS:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwApplyTransformationBW11/transformedRecords
+        out:
+          value:
+            schema: '#ref'
+  Stage 19:
+    transactional: true
+    actors:
+      keysMaps:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwGetKeysMapsList1/SrcKeysMapsList
+        out:
+          value:
+            schema: '#ref'
+      CustomKeys:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: bwGetKeysMapsList1/SrcCustomKeysList
+        out:
+          value:
+            schema: '#ref'
+      KeysValsCombos:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: bwGetKeysMapsList1/SrcKeysCombinations
+        out:
+          value:
+            schema: '#ref'
+      keysMaps1:
+        parent: DeepCopy
+        in:
+          value:
+            link: bwGetKeysMapsList1/TarKeysMapsList
+        out:
+          value:
+            schema: '#ref'
+      CustomKeys1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: bwGetKeysMapsList1/TarCustomKeysList
+        out:
+          value:
+            schema: '#ref'
+      KeysValsCombos1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: bwGetKeysMapsList1/TarKeysCombinations
+        out:
+          value:
+            schema: '#ref'
+      ResetActors1:
+        parent: ResetActors
+        in:
+          actorId:
+            const:
+            - SourceDbQuery
+      ResetActors2:
+        parent: ResetActors
+        in:
+          actorId:
+            const:
+            - TargetDbQuery
+  Stage 25:
+    transactional: true
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: keysMaps/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: CustomKeys/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: KeysValsCombos/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: keysMaps1/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: CustomKeys1/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const7:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: KeysValsCombos1/value
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Stage 23:
+    transactional: true
+    actors:
+      FilterSRCRow:
+        parent: Filter
+        in:
+          script:
+            const:
+              userCode: |-
+                let arr=[];
+                keys.forEach(key => {
+                    const tarCol='SRC_'+key.toUpperCase();
+                    arr.push(value.get(tarCol)+"" == keysObj.get(key)+"")
+                });
+                arr.indexOf(false)==-1;
+              script: |-
+                var arr = [];
+                keys.forEach(function (key) {
+                  var tarCol = 'SRC_' + key.toUpperCase();
+                  arr.push(value.get(tarCol) + "" == keysObj.get(key) + "");
+                });
+                arr.indexOf(false) == -1;
+          keys:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+          keysObj:
+            link: Const2/value
+            schema: '#ref'
+            mandatory: false
+          values:
+            link: DeepCopy Source RS/value
+        out:
+          values:
+            schema: '#ref'
+      FilterTARRow:
+        parent: Filter
+        in:
+          script:
+            const:
+              userCode: |-
+                let arr=[];
+                keys.forEach(key => {
+                    const tarCol='TAR_'+key.toUpperCase();
+                    arr.push(value.get(tarCol)+"" == keysObj.get(key)+"")
+                });
+                arr.indexOf(false)==-1;
+              script: |-
+                var arr = [];
+                keys.forEach(function (key) {
+                  var tarCol = 'TAR_' + key.toUpperCase();
+                  arr.push(value.get(tarCol) + "" == keysObj.get(key) + "");
+                });
+                arr.indexOf(false) == -1;
+          keys:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+          keysObj:
+            link: Const2/value
+            schema: '#ref'
+            mandatory: false
+          values:
+            link: DeepCopy Target RS/value
+        out:
+          values:
+            schema: '#ref'
+  Stage 24:
+    transactional: true
+    actors:
+      DeepCopySRCRow:
+        parent: DeepCopy
+        in:
+          value:
+            link: FilterSRCRow/values
+        out:
+          value:
+            schema: '#ref'
+      DeepCopyTARRow:
+        parent: DeepCopy
+        in:
+          value:
+            link: FilterTARRow/values
+        out:
+          value:
+            schema: '#ref'
+  Stage 1:
+    transactional: true
+    actors:
+      bwVerifyKeysExists1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwVerifyKeysExists
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          schema:
+            external: schema
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          table:
+            external: table
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          src_row:
+            link: DeepCopySRCRow/value
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          tar_row:
+            link: DeepCopyTARRow/value
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            link: Const3/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_column_value:
+            link:
+              path: Const7/value
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          source_column_value:
+            link:
+              path: Const4/value
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          operational_interface:
+            link: RESULT_INTERFACE/variableValue
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+            mandatory: false
+            createdBy: flowName
+          operational_schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          source_table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_table_name:
+            link: TAR DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          key_columns:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          field_summary_table_name:
+            link: GetSummaryTables/field_summary
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+        out:
+          keyNotFound:
+            schema: boolean
+  Stage 12:
+    transactional: true
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: false
+            schema: boolean
+          a:
+            link: bwVerifyKeysExists1/keyNotFound
+      bwVerifyRecordData2:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwVerifyRecordData
+          source_columns_to_Ignore_null:
+            external: source_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          target_columns_to_Ignore_null:
+            external: target_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          schema:
+            external: schema
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          table:
+            external: table
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          operational_interface:
+            link: RESULT_INTERFACE/variableValue
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+            mandatory: false
+            createdBy: flowName
+          source_table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_table_name:
+            link: TAR DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          operational_schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          log_pass:
+            link: K2VERIFY_LOG_PASS/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          field_summary_table_name:
+            link: GetSummaryTables/field_summary
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          src_row:
+            link:
+              path: DeepCopySRCRow/value
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          tar_row:
+            link:
+              path: DeepCopyTARRow/value
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          columns:
+            link: PIIColumns/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+  Stage 32:
+    transactional: true
+    actors:
+      Count1:
+        parent: Count
+        out:
+          value:
+            schema: integer
+      MathDivMod1:
+        parent: MathDivMod
+        in:
+          b:
+            const: 50
+            schema: integer
+          a:
+            link: Count1/value
+  Stage 2:
+    transactional: true
+    dependsOn: Stage 32
+    actors:
+      Equals2:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 10
+            schema: integer
+          a:
+            link: MathDivMod1/mod
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution_buckets set processed_records
+              = ${processed_records} where task_id=${task_id} and execution_id=${execution_id}
+              and table_name=${table_name} and bucket_id=${bucket_id}
+          schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          processed_records:
+            link: Count1/value
+            schema: integer
+            mandatory: false
+            createdBy: sql
+    split: '--------------------'
+  Stage 39:
+    else: true
+    transactional: true
+    dependsOn: Stage 32
+  Stage 6:
+    last: 1
+    transactional: true
+  Stage 18:
+    last: 1
+    transactional: false
+  Stage 40:
+    transactional: false
+    actors:
+      Now1:
+        parent: Now
+      END_TIME:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 3:
+    transactional: false
+    actors:
+      DbCommand3:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution_buckets set processed_records
+              = ${processed_records}, end_time=${end_time}, status='Completed' where
+              task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
+              and bucket_id=${bucket_id}
+          schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          processed_records:
+            link: Num of records/result
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          end_time:
+            link: END_TIME/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+schemas:
+  bwGetColsForSelectStmt1.out.columns:
+    type: array
+    items:
+      type: string
+  Target Env Query.out.columns:
+    type: array
+    items:
+      type: string
+  bwGetBucketKeysList1.out.keys_list:
+    type: array
+    items:
+      type: object
+      properties:
+        ACTIVITY_ID:
+          type: integer
+        CUSTOMER_ID:
+          type: integer
+  Num of records.in.arr:
+    type: array
+    items:
+      type: string
+  ArrayGrouper1.out.result:
+    type: array
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          org_key:
+            type: string
+  Const1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        org_key:
+          type: string
+  bwGetKeysMapsList1.in.keyValues:
+    type: array
+    items:
+      type: string
+  bwGetKeysMapsList1.out.SrcCustomKeysList:
+    type: array
+    items:
+      type: string
+  bwGetKeysMapsList1.out.SrcKeysMapsList:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+  bwGetKeysMapsList1.out.SrcKeysCombinations:
+    type: array
+    items:
+      type: string
+  bwGetKeysMapsList1.out.TarCustomKeysList:
+    type: array
+    items:
+      type: string
+  bwGetKeysMapsList1.out.TarKeysMapsList:
+    type: array
+    items:
+      type: object
+      properties:
+        CUST_ID:
+          type: string
+  bwGetKeysMapsList1.out.TarKeysCombinations:
+    type: array
+    items:
+      type: string
+  DeepCopy1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DeepCopy2.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  SourceDbQuery.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+        FIRST_NAME:
+          type: string
+        LAST_NAME:
+          type: string
+  bwApplyTransformationBW1.in.records:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  bwApplyTransformationBW1.out.transformedRecords:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  DeepCopy Source RS.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        source_additional_phone:
+          type: string
+        source_birthday:
+          type: date
+        source_customer_id:
+          type: integer
+        source_email:
+          type: string
+        source_first_name:
+          type: string
+        source_id_number:
+          type: string
+        source_last_name:
+          type: string
+        source_occupation:
+          type: string
+        source_primary_phone:
+          type: string
+        source_social_net_fb:
+          type: string
+        source_social_net_lnk:
+          type: string
+        source_social_net_tw:
+          type: string
+  TargetDbQuery.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+        FIRST_NAME:
+          type: string
+        LAST_NAME:
+          type: string
+  bwApplyTransformationBW11.in.records:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  bwApplyTransformationBW11.out.transformedRecords:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  DeepCopy Target RS.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        target_additional_phone:
+          type: string
+        target_birthday:
+          type: date
+        target_customer_id:
+          type: integer
+        target_email:
+          type: string
+        target_first_name:
+          type: string
+        target_id_number:
+          type: string
+        target_last_name:
+          type: string
+        target_occupation:
+          type: string
+        target_primary_phone:
+          type: string
+        target_social_net_fb:
+          type: string
+        target_social_net_lnk:
+          type: string
+        target_social_net_tw:
+          type: string
+  keysMaps.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  CustomKeys.out.value:
+    type: array
+    items:
+      type: string
+  KeysValsCombos.out.value:
+    type: array
+    items:
+      type: string
+  keysMaps1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  CustomKeys1.out.value:
+    type: array
+    items:
+      type: string
+  KeysValsCombos1.out.value:
+    type: array
+    items:
+      type: string
+  Const2.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  Const3.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  Const4.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  Const5.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  Const6.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  Const7.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  FilterSRCRow.in.keys:
+    type: array
+    items:
+      type: string
+  FilterSRCRow.in.keysObj:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  FilterSRCRow.out.values:
+    type: array
+    items:
+      type: object
+      properties:
+        TAR_CUSTOMER_ID:
+          type: integer
+        TAR_FIRST_NAME:
+          type: string
+        TAR_MIDDLE_NAME: {
+          }
+        TAR_LAST_NAME:
+          type: string
+        TAR_EMAIL:
+          type: string
+        TAR_ALT_EMAIL: {
+          }
+        TAR_PHONE:
+          type: string
+        TAR_ALT_PHONE: {
+          }
+        TAR_SSN:
+          type: string
+        TAR_DATE_OF_BIRTH: {
+          }
+        TAR_ADDRESS_LINE1:
+          type: string
+        TAR_ADDRESS_LINE2: {
+          }
+        TAR_CITY:
+          type: string
+        TAR_STATE_PROVINCE: {
+          }
+        TAR_POSTAL_CODE:
+          type: string
+        TAR_COUNTRY:
+          type: string
+        TAR_GENDER:
+          type: string
+        TAR_MARITAL_STATUS:
+          type: string
+        TAR_NATIONAL_ID: {
+          }
+        TAR_PASSPORT_NO: {
+          }
+        TAR_SIGNUP_DATE:
+          type: string
+        TAR_LAST_LOGIN_TS: {
+          }
+        TAR_LAST_LOGIN_TZ: {
+          }
+        TAR_BALANCE:
+          type: number
+        TAR_CREDIT_LIMIT:
+          type: number
+        TAR_RISK_SCORE:
+          type: integer
+        TAR_LOYALTY_POINTS:
+          type: integer
+        TAR_IS_VIP:
+          type: string
+        TAR_PREFERRED_LANGUAGE:
+          type: string
+        TAR_TIMEZONE:
+          type: string
+        TAR_MARKETING_OPT_IN: {
+          }
+        TAR_COMM_CHANNEL: {
+          }
+        TAR_AVATAR_RAW: {
+          }
+        TAR_PROFILE_BLOB: {
+          }
+        TAR_NOTES: {
+          }
+        TAR_PREFERENCES_JSON: {
+          }
+        TAR_HOME_LAT: {
+          }
+        TAR_HOME_LON: {
+          }
+        TAR_FAVORITE_NUMBER: {
+          }
+        TAR_SMALL_FLAG: {
+          }
+        TAR_FLOAT_SCORE: {
+          }
+        TAR_DOUBLE_SCORE: {
+          }
+        TAR_HEIGHT_CM: {
+          }
+        TAR_WEIGHT_KG: {
+          }
+        TAR_CHILDREN_COUNT: {
+          }
+        TAR_CREATED_AT:
+          type: string
+        TAR_UPDATED_AT: {
+          }
+        TAR_VALID_FROM: {
+          }
+        TAR_VALID_TO: {
+          }
+        TAR_ROW_VERSION: {
+          }
+  FilterTARRow.in.keys:
+    type: array
+    items:
+      type: string
+  FilterTARRow.in.keysObj:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+  FilterTARRow.out.values:
+    type: array
+    items:
+      type: object
+      properties:
+        TAR_CUSTOMER_ID:
+          type: integer
+        TAR_FIRST_NAME:
+          type: string
+        TAR_MIDDLE_NAME: {
+          }
+        TAR_LAST_NAME:
+          type: string
+        TAR_EMAIL:
+          type: string
+        TAR_ALT_EMAIL: {
+          }
+        TAR_PHONE:
+          type: string
+        TAR_ALT_PHONE: {
+          }
+        TAR_SSN:
+          type: string
+        TAR_DATE_OF_BIRTH: {
+          }
+        TAR_ADDRESS_LINE1:
+          type: string
+        TAR_ADDRESS_LINE2: {
+          }
+        TAR_CITY:
+          type: string
+        TAR_STATE_PROVINCE: {
+          }
+        TAR_POSTAL_CODE:
+          type: string
+        TAR_COUNTRY:
+          type: string
+        TAR_GENDER:
+          type: string
+        TAR_MARITAL_STATUS:
+          type: string
+        TAR_NATIONAL_ID: {
+          }
+        TAR_PASSPORT_NO: {
+          }
+        TAR_SIGNUP_DATE:
+          type: string
+        TAR_LAST_LOGIN_TS: {
+          }
+        TAR_LAST_LOGIN_TZ: {
+          }
+        TAR_BALANCE:
+          type: number
+        TAR_CREDIT_LIMIT:
+          type: number
+        TAR_RISK_SCORE:
+          type: integer
+        TAR_LOYALTY_POINTS:
+          type: integer
+        TAR_IS_VIP:
+          type: string
+        TAR_PREFERRED_LANGUAGE:
+          type: string
+        TAR_TIMEZONE:
+          type: string
+        TAR_MARKETING_OPT_IN: {
+          }
+        TAR_COMM_CHANNEL: {
+          }
+        TAR_AVATAR_RAW: {
+          }
+        TAR_PROFILE_BLOB: {
+          }
+        TAR_NOTES: {
+          }
+        TAR_PREFERENCES_JSON: {
+          }
+        TAR_HOME_LAT: {
+          }
+        TAR_HOME_LON: {
+          }
+        TAR_FAVORITE_NUMBER: {
+          }
+        TAR_SMALL_FLAG: {
+          }
+        TAR_FLOAT_SCORE: {
+          }
+        TAR_DOUBLE_SCORE: {
+          }
+        TAR_HEIGHT_CM: {
+          }
+        TAR_WEIGHT_KG: {
+          }
+        TAR_CHILDREN_COUNT: {
+          }
+        TAR_CREATED_AT:
+          type: string
+        TAR_UPDATED_AT: {
+          }
+        TAR_VALID_FROM: {
+          }
+        TAR_VALID_TO: {
+          }
+        TAR_ROW_VERSION: {
+          }
+  DeepCopySRCRow.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_CUSTOMER_ID:
+          type: integer
+        SRC_FIRST_NAME:
+          type: string
+        SRC_MIDDLE_NAME:
+          type: string
+        SRC_LAST_NAME:
+          type: string
+        SRC_EMAIL:
+          type: string
+        SRC_ALT_EMAIL:
+          type: string
+        SRC_PHONE:
+          type: string
+        SRC_ALT_PHONE:
+          type: string
+        SRC_SSN:
+          type: string
+        SRC_DATE_OF_BIRTH:
+          type: date
+        SRC_ADDRESS_LINE1:
+          type: string
+        SRC_ADDRESS_LINE2:
+          type: string
+        SRC_CITY:
+          type: string
+        SRC_STATE_PROVINCE:
+          type: string
+        SRC_POSTAL_CODE:
+          type: string
+        SRC_COUNTRY:
+          type: string
+        SRC_GENDER:
+          type: string
+        SRC_MARITAL_STATUS:
+          type: string
+        SRC_NATIONAL_ID:
+          type: string
+        SRC_PASSPORT_NO:
+          type: string
+        SRC_SIGNUP_DATE:
+          type: date
+        SRC_LAST_LOGIN_TS:
+          type: date
+        SRC_BALANCE:
+          type: integer
+        SRC_CREDIT_LIMIT:
+          type: integer
+        SRC_RISK_SCORE:
+          type: integer
+        SRC_LOYALTY_POINTS:
+          type: integer
+        SRC_IS_VIP:
+          type: string
+        SRC_PREFERRED_LANGUAGE:
+          type: string
+        SRC_TIMEZONE:
+          type: string
+        SRC_MARKETING_OPT_IN:
+          type: string
+        SRC_COMM_CHANNEL:
+          type: string
+        SRC_HOME_LAT:
+          type: integer
+        SRC_HOME_LON:
+          type: integer
+        SRC_FAVORITE_NUMBER:
+          type: integer
+        SRC_SMALL_FLAG:
+          type: integer
+        SRC_FLOAT_SCORE:
+          type: number
+        SRC_DOUBLE_SCORE:
+          type: number
+        SRC_HEIGHT_CM:
+          type: integer
+        SRC_WEIGHT_KG:
+          type: integer
+        SRC_CHILDREN_COUNT:
+          type: integer
+        SRC_CREATED_AT:
+          type: date
+        SRC_UPDATED_AT:
+          type: date
+        SRC_VALID_FROM:
+          type: date
+        SRC_VALID_TO:
+          type: date
+        SRC_ROW_VERSION:
+          type: integer
+  DeepCopyTARRow.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        TAR_CUSTOMER_ID:
+          type: integer
+        TAR_FIRST_NAME:
+          type: string
+        TAR_MIDDLE_NAME: {
+          }
+        TAR_LAST_NAME:
+          type: string
+        TAR_EMAIL:
+          type: string
+        TAR_ALT_EMAIL: {
+          }
+        TAR_PHONE:
+          type: string
+        TAR_ALT_PHONE: {
+          }
+        TAR_SSN:
+          type: string
+        TAR_DATE_OF_BIRTH: {
+          }
+        TAR_ADDRESS_LINE1:
+          type: string
+        TAR_ADDRESS_LINE2: {
+          }
+        TAR_CITY:
+          type: string
+        TAR_STATE_PROVINCE: {
+          }
+        TAR_POSTAL_CODE:
+          type: string
+        TAR_COUNTRY:
+          type: string
+        TAR_GENDER:
+          type: string
+        TAR_MARITAL_STATUS:
+          type: string
+        TAR_NATIONAL_ID: {
+          }
+        TAR_PASSPORT_NO: {
+          }
+        TAR_SIGNUP_DATE:
+          type: date
+        TAR_LAST_LOGIN_TS: {
+          }
+        TAR_LAST_LOGIN_TZ: {
+          }
+        TAR_BALANCE:
+          type: integer
+        TAR_CREDIT_LIMIT:
+          type: integer
+        TAR_RISK_SCORE:
+          type: integer
+        TAR_LOYALTY_POINTS:
+          type: integer
+        TAR_IS_VIP:
+          type: string
+        TAR_PREFERRED_LANGUAGE:
+          type: string
+        TAR_TIMEZONE:
+          type: string
+        TAR_MARKETING_OPT_IN: {
+          }
+        TAR_COMM_CHANNEL: {
+          }
+        TAR_AVATAR_RAW: {
+          }
+        TAR_PROFILE_BLOB: {
+          }
+        TAR_NOTES: {
+          }
+        TAR_PREFERENCES_JSON: {
+          }
+        TAR_HOME_LAT: {
+          }
+        TAR_HOME_LON: {
+          }
+        TAR_FAVORITE_NUMBER: {
+          }
+        TAR_SMALL_FLAG: {
+          }
+        TAR_FLOAT_SCORE: {
+          }
+        TAR_DOUBLE_SCORE: {
+          }
+        TAR_HEIGHT_CM: {
+          }
+        TAR_WEIGHT_KG: {
+          }
+        TAR_CHILDREN_COUNT: {
+          }
+        TAR_CREATED_AT:
+          type: date
+        TAR_UPDATED_AT: {
+          }
+        TAR_VALID_FROM: {
+          }
+        TAR_VALID_TO: {
+          }
+        TAR_ROW_VERSION: {
+          }
+  bwVerifyKeysExists1.in.src_row:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  bwVerifyKeysExists1.in.tar_row:
+    type: array
+    items:
+      type: object
+      properties:
+        TAR_FIRST_NAME:
+          type: string
+        TAR_LAST_NAME:
+          type: string
+        TAR_CUSTOMER_ID:
+          type: string
+        TAR_SSN:
+          type: string
+  bwVerifyKeysExists1.in.target_column_value:
+    type: array
+    items: {
+      }
+  bwVerifyKeysExists1.in.source_column_value:
+    type: array
+    items: {
+      }
+  bwVerifyRecordData2.in.src_row:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+  bwVerifyRecordData2.in.tar_row:
+    type: object
+    properties:
+      TAR_FIRST_NAME:
+        type: string
+      TAR_LAST_NAME:
+        type: string
+      TAR_CUSTOMER_ID:
+        type: string
+      TAR_SSN:
+        type: string

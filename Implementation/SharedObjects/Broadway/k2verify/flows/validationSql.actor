@@ -1,0 +1,25 @@
+{
+    "type": "validationSql",
+    "badge": "va",
+    "inputs": [
+        {
+            "name": "script",
+            "const": "var sql;\n\nvar db = dbType.toLowerCase();\nvar validation = validationType.toLowerCase(); // \"schema\" | \"table\" | \"column\"\n\n// ------------------ POSTGRES ------------------\nif (db == \"postgresql (db)\".toLowerCase()) {\n    if (validation == \"schema\")\n        sql = \"SELECT 1 FROM information_schema.schemata WHERE schema_name = '${@schema}'\";\n    else if (validation == \"table\")\n        sql = \"SELECT 1 FROM information_schema.tables WHERE table_schema = '${@schema}' AND table_name = '${@table}'\";\n    else if (validation == \"column\")\n        sql = \"SELECT 1 FROM information_schema.columns WHERE table_schema = '${@schema}' AND table_name = '${@table}' AND column_name = '${@column}'\";\n}\n\n// ------------------ CASSANDRA ------------------\nelse if (db == \"cassandra (db)\".toLowerCase()) {\n    if (validation == \"schema\")\n        sql = \"SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '${@schema}'\";\n    else if (validation == \"table\")\n        sql = \"SELECT table_name FROM system_schema.tables WHERE keyspace_name = '${@schema}' AND table_name = '${@table}'\";\n    else if (validation == \"column\")\n        sql = \"SELECT column_name FROM system_schema.columns WHERE keyspace_name = '${@schema}' AND table_name = '${@table}' AND column_name = '${@column}'\";\n}\n\n// ------------------ ORACLE ------------------\nelse if (db == \"oracle (db)\".toLowerCase()) {\n    if (validation == \"schema\")\n        sql = \"SELECT 1 FROM all_users WHERE username = UPPER('${@schema}')\";\n    else if (validation == \"table\")\n        sql = \"SELECT 1 FROM all_tables WHERE owner = UPPER('${@schema}') AND table_name = UPPER('${@table}')\";\n    else if (validation == \"column\")\n        sql = \"SELECT 1 FROM all_tab_columns WHERE owner = UPPER('${@schema}') AND table_name = UPPER('${@table}') AND column_name = UPPER('${@column}')\";\n}\n\n// ------------------ DB2 ------------------\nelse if (db == \"db2 (db)\".toLowerCase()) {\n    if (validation == \"schema\")\n        sql = \"SELECT 1 FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = UPPER('${@schema}')\";\n    else if (validation == \"table\")\n        sql = \"SELECT 1 FROM SYSCAT.TABLES WHERE TABSCHEMA = UPPER('${@schema}') AND TABNAME = UPPER('${@table}')\";\n    else if (validation == \"column\")\n        sql = \"SELECT 1 FROM SYSCAT.COLUMNS WHERE TABSCHEMA = UPPER('${@schema}') AND TABNAME = UPPER('${@table}') AND COLNAME = UPPER('${@column}')\";\n}\n\nsql;\n"
+        },
+        {
+            "name": "validationType",
+            "schema": {},
+            "mandatory": false
+        },
+        {
+            "name": "dbType",
+            "schema": {},
+            "mandatory": false
+        }
+    ],
+    "outputs": [],
+    "tags": [
+        "k2verify"
+    ],
+    "parentType": "JavaScript"
+}

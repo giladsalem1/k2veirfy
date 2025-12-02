@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VirtualDB xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="">
+  <Name>vdb</Name>
+  <RootView>root</RootView>
+  <CacheLocationType>Default</CacheLocationType>
+  <LuLazyDataUpdate syncMethod="None" performEvery="1.00:00:00" syncTimeout="0">
+  	<DecisionFunction></DecisionFunction>
+  </LuLazyDataUpdate>
+  <EventsList>
+	 <Event name="fnReportBucketCompleted" eventType="SyncSucceeded" />
+	 <Event name="fnReportBucketFailed" eventType="SyncFailed" />
+  </EventsList>
+  <IidFinderProp enabled="false">
+    <NumberOfPartitions>100</NumberOfPartitions>
+    <NumberOfJobs>50</NumberOfJobs>
+  </IidFinderProp>
+  <Tables>
+	 <Table>entity_summary</Table>
+	 <Table>field_summary</Table>
+	 <Table>record_summary</Table>
+	 <Table>root</Table>
+	 <Table>table_summary</Table>
+  </Tables>
+  <TablesProperties>
+	 <TableProperties name="entity_summary">
+      <Populations>
+        <Population name="entity_summary_population.flow" order="903" disabled="true" populationType="Flow" />
+      </Populations>
+    </TableProperties>
+	 <TableProperties name="field_summary">
+      <Populations>
+        <Population name="field_summary_population.flow" order="900" disabled="false" populationType="Flow" />
+      </Populations>
+    </TableProperties>
+	 <TableProperties name="record_summary">
+      <Populations>
+        <Population name="record_summary_population.flow" order="901" disabled="false" populationType="Flow" />
+      </Populations>
+    </TableProperties>
+	 <TableProperties name="root">
+      <Populations>
+        <Population name="population.flow" order="1" disabled="false" populationType="Flow" />
+      </Populations>
+    </TableProperties>
+	 <TableProperties name="table_summary">
+      <Populations>
+        <Population name="table_summary_population.flow" order="902" disabled="true" populationType="Flow" />
+      </Populations>
+    </TableProperties>
+  </TablesProperties>
+  <EnrichmentsOrderList>
+  </EnrichmentsOrderList>
+  <ReferencesList>
+  </ReferencesList>
+  <Relations />
+  <DatabaseRelations>
+	  <Relation>
+        <From tableType="TableObject" table="root" column="IID" columnId="IID" />
+        <To tableType="TableObject" table="record_summary" populationObjectName="record_summary_population.flow" column="iid" columnId="tblCol_94282ace1f5f473aaeaa8169152e9407" />
+      </Relation>
+	  <Relation>
+        <From tableType="TableObject" table="root" column="IID" columnId="IID" />
+        <To tableType="TableObject" table="table_summary" populationObjectName="table_summary_population.flow" column="iid" columnId="tblCol_94282ace1f5f473aaeaa8169152e9407" />
+      </Relation>
+	  <Relation>
+        <From tableType="TableObject" table="root" column="IID" columnId="IID" />
+        <To tableType="TableObject" table="entity_summary" populationObjectName="entity_summary_population.flow" column="iid" columnId="tblCol_94282ace1f5f473aaeaa8169152e9407" />
+      </Relation>
+	  <Relation>
+        <From tableType="TableObject" table="root" column="IID" columnId="IID" />
+        <To tableType="TableObject" table="field_summary" populationObjectName="field_summary_population.flow" column="iid" columnId="tblCol_94282ace1f5f473aaeaa8169152e9407" />
+      </Relation>
+  </DatabaseRelations>
+  <DiagramGraph>
+    <Graph name="vdb.k2vdb.xml">
+      <Group name="D2D" pos="-188 109" expanded="true">
+        <Node name="entity_summary" pos="239 806" viewType="Table" />
+        <Node name="field_summary" pos="239 215" viewType="Table" />
+        <Node name="record_summary" pos="239 431" viewType="Table" />
+        <Node name="root" pos="-62 476" viewType="Table" />
+        <Node name="table_summary" pos="239 606" viewType="Table" />
+      </Group>
+    </Graph>
+  </DiagramGraph>
+</VirtualDB>

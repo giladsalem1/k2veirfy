@@ -1,0 +1,22 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: value
+  Stage 2:
+    actors:
+      MathAdd1:
+        parent: MathAdd
+        in:
+          b:
+            const: 1
+          a:
+            link: Const1/value
+        out:
+          result:
+            external: value

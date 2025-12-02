@@ -1,0 +1,357 @@
+tags: D2D,k2verify
+stages:
+  Keys table details:
+    actors:
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnGetCustomInterfaceDetails
+          customInterfaceName:
+            const: K2Verify_Cassandra_Details
+            schema: string
+            mandatory: false
+        out:
+          interfaceDetails:
+            schema: '#ref'
+      SEPARATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+      ReplaceDelimeter:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: SEPARATOR/variableValue
+          replace:
+            const: ','
+          string:
+            external: customized_key
+      FabricSetRead1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_CQLSH_BIN_DIR
+  Stage 54:
+    actors:
+      Format Copy Cmd:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/cqlsh -u ${user} -p '${pwd}' --cqlshrc=. "${host}" ${port}
+              ${data} --request-timeout=60000 -e "CONSISTENCY QUOROM; copy ${cass_keyspace}.${cass_table}
+              (${keys}) to '/opt/apps/fabric/workspace/d2d_file_keys.csv' with pagetimeout=12000
+              AND HEADER = TRUE;"
+          keys:
+            link: ReplaceDelimeter/string
+            schema: string
+            mandatory: false
+          user:
+            link: LuFunction1/interfaceDetails/User
+            schema: string
+            mandatory: false
+          pwd:
+            link: LuFunction1/interfaceDetails/Password
+            schema: string
+            mandatory: false
+          host:
+            link: LuFunction1/interfaceDetails/Host
+            schema: string
+            mandatory: false
+          port:
+            link: LuFunction1/interfaceDetails/Port
+            schema: string
+            mandatory: false
+          data:
+            link: LuFunction1/interfaceDetails/Data
+            schema: string
+            mandatory: false
+          dir:
+            link: FabricSetRead1/result
+            schema: any
+            mandatory: false
+            createdBy: format
+          cass_keyspace:
+            external: cass_keyspace
+            schema: any
+            mandatory: false
+            createdBy: format
+          cass_table:
+            external: cass_table
+            schema: any
+            mandatory: false
+            createdBy: format
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: -c
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 5:
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+            - path: Const1/value
+              pos: 0
+            - path: Format Copy Cmd/string
+              pos: 1
+        out:
+          array:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      Exec1:
+        parent: Exec
+        in:
+          command:
+            const: bash
+          params:
+            const: null
+            link: ArrayBuilder1/array
+  Stage 36:
+    actors:
+      FileRead1:
+        parent: FileRead
+        in:
+          interface:
+            const: file:///opt/apps/fabric/workspace/
+          path:
+            const: d2d_file_keys.csv
+  Stage 6:
+    actors:
+      CsvParser1:
+        parent: CsvParser
+        in:
+          stream:
+            link: FileRead1/stream
+        out:
+          object:
+            schema: '#ref'
+  Stage 7:
+    transactional: true
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: CsvParser1/object
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Stage 3:
+    transactional: true
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: value.get(0);
+          value:
+            link: Const2/value
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      JavaScript4:
+        parent: JavaScript
+        in:
+          script:
+            const: value.values();
+          value:
+            link: Const2/value
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 9:
+    transactional: true
+    actors:
+      JavaScript17:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                function hashString(str) {
+                  let hash = 5381;
+                  for (let i = 0; i < str.length; i++) {
+                    hash = ((hash << 5) + hash) + str.charCodeAt(i); // hash * 33 + c
+                  }
+                  return hash >>> 0;
+                }
+
+                if (!isNaN(value)) {
+                    value; // Return if it's a valid number
+                  } else {
+                     hashString(String(value));
+                }
+              script: |-
+                function hashString(str) {
+                  var hash = 5381;
+
+                  for (var i = 0; i < str.length; i++) {
+                    hash = (hash << 5) + hash + str.charCodeAt(i); // hash * 33 + c
+                  }
+
+                  return hash >>> 0;
+                }
+
+                if (!isNaN(value)) {
+                  value; // Return if it's a valid number
+                } else {
+                  hashString(String(value));
+                }
+          value:
+            link: JavaScript1/result
+            schema: integer
+            mandatory: false
+        out:
+          result:
+            schema: integer
+  Stage 49:
+    transactional: true
+    actors:
+      MathDivMod1:
+        parent: MathDivMod
+        in:
+          b:
+            external: buckets_count
+            schema: integer
+          a:
+            link: JavaScript17/result
+      Concat1:
+        parent: Concat
+        in:
+          delimiter:
+            const: null
+            link: SEPARATOR/variableValue
+          elements:
+            link: JavaScript4/result
+  Stage 10:
+    last: 1
+    transactional: true
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: com.k2view.fabric.common.io.basic.exception.StandardSqlException
+              conditions:
+                standardType: UNIQUE_CONSTRAINT
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: duplicate key value violates unique constraint
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          command:
+            const: upsert
+          schema:
+            const: null
+            external: operational_schema
+          table:
+            const: null
+            external: keys_table_name
+          fields:
+            const:
+            - group_id
+            - org_key
+          keys:
+            const:
+            - org_key
+          dialect:
+            const: postgres
+          ignoreNulls:
+            const: true
+          batch:
+            const: true
+          group_id:
+            link: MathDivMod1/mod
+            schema: integer
+            mandatory: false
+          org_key:
+            link: Concat1/string
+            schema: string
+            mandatory: false
+  Stage 1:
+    transactional: false
+schemas:
+  LuFunction1.out.interfaceDetails:
+    type: object
+    properties:
+      Data:
+        type: string
+      Host:
+        type: string
+      ioprovider:
+        type: string
+      Password:
+        type: string
+      Port:
+        type: string
+      TechType:
+        type: string
+      User:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: string
+  CsvParser1.out.object:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: string
+        ssn:
+          type: string
+  Const2.out.value:
+    type: object
+    properties:
+      customer_id:
+        type: string
+      ssn:
+        type: string
+  JavaScript1.in.value:
+    type: object
+    properties:
+      cust_id:
+        type: string
+  JavaScript4.in.value:
+    type: object
+    properties:
+      cust_id:
+        type: string

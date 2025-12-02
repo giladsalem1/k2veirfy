@@ -1,0 +1,28 @@
+tags: application
+stages:
+  Stage 1:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          sql:
+            const: select task_id,execution_id from k2verify.task_execution
+              where (lower(execution_status) <> 'failed' AND lower(execution_status)
+              <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status)
+              <> 'killed')
+        out:
+          result:
+            external: result
+            schema: '#ref'
+  Stage 2: {
+    }
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        task_id:
+          type: integer

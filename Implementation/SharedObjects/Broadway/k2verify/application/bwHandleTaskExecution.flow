@@ -1,0 +1,1357 @@
+{
+    "tags": [
+        "D2D",
+        "D2D\flows",
+        "k2verify"
+    ],
+    "levels": [
+        {
+            "stages": [
+                {
+                    "name": "Stage 5",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "GetLUName1",
+                            "actorType": {
+                                "parentType": "GetLUName",
+                                "inputs": [],
+                                "outputs": [
+                                    {
+                                        "name": "lu_name",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Flow params",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "K2VERIFY_INTERFACE",
+                            "actorType": {
+                                "parentType": "GetLUVariable",
+                                "inputs": [
+                                    {
+                                        "name": "variableName",
+                                        "const": "K2VERIFY_OPERATIONAL_INTERFACE"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "K2VERIFY_SCHEMA",
+                            "actorType": {
+                                "parentType": "GetLUVariable",
+                                "inputs": [
+                                    {
+                                        "name": "variableName",
+                                        "const": "K2VERIFY_OPERATIONAL_SCHEMA"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Now",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "START_TIME",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TASK_ID",
+                            "actorType": {
+                                "parentType": "ToNumber",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Created By",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "FetchUser",
+                            "actorType": {
+                                "parentType": "DbFetchField",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "select created_by from ${@schema}.tasks where task_id=${task_id}"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Load task execution table",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "LoadTaskExec",
+                            "actorType": {
+                                "parentType": "DbLoad",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "table",
+                                        "const": "task_execution"
+                                    },
+                                    {
+                                        "name": "fields",
+                                        "const": [
+                                            "task_id",
+                                            "execution_status",
+                                            "start_time",
+                                            "started_by"
+                                        ]
+                                    },
+                                    {
+                                        "name": "keys",
+                                        "const": [
+                                            "execution_id",
+                                            "task_id"
+                                        ]
+                                    },
+                                    {
+                                        "name": "dialect",
+                                        "const": "postgres"
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "const": "In_Progress",
+                                        "name": "execution_status",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "start_time",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "started_by",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "fields",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Fetch execution id",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "FetchExecutionID",
+                            "actorType": {
+                                "parentType": "DbFetchField",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "select execution_id from ${@schema}.task_execution where task_id=${task_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Fetch task props",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "FetchTaskProps",
+                            "actorType": {
+                                "parentType": "DbFetchField",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "select properties from ${@schema}.tasks where task_id=${task_id}"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Format properties",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "JsonParser1",
+                            "actorType": {
+                                "parentType": "JsonParser",
+                                "inputs": [],
+                                "outputs": [
+                                    {
+                                        "name": "object",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "K2VERIFY_TASK_TITLE": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TASK_DESCRIPTION": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SCHEMA_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SCHEMA_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TABLE_LIST": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "src": {
+                                                                "type": "string"
+                                                            },
+                                                            "tar": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                "K2VERIFY_LOGPASS": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 8",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "bwValidateMtableParams1",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwValidateMtableParams"
+                                    },
+                                    {
+                                        "name": "taskProps",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "K2VERIFY_TASK_TITLE": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TASK_DESCRIPTION": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SCHEMA_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SCHEMA_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TABLE_LIST": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "src": {
+                                                                "type": "string"
+                                                            },
+                                                            "tar": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                "K2VERIFY_LOGPASS": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Table props",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Const2",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Execute tables DA",
+                    "dependsOnList": [],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "DATableExecution",
+                            "actorType": {
+                                "parentType": "BroadwayJob",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwExecuteTableDataVerify"
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "maxWorkers",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "log_pass",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "compare_only_pii",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 1",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "While1",
+                            "actorType": {
+                                "parentType": "While",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": "true;"
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 2",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Const1",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "DbFetchFirstRow1",
+                            "actorType": {
+                                "parentType": "DbFetchFirstRow",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "jobstatus name='K2Verify.bwExecuteTableDataVerify'"
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "Type": {
+                                                    "type": "string"
+                                                },
+                                                "Name": {
+                                                    "type": "string"
+                                                },
+                                                "UID": {
+                                                    "type": "string"
+                                                },
+                                                "Status": {
+                                                    "type": "string"
+                                                },
+                                                "Creation Time": {
+                                                    "type": "string"
+                                                },
+                                                "Start Time": {
+                                                    "type": "string"
+                                                },
+                                                "End Time": {
+                                                    "type": "string"
+                                                },
+                                                "Affinity": {
+                                                    "type": "string"
+                                                },
+                                                "Is Archived": {
+                                                    "type": "string"
+                                                },
+                                                "Next Run": {
+                                                    "type": "string"
+                                                },
+                                                "Ownership Candidates Num": {
+                                                    "type": "string"
+                                                },
+                                                "Notes": {
+                                                    "type": "string"
+                                                },
+                                                "Node": {
+                                                    "type": "string"
+                                                },
+                                                "Tries": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 3",
+                    "dependsOnList": [
+                        "Stage 2"
+                    ],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "NotNull1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotNull",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Sleep1",
+                            "actorType": {
+                                "parentType": "Sleep",
+                                "inputs": [
+                                    {
+                                        "name": "millis",
+                                        "const": 10000
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 4",
+                    "dependsOnList": [
+                        "Stage 2"
+                    ],
+                    "isLast": 1,
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "LoopStop1",
+                            "actorType": {
+                                "parentType": "LoopStop",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 6",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Now1",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 7",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "DbCommand4",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set execution_status='Completed', end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "end_time",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "connections": [
+        {
+            "leftPort": {
+                "actor": "GetLUName1",
+                "name": "lu_name"
+            },
+            "rightPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "luName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "GetLUName1",
+                "name": "lu_name"
+            },
+            "rightPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "luName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand4",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand4",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "START_TIME",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "START_TIME",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "start_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "DbCommand4",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchUser",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "started_by"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "DbCommand4",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchTaskProps",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "JsonParser1",
+                "name": "stream"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "bwValidateMtableParams1",
+                "name": "taskProps"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "Const2",
+                "name": "value"
+            },
+            "path": [
+                "K2VERIFY_TABLE_LIST"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Source_Interface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Target_Interface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Source_Schema"
+            },
+            "path": [
+                "K2VERIFY_SCHEMA_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Target_Schema"
+            },
+            "path": [
+                "K2VERIFY_SCHEMA_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "maxWorkers"
+            },
+            "path": [
+                "K2VERIFY_MAXWORKERSPERNODE"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "log_pass"
+            },
+            "path": [
+                "K2VERIFY_LOGPASS"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JsonParser1",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "compare_only_pii"
+            },
+            "path": [
+                "K2VERIFY_PII_ONLY_COMPARISON"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Const2",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Target_Table_Name"
+            },
+            "iterate": "Iterate",
+            "path": [
+                "tar"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Const2",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DATableExecution",
+                "name": "Source_Table_Name"
+            },
+            "iterate": "Iterate",
+            "path": [
+                "src"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "While1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Const1",
+                "name": "value"
+            },
+            "iterate": "Iterate"
+        },
+        {
+            "leftPort": {
+                "actor": "DbFetchFirstRow1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "NotNull1",
+                "name": "value"
+            },
+            "iterate": "First",
+            "path": [
+                "Name"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Now1",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "DbCommand4",
+                "name": "end_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "TASK_ID",
+                "name": "value"
+            }
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+stages:
+  Stage 1:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          sql:
+            const: |-
+              SELECT
+                  *
+              FROM k2verify.tasks where lower(task_status) <> 'inactive'
+              order by task_id desc
+        out:
+          result:
+            external: result
+            schema: '#ref'
+  Stage 2: {
+    }
+  Stage 3: {
+    }
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        task_id:
+          type: integer
+        task_title:
+          type: string
+        task_status:
+          type: string
+        task_config: {
+          }
+        created_by:
+          type: string
+        created_at:
+          type: date
+        updated_by:
+          type: string
+        updated_at:
+          type: date

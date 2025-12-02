@@ -1,0 +1,125 @@
+tags: d2d,D2D,k2verify
+stages:
+  Input:
+    actors:
+      GetLUName1:
+        parent: GetLUName
+  base table names:
+    transactional: false
+    actors:
+      field_summary:
+        parent: Const
+        in:
+          value:
+            const: K2VERIFY_FIELD_SUMMARY
+            schema: string
+        out:
+          value:
+            schema: string
+      record_summary:
+        parent: Const
+        in:
+          value:
+            const: K2VERIFY_RECORD_SUMMARY
+            schema: string
+        out:
+          value:
+            schema: string
+      table_summary:
+        parent: Const
+        in:
+          value:
+            const: K2VERIFY_TABLE_SUMMARY
+            schema: string
+        out:
+          value:
+            schema: string
+      entity_summary:
+        parent: Const
+        in:
+          value:
+            const: K2VERIFY_ENTITY_SUMMARY
+            schema: string
+        out:
+          value:
+            schema: string
+      Schema:
+        parent: StringFormat
+        in:
+          format:
+            const: ${luType}.K2VERIFY_OPERATIONAL_SCHEMA
+          luType:
+            link: GetLUName1/lu_name
+            schema: string
+            mandatory: false
+  format output:
+    transactional: false
+    actors:
+      field_summary_result:
+        parent: StringFormat
+        in:
+          format:
+            const: ${prefix}${tablename}
+          prefix:
+            schema: string
+            mandatory: false
+          tablename:
+            link: field_summary/value
+            schema: string
+            mandatory: false
+        out:
+          string:
+            external: field_summary
+      'record_summary_result ':
+        parent: StringFormat
+        in:
+          format:
+            const: ${prefix}${tablename}
+          prefix:
+            schema: string
+            mandatory: false
+          tablename:
+            link: record_summary/value
+            schema: string
+            mandatory: false
+        out:
+          string:
+            external: record_summary
+      'table_summary_result ':
+        parent: StringFormat
+        in:
+          format:
+            const: ${prefix}${tablename}
+          prefix:
+            schema: string
+            mandatory: false
+          tablename:
+            link: table_summary/value
+            schema: string
+            mandatory: false
+        out:
+          string:
+            external: table_summary
+      'entity_summary_result ':
+        parent: StringFormat
+        in:
+          format:
+            const: ${prefix}${tablename}
+          prefix:
+            schema: string
+            mandatory: false
+          tablename:
+            link: entity_summary/value
+            schema: string
+            mandatory: false
+        out:
+          string:
+            external: entity_summary
+      Read Schema:
+        parent: FabricSetRead
+        in:
+          key:
+            link: Schema/string
+        out:
+          result:
+            external: schema

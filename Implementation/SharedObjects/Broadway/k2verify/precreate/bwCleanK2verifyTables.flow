@@ -1,0 +1,36 @@
+tags: d2d,precreate,D2D,k2verify
+stages:
+  Tables names:
+    actors:
+      Summary Tables:
+        parent: ConstStrings
+        in:
+          strings:
+            const:
+            - K2VERIFY_FIELD_SUMMARY
+            - K2VERIFY_RECORD_SUMMARY
+            - K2VERIFY_TABLE_SUMMARY
+            - K2VERIFY_ENTITY_SUMMARY
+  Execute:
+    transactional: true
+    actors:
+      Clean D2D Tables:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: DELETE FROM ${@schema}.${@table}
+            external: sql
+            default: true
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+          table:
+            link:
+              path: Summary Tables/strings
+              iterate: Iterate
+            schema: string
+            mandatory: false

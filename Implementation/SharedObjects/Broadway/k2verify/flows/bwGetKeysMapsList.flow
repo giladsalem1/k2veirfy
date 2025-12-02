@@ -1,0 +1,382 @@
+tags: k2verify
+stages:
+  Stage 2:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: keyValues
+      CustomizedKey:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customizedKey
+      Split2:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            external: delim
+          string:
+            link: CustomizedKey/value
+      bwGetColsForSelectStmt1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetColsForSelectStmt
+          env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            external: columnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            external: delim
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          select_columns:
+            link: Split2/strings
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          colsFromPII:
+            const: 'true'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          columns_for_select:
+            schema: string
+          columns:
+            schema: '#ref'
+      StringBuild1:
+        parent: StringBuild
+        in:
+          delimiter:
+            const: null
+            external: delim
+          input:
+            link: bwGetColsForSelectStmt1/columns
+  Stage 1:
+    actors:
+      FlattenValues:
+        parent: ArrayConcat
+        in:
+          input:
+            link:
+              path: Const1/value
+              iterate: Iterate
+        out:
+          array:
+            schema: '#ref'
+  Stage 7:
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                var values = dataStr.split(delimiter);
+                var keys = keysStr.split(delimiter);
+
+                var parts = [];
+                for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var val = (values[i] !== undefined && values[i] !== null) ? values[i] : "";
+                parts.push('"' + key + '":"' + val + '"');
+                }
+
+                '[' + parts.join(',') + ']';
+              script: |-
+                var values = dataStr.split(delimiter);
+                var keys = keysStr.split(delimiter);
+                var parts = [];
+
+                for (var i = 0; i < keys.length; i++) {
+                  var key = keys[i];
+                  var val = values[i] !== undefined && values[i] !== null ? values[i] : "";
+                  parts.push('"' + key + '":"' + val + '"');
+                }
+
+                '[' + parts.join(',') + ']';
+          keysStr:
+            external: customizedKey
+            schema: string
+            mandatory: false
+          delimiter:
+            external: delim
+            schema: string
+            mandatory: false
+          dataStr:
+            link:
+              path: FlattenValues/array
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      KeysValues:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            external: delim
+          string:
+            link:
+              path: FlattenValues/array
+              iterate: First
+      ArrayToMap1:
+        parent: ArrayToMap
+        in:
+          keys:
+            const: null
+            link: Split2/strings
+          values:
+            link: KeysValues/strings
+        out:
+          map:
+            schema: '#ref'
+      CustomKeysCombos:
+        parent: ArrayBuilder
+        resetOnFirstIteration: true
+        in:
+          input:
+            link:
+              path: FlattenValues/array
+              iterate: First
+        out:
+          array:
+            schema: '#ref'
+      JavaScript2:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                var values = dataStr.split(delimiter);
+                var keys = keysStr.split(delimiter);
+
+                var parts = [];
+                for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var val = (values[i] !== undefined && values[i] !== null) ? values[i] : "";
+                parts.push('"' + key + '":"' + val + '"');
+                }
+
+                '[' + parts.join(',') + ']';
+              script: |-
+                var values = dataStr.split(delimiter);
+                var keys = keysStr.split(delimiter);
+                var parts = [];
+
+                for (var i = 0; i < keys.length; i++) {
+                  var key = keys[i];
+                  var val = values[i] !== undefined && values[i] !== null ? values[i] : "";
+                  parts.push('"' + key + '":"' + val + '"');
+                }
+
+                '[' + parts.join(',') + ']';
+          keysStr:
+            link: StringBuild1/string
+            schema: string
+            mandatory: false
+          delimiter:
+            external: delim
+            schema: string
+            mandatory: false
+          dataStr:
+            link:
+              path: FlattenValues/array
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      KeysValues1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            external: delim
+          string:
+            link:
+              path: FlattenValues/array
+              iterate: First
+      ArrayToMap2:
+        parent: ArrayToMap
+        in:
+          keys:
+            const: null
+            link: bwGetColsForSelectStmt1/columns
+          values:
+            link: KeysValues1/strings
+        out:
+          map:
+            schema: '#ref'
+  Stage 9:
+    last: 1
+    actors:
+      KeysMapsArr:
+        parent: ArrayBuilder
+        resetOnFirstIteration: true
+        in:
+          input:
+            link:
+              path: ArrayToMap1/map
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+      CustomKeysArr:
+        parent: ArrayBuilder
+        resetOnFirstIteration: true
+        in:
+          input:
+            link:
+              path: JavaScript1/result
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+      KeysMapsArr1:
+        parent: ArrayBuilder
+        resetOnFirstIteration: true
+        in:
+          input:
+            link:
+              path: ArrayToMap2/map
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+      CustomKeysArr1:
+        parent: ArrayBuilder
+        resetOnFirstIteration: true
+        in:
+          input:
+            link:
+              path: JavaScript2/result
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CustomKeysArr/array
+        out:
+          value:
+            external: SrcCustomKeysList
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: KeysMapsArr/array
+        out:
+          value:
+            external: SrcKeysMapsList
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CustomKeysCombos/array
+        out:
+          value:
+            external: SrcKeysCombinations
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CustomKeysArr1/array
+        out:
+          value:
+            external: TarCustomKeysList
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: KeysMapsArr1/array
+        out:
+          value:
+            external: TarKeysMapsList
+      Const7:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CustomKeysCombos/array
+        out:
+          value:
+            external: TarKeysCombinations
+schemas:
+  bwGetColsForSelectStmt1.out.columns:
+    type: array
+    items:
+      type: string
+  FlattenValues.out.array:
+    type: array
+    items:
+      type: integer
+  JavaScript1.in.dataStr:
+    type: object
+    properties:
+      org_key:
+        type: string
+  ArrayToMap1.out.map:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      ' SSN':
+        type: string
+  CustomKeysCombos.out.array:
+    type: array
+    items:
+      type: string
+  JavaScript2.in.dataStr:
+    type: object
+    properties:
+      org_key:
+        type: string
+  ArrayToMap2.out.map:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      ' SSN':
+        type: string
+  KeysMapsArr.out.array:
+    type: array
+    items:
+      type: string
+  CustomKeysArr.out.array:
+    type: array
+    items:
+      type: string
+  KeysMapsArr1.out.array:
+    type: array
+    items:
+      type: string
+  CustomKeysArr1.out.array:
+    type: array
+    items:
+      type: string

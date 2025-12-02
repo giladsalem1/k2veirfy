@@ -1,0 +1,96 @@
+tags: application
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: execution_id
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          sql:
+            const: |
+              SELECT
+                t.table_name,
+                t.batch_id,
+                t.status                  AS table_status,
+                t.start_time,
+                t.end_time,
+                COUNT(DISTINCT b.bucket_id)        AS bucket_count,
+                COALESCE(SUM(b.total_records), 0)  AS total_records,
+                COALESCE(SUM(b.processed_records), 0) AS processed_records,
+                COALESCE(SUM(b.failed_records), 0)    AS failed_records
+              FROM k2verify.task_execution_tables AS t
+              LEFT JOIN k2verify.task_execution_buckets AS b
+                ON  b.task_id      = t.task_id
+                AND b.execution_id = t.execution_id
+                AND b.table_name   = t.table_name
+              WHERE t.task_id      = ${task_id}
+                AND t.execution_id = ${execution_id}
+              GROUP BY
+                t.table_name,
+                t.batch_id,
+                t.status,
+                t.start_time,
+                t.end_time
+              ORDER BY
+                t.table_name,
+                t.batch_id;
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: Const2/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        table_name:
+          type: string
+        batch_id:
+          type: integer
+        table_status:
+          type: string
+        start_time:
+          type: date
+        end_time:
+          type: date
+        bucket_count:
+          type: integer
+        total_records:
+          type: integer
+        processed_records:
+          type: integer
+        failed_records:
+          type: integer

@@ -1,0 +1,107 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: execution_id
+            schema: string
+        out:
+          value:
+            schema: string
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: table_name
+        out:
+          value:
+            schema: string
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: select * from ${@schema_name}.task_execution_buckets where task_id
+              = ${task_id} and execution_id =${execution_id} and table_name =${table_name}
+              order by status desc
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: Const2/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: Const3/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        task_id:
+          type: integer
+        execution_id:
+          type: integer
+        table_name:
+          type: string
+        bucket_id:
+          type: integer
+        status:
+          type: string
+        total_records:
+          type: integer
+        processed_records:
+          type: integer
+        failed_records:
+          type: integer
+        start_time:
+          type: date
+        end_time:
+          type: date
+        error_info:
+          type: string

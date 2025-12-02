@@ -1,0 +1,964 @@
+tags: d2d,d2dv2,D2D,k2verify
+stages:
+  Stage 4:
+    transactional: true
+    actors:
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: src_row
+        out:
+          value:
+            schema: '#ref'
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: tar_row
+        out:
+          value:
+            schema: '#ref'
+      ToBool:
+        parent: ToBool
+        in:
+          value:
+            external: log_pass
+  Stage 11:
+    transactional: true
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        height: 142
+        in:
+          script:
+            const: value.keySet();
+          value:
+            link: Const3/value
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 12:
+    transactional: true
+    actors:
+      Mapper1:
+        parent: Mapper
+        in:
+          script:
+            const: value.replaceFirst("SRC_","");
+          values:
+            link: JavaScript1/result
+        out:
+          values:
+            schema: '#ref'
+  Execution params:
+    transactional: true
+    actors:
+      SrcAndTarMapMerge:
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: Const3/value
+              pos: 0
+            - path: Const4/value
+              pos: 1
+        out:
+          map:
+            schema: '#ref'
+  Stage 42:
+    transactional: true
+    actors:
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnGetCustomizedKey
+          rowMap:
+            link: SrcAndTarMapMerge/map
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          customizedKey:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          customizedKey:
+            schema: string
+  Stage 34:
+    transactional: true
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      LuFunction2:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnVerifySourceNTarget
+          row:
+            link: SrcAndTarMapMerge/map
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          customizedKeyComparison:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          source_columns_to_Ignore_null:
+            external: source_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          target_columns_to_Ignore_null:
+            external: target_columns_to_Ignore_null
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          sourceEnv:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          targetEnv:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          Source_Transformation_Function_Name:
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          Target_Transformation_Function_Name:
+            schema: any
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: '#ref'
+  Stage 1:
+    transactional: true
+    dependsOn: Stage 34
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link: ErrorHandler1/result
+      DbFetchField1:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          sql:
+            const: |-
+              select failed_records from ${@schema}.task_execution_buckets
+              WHERE task_id = ${task_id}
+                AND execution_id = ${execution_id}
+                AND table_name = ${table_name}
+                AND bucket_id = ${bucket_id};
+          schema:
+            external: operational_schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            external: source_table_name
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            external: bucket_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: integer
+      ToNumber1:
+        parent: ToNumber
+        in:
+          value:
+            link: DbFetchField1/result
+      MathAdd1:
+        parent: MathAdd
+        in:
+          b:
+            const: 1
+          a:
+            link: ToNumber1/number
+    split: '--------------------'
+  Stage 2:
+    else: true
+    transactional: true
+    dependsOn: Stage 34
+  Stage 7:
+    transactional: true
+    dependsOn: Stage 1
+    actors:
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          command:
+            const: update
+          schema:
+            const: null
+            external: operational_schema
+          table:
+            const: task_execution_buckets
+          fields:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - bucket_id
+            - failed_records
+          keys:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - bucket_id
+          dialect:
+            const: postgres
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: table
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: table
+          table_name:
+            external: source_table_name
+            schema: string
+            mandatory: false
+            createdBy: table
+          bucket_id:
+            external: bucket_id
+            schema: string
+            mandatory: false
+            createdBy: table
+          failed_records:
+            link: MathAdd1/result
+            schema: number
+            mandatory: false
+            createdBy: table
+    split: '--------------------'
+  Stage 8:
+    transactional: true
+    dependsOn: Stage 2
+  Stage 3:
+    transactional: true
+    dependsOn: Stage 7
+    actors:
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Mapper1/values
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 6:
+    transactional: true
+    dependsOn: Stage 8
+  Stage 36:
+    last: 1
+    transactional: true
+    dependsOn: Stage 3
+    actors:
+      D2D Validation Results2:
+        parent: DbLoad
+        in:
+          interface:
+            const: fabric
+          schema:
+            const: null
+            external: schema
+          table:
+            const: null
+            external: table
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            link: LuFunction1/customizedKey
+            schema: string
+          COLUMN_NAME:
+            link:
+              path: Const6/value
+              iterate: Iterate
+            schema: string
+          MATCH_RESULT:
+            const: NOT PASSED
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            const: Failed
+            schema: string
+          TARGET_COLUMN_VALUE:
+            const: Failed
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            const: 'false'
+            schema: string
+            mandatory: false
+      D2D Validation Results21:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          schema:
+            const: null
+            external: operational_schema
+          table:
+            const: null
+            external: field_summary_table_name
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            link: LuFunction1/customizedKey
+            schema: string
+          COLUMN_NAME:
+            link:
+              path: Const6/value
+              iterate: Iterate
+            schema: string
+          MATCH_RESULT:
+            const: NOT PASSED
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            const: Failed
+            schema: string
+          TARGET_COLUMN_VALUE:
+            const: Failed
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            const: 'false'
+            schema: string
+            mandatory: false
+    split: '--------------------'
+  Stage 5:
+    last: 1
+    else: false
+    transactional: true
+    dependsOn: Stage 6
+  Stage 9:
+    transactional: true
+    dependsOn: Stage 36
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: [
+              ]
+            schema: '#ref'
+        out:
+          value:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 10:
+    transactional: true
+    dependsOn: Stage 5
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: LuFunction2/result
+        out:
+          value:
+            schema: '#ref'
+  Stage 15:
+    transactional: true
+    actors:
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+            - Const1/value
+            - Const2/value
+        out:
+          value:
+            schema: '#ref'
+  Stage 14:
+    transactional: true
+    actors:
+      bwReturnSrcNdTarValues1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwReturnSrcNdTarValues
+          record:
+            link:
+              path: Const5/value
+              iterate: Iterate
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            external: delim
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          targetVerified:
+            schema: string
+          matchResult:
+            schema: string
+          columnName:
+            schema: string
+          targetValue:
+            schema: string
+          sourceValue:
+            schema: string
+  Stage 31:
+    transactional: true
+    actors:
+      EqualsIgnoreCase1:
+        parent: EqualsIgnoreCase
+        in:
+          b:
+            const: PASSED
+            schema: string
+          a:
+            link: bwReturnSrcNdTarValues1/matchResult
+  Loop Through Each Column:
+    transactional: true
+    actors:
+      And1:
+        parent: And
+        in:
+          b:
+            link: ToBool/bool
+          a:
+            link: EqualsIgnoreCase1/result
+      EqualsIgnoreCase2:
+        parent: EqualsIgnoreCase
+        in:
+          b:
+            const: NOT PASSED
+            schema: string
+          a:
+            link: bwReturnSrcNdTarValues1/matchResult
+  Transform:
+    last: 1
+    transactional: true
+    actors:
+      Or1:
+        parent: Or
+        condition: result
+        in:
+          a:
+            link: And1/result
+          b:
+            link: EqualsIgnoreCase2/result
+      D2D Validation Results:
+        parent: DbLoad
+        in:
+          interface:
+            const: fabric
+          schema:
+            const: null
+            external: schema
+          table:
+            const: null
+            external: table
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            link: LuFunction1/customizedKey
+            schema: string
+          COLUMN_NAME:
+            link: bwReturnSrcNdTarValues1/columnName
+            schema: string
+          MATCH_RESULT:
+            link: bwReturnSrcNdTarValues1/matchResult
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            link: bwReturnSrcNdTarValues1/sourceValue
+            schema: string
+          TARGET_COLUMN_VALUE:
+            link: bwReturnSrcNdTarValues1/targetValue
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            link: bwReturnSrcNdTarValues1/targetVerified
+            schema: string
+            mandatory: false
+      D2D Validation In DB:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          schema:
+            const: null
+            external: operational_schema
+          table:
+            const: null
+            external: field_summary_table_name
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            link: LuFunction1/customizedKey
+            schema: string
+          COLUMN_NAME:
+            link: bwReturnSrcNdTarValues1/columnName
+            schema: string
+          MATCH_RESULT:
+            link: bwReturnSrcNdTarValues1/matchResult
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            link: bwReturnSrcNdTarValues1/sourceValue
+            schema: string
+          TARGET_COLUMN_VALUE:
+            link: bwReturnSrcNdTarValues1/targetValue
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            link: bwReturnSrcNdTarValues1/targetVerified
+            schema: string
+            mandatory: false
+schemas:
+  Const3.out.value:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+  Const4.out.value:
+    type: object
+    properties:
+      TAR_FIRST_NAME:
+        type: string
+      TAR_LAST_NAME:
+        type: string
+      TAR_CUSTOMER_ID:
+        type: string
+      TAR_SSN:
+        type: string
+  JavaScript1.in.value:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+  JavaScript1.out.result:
+    type: array
+    items:
+      type: string
+  Mapper1.out.values:
+    type: array
+    items:
+      type: string
+  SrcAndTarMapMerge.out.map:
+    type: object
+    properties:
+      source_CUSTOMER_ID:
+        type: string
+      source_FIRST_NAME:
+        type: string
+      source_LAST_NAME:
+        type: string
+      source_SSN:
+        type: string
+      target_CUSTOMER_ID:
+        type: string
+      target_FIRST_NAME:
+        type: string
+      target_LAST_NAME:
+        type: string
+      target_SSN:
+        type: string
+  LuFunction1.in.rowMap:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+      TAR_FIRST_NAME:
+        type: string
+      TAR_LAST_NAME:
+        type: string
+      TAR_CUSTOMER_ID:
+        type: string
+      TAR_SSN:
+        type: string
+  LuFunction2.in.row:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+      TAR_FIRST_NAME:
+        type: string
+      TAR_LAST_NAME:
+        type: string
+      TAR_CUSTOMER_ID:
+        type: string
+      TAR_SSN:
+        type: string
+  LuFunction2.out.result:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      LAST_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      FIRST_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SSN:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+  Const1.in.value:
+    type: array
+    items: {
+      }
+  Const1.out.value:
+    type: array
+    items: {
+      }
+  Const2.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      LAST_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      FIRST_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SSN:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+  Const5.out.value:
+    type: array
+    items: {
+      }
+  bwReturnSrcNdTarValues1.in.record:
+    type: object
+    properties:
+      result:
+        type: string
+      target_value:
+        type: string
+      target_column_orig_value:
+        type: string
+      column_name:
+        type: string
+      source_column_orig_value:
+        type: string
+      source_value:
+        type: string

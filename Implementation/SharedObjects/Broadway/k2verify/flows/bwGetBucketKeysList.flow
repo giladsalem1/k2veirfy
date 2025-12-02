@@ -1,0 +1,1544 @@
+tags: d2d,d2dv2,D2D,k2verify
+stages:
+  Flow params:
+    actors:
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
+      IID:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: IID
+        out:
+          value:
+            schema: string
+      CustomizedKey:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customizedKeyComparison
+            schema: string
+        out:
+          value:
+            schema: string
+      BucketRowsFlow:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: bucketMethod
+            schema: string
+        out:
+          value:
+            schema: string
+  Tables details:
+    actors:
+      SRC DB Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceInterface
+        out:
+          value:
+            schema: string
+      SRC DB Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceSchema
+        out:
+          value:
+            schema: string
+      SRC DB Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: sourceTable
+        out:
+          value:
+            schema: string
+      TAR DB Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetInterface
+        out:
+          value:
+            schema: string
+      TAR DB Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetSchema
+        out:
+          value:
+            schema: string
+      TAR DB Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: targetTable
+        out:
+          value:
+            schema: string
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            link: CustomizedKey/value
+  Stage 1:
+    transactional: false
+    actors:
+      bwGetColsForSelectStmt1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetColsForSelectStmt
+          env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            external: columnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          select_columns:
+            link: Split1/strings
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+          colsFromPII:
+            const: 'true'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          columns_for_select:
+            schema: string
+          columns:
+            schema: '#ref'
+  Stage 2:
+    transactional: false
+    actors:
+      StringBuild1:
+        parent: StringBuild
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          input:
+            link: bwGetColsForSelectStmt1/columns
+  Stage 5:
+    transactional: false
+    actors:
+      SRC BuketRows:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: null
+            link: BucketRowsFlow/value
+          interface:
+            link: SRC DB Interface/value
+            schema: string
+            mandatory: false
+          schema:
+            link: SRC DB Schema/value
+            schema: string
+            mandatory: false
+          table:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+          bucketID:
+            link: IID/value
+            schema: string
+            mandatory: false
+          customizedKey:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+          delimeter:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+          excludeCondition:
+            external: excludeCondition
+            schema: any
+            mandatory: false
+        out:
+          bucketRows:
+            schema: '#ref'
+      TAR BuketRows:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: null
+            link: BucketRowsFlow/value
+          interface:
+            link: TAR DB Interface/value
+            schema: string
+            mandatory: false
+          schema:
+            link: TAR DB Schema/value
+            schema: string
+            mandatory: false
+          table:
+            link: TAR DB Table/value
+            schema: string
+            mandatory: false
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+          bucketID:
+            link: IID/value
+            schema: string
+            mandatory: false
+          customizedKey:
+            link: StringBuild1/string
+            schema: string
+            mandatory: false
+          delimeter:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+          excludeCondition:
+            external: excludeCondition
+            schema: any
+            mandatory: false
+        out:
+          bucketRows:
+            schema: '#ref'
+  Stage 3:
+    transactional: false
+    actors:
+      DeepCopy1:
+        parent: DeepCopy
+        in:
+          value:
+            link: SRC BuketRows/bucketRows
+      DeepCopy2:
+        parent: DeepCopy
+        in:
+          value:
+            link: TAR BuketRows/bucketRows
+  Stage 7:
+    transactional: false
+    actors:
+      Mapper1:
+        parent: Mapper
+        in:
+          script:
+            const: value.get(key);
+          key:
+            link: CustomizedKey/value
+            schema: string
+            mandatory: false
+          values:
+            link: DeepCopy1/value
+        out:
+          values:
+            schema: '#ref'
+      Mapper2:
+        parent: Mapper
+        in:
+          script:
+            const: value.get(key);
+          key:
+            link: StringBuild1/string
+            schema: string
+            mandatory: false
+          values:
+            link: DeepCopy2/value
+        out:
+          values:
+            schema: '#ref'
+  'Get Key Values and Split Keys ':
+    transactional: false
+    actors:
+      ArrayToMap2:
+        parent: ArrayToMap
+        in:
+          keys:
+            const: null
+            link: Mapper1/values
+          values:
+            link: DeepCopy1/value
+        out:
+          map:
+            schema: '#ref'
+      ArrayToMap3:
+        parent: ArrayToMap
+        in:
+          keys:
+            const: null
+            link: Mapper2/values
+          values:
+            link: TAR BuketRows/bucketRows
+        out:
+          map:
+            schema: '#ref'
+  Stage 29:
+    actors:
+      MapMerge1:
+        parent: MapMerge
+        in:
+          duplicateKeys:
+            const: allUnique
+          maps:
+            link:
+            - path: ArrayToMap2/map
+              pos: 0
+            - path: ArrayToMap3/map
+              pos: 1
+        out:
+          map:
+            schema: '#ref'
+  Stage 30:
+    actors:
+      JavaScript2:
+        parent: JavaScript
+        in:
+          script:
+            const: map.keySet();
+          map:
+            link: MapMerge1/map
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Deep Copy Keys:
+    actors:
+      DeepCopyKeysRS:
+        parent: DeepCopy
+        in:
+          value:
+            link: JavaScript2/result
+        out:
+          value:
+            external: keys_list
+            schema: '#ref'
+schemas:
+  bwGetColsForSelectStmt1.in.select_columns:
+    type: array
+    items:
+      type: string
+  bwGetColsForSelectStmt1.out.columns:
+    type: array
+    items:
+      type: string
+  SRC BuketRows.out.bucketRows:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID|SSN:
+          type: string
+  TAR BuketRows.out.bucketRows:
+    type: array
+    items:
+      type: object
+      properties:
+        CUST_ID:
+          type: string
+  Mapper1.out.values:
+    type: array
+    items:
+      type: string
+  Mapper2.out.values:
+    type: array
+    items:
+      type: string
+  ArrayToMap2.out.map:
+    type: object
+    properties:
+      345|5109277872:
+        type: string
+      428|8842601539:
+        type: string
+      553|5141826383:
+        type: string
+      843|4370348077:
+        type: string
+      968|8400048931:
+        type: string
+      185|873477341:
+        type: string
+      1882|7405256125:
+        type: string
+      1895|5548495855:
+        type: string
+      1945|8513536901:
+        type: string
+      2457|7573483043:
+        type: string
+      2762|8993248280:
+        type: string
+      1179|693869517:
+        type: string
+      1624|8838756670:
+        type: string
+      4124|8718217447:
+        type: string
+      2778|8403074776:
+        type: string
+      3196|6619024703:
+        type: string
+      3329|8708842761:
+        type: string
+      3710|1715476519:
+        type: string
+      5030|539427282:
+        type: string
+      5105|3293969918:
+        type: string
+      5490|888248943:
+        type: string
+      5791|993616366:
+        type: string
+      4488|5314922078:
+        type: string
+      4638|1252738740:
+        type: string
+      4750|2372647738:
+        type: string
+      4809|9035837000:
+        type: string
+      4860|9159918890:
+        type: string
+      6032|7503182373:
+        type: string
+      6370|9204384779:
+        type: string
+      6583|7092920388:
+        type: string
+      6868|151981504:
+        type: string
+      6894|6579152406:
+        type: string
+      7170|4455527115:
+        type: string
+      8165|4444686022:
+        type: string
+      8433|5777375693:
+        type: string
+      8482|4794665833:
+        type: string
+      8678|7390587224:
+        type: string
+      8895|5092914769:
+        type: string
+      9036|9105648376:
+        type: string
+      7476|4335420576:
+        type: string
+      7658|5656434245:
+        type: string
+      7999|4115395390:
+        type: string
+      9178|1284094065:
+        type: string
+      9386|6228994788:
+        type: string
+      9620|3646093000:
+        type: string
+      9664|8884306872:
+        type: string
+      9948|3850315500:
+        type: string
+      800289463|3213813947:
+        type: string
+  ArrayToMap3.out.map:
+    type: object
+    properties:
+      345|5109277872:
+        type: string
+      428|8842601539:
+        type: string
+      553|5141826383:
+        type: string
+      843|4370348077:
+        type: string
+      968|8400048931:
+        type: string
+      185|873477341:
+        type: string
+      1882|7405256125:
+        type: string
+      1895|5548495855:
+        type: string
+      1945|8513536901:
+        type: string
+      2457|7573483043:
+        type: string
+      2762|8993248280:
+        type: string
+      1179|693869517:
+        type: string
+      1624|8838756670:
+        type: string
+      4124|8718217447:
+        type: string
+      2778|8403074776:
+        type: string
+      3196|6619024703:
+        type: string
+      3329|8708842761:
+        type: string
+      3710|1715476519:
+        type: string
+      5030|539427282:
+        type: string
+      5105|3293969918:
+        type: string
+      5490|888248943:
+        type: string
+      5791|993616366:
+        type: string
+      4488|5314922078:
+        type: string
+      4638|1252738740:
+        type: string
+      4750|2372647738:
+        type: string
+      4809|9035837000:
+        type: string
+      4860|9159918890:
+        type: string
+      6032|7503182373:
+        type: string
+      6370|9204384779:
+        type: string
+      6583|7092920388:
+        type: string
+      6868|151981504:
+        type: string
+      6894|6579152406:
+        type: string
+      7170|4455527115:
+        type: string
+      8165|4444686022:
+        type: string
+      8433|5777375693:
+        type: string
+      8482|4794665833:
+        type: string
+      8678|7390587224:
+        type: string
+      8895|5092914769:
+        type: string
+      9036|9105648376:
+        type: string
+      7476|4335420576:
+        type: string
+      7658|5656434245:
+        type: string
+      7999|4115395390:
+        type: string
+      9178|1284094065:
+        type: string
+      9386|6228994788:
+        type: string
+      9620|3646093000:
+        type: string
+      9664|8884306872:
+        type: string
+      9948|3850315500:
+        type: string
+      800289463|3213813947:
+        type: string
+  MapMerge1.out.map:
+    type: object
+    properties:
+      345|5109277872:
+        type: array
+        items:
+          type: string
+      428|8842601539:
+        type: array
+        items:
+          type: string
+      553|5141826383:
+        type: array
+        items:
+          type: string
+      843|4370348077:
+        type: array
+        items:
+          type: string
+      968|8400048931:
+        type: array
+        items:
+          type: string
+      185|873477341:
+        type: array
+        items:
+          type: string
+      1882|7405256125:
+        type: array
+        items:
+          type: string
+      1895|5548495855:
+        type: array
+        items:
+          type: string
+      1945|8513536901:
+        type: array
+        items:
+          type: string
+      2457|7573483043:
+        type: array
+        items:
+          type: string
+      2762|8993248280:
+        type: array
+        items:
+          type: string
+      1179|693869517:
+        type: array
+        items:
+          type: string
+      1624|8838756670:
+        type: array
+        items:
+          type: string
+      4124|8718217447:
+        type: array
+        items:
+          type: string
+      2778|8403074776:
+        type: array
+        items:
+          type: string
+      3196|6619024703:
+        type: array
+        items:
+          type: string
+      3329|8708842761:
+        type: array
+        items:
+          type: string
+      3710|1715476519:
+        type: array
+        items:
+          type: string
+      5030|539427282:
+        type: array
+        items:
+          type: string
+      5105|3293969918:
+        type: array
+        items:
+          type: string
+      5490|888248943:
+        type: array
+        items:
+          type: string
+      5791|993616366:
+        type: array
+        items:
+          type: string
+      4488|5314922078:
+        type: array
+        items:
+          type: string
+      4638|1252738740:
+        type: array
+        items:
+          type: string
+      4750|2372647738:
+        type: array
+        items:
+          type: string
+      4809|9035837000:
+        type: array
+        items:
+          type: string
+      4860|9159918890:
+        type: array
+        items:
+          type: string
+      6032|7503182373:
+        type: array
+        items:
+          type: string
+      6370|9204384779:
+        type: array
+        items:
+          type: string
+      6583|7092920388:
+        type: array
+        items:
+          type: string
+      6868|151981504:
+        type: array
+        items:
+          type: string
+      6894|6579152406:
+        type: array
+        items:
+          type: string
+      7170|4455527115:
+        type: array
+        items:
+          type: string
+      8165|4444686022:
+        type: array
+        items:
+          type: string
+      8433|5777375693:
+        type: array
+        items:
+          type: string
+      8482|4794665833:
+        type: array
+        items:
+          type: string
+      8678|7390587224:
+        type: array
+        items:
+          type: string
+      8895|5092914769:
+        type: array
+        items:
+          type: string
+      9036|9105648376:
+        type: array
+        items:
+          type: string
+      7476|4335420576:
+        type: array
+        items:
+          type: string
+      7658|5656434245:
+        type: array
+        items:
+          type: string
+      7999|4115395390:
+        type: array
+        items:
+          type: string
+      9178|1284094065:
+        type: array
+        items:
+          type: string
+      9386|6228994788:
+        type: array
+        items:
+          type: string
+      9620|3646093000:
+        type: array
+        items:
+          type: string
+      9664|8884306872:
+        type: array
+        items:
+          type: string
+      9948|3850315500:
+        type: array
+        items:
+          type: string
+      800289463|3213813947:
+        type: array
+        items:
+          type: string
+  JavaScript2.in.map:
+    type: object
+    properties:
+      236|615194806:
+        type: array
+        items:
+          type: string
+      288|5304021379:
+        type: array
+        items:
+          type: string
+      432|2928892428:
+        type: array
+        items:
+          type: string
+      470|6354980509:
+        type: array
+        items:
+          type: string
+      544|241121989:
+        type: array
+        items:
+          type: string
+      568|7042810091:
+        type: array
+        items:
+          type: string
+      854|6824563320:
+        type: array
+        items:
+          type: string
+      918|4433994594:
+        type: array
+        items:
+          type: string
+      943|711400468:
+        type: array
+        items:
+          type: string
+      948|7924131481:
+        type: array
+        items:
+          type: string
+      117|7055350774:
+        type: array
+        items:
+          type: string
+      1829|8439223525:
+        type: array
+        items:
+          type: string
+      1894|346646292:
+        type: array
+        items:
+          type: string
+      1915|78852154:
+        type: array
+        items:
+          type: string
+      1976|4891986791:
+        type: array
+        items:
+          type: string
+      2195|1772501067:
+        type: array
+        items:
+          type: string
+      2193|4816777527:
+        type: array
+        items:
+          type: string
+      2390|5862402027:
+        type: array
+        items:
+          type: string
+      2504|2587159786:
+        type: array
+        items:
+          type: string
+      2516|8212973547:
+        type: array
+        items:
+          type: string
+      2561|7793974381:
+        type: array
+        items:
+          type: string
+      1459|5032013269:
+        type: array
+        items:
+          type: string
+      1475|5644557894:
+        type: array
+        items:
+          type: string
+      1474|4307768805:
+        type: array
+        items:
+          type: string
+      1487|8837088522:
+        type: array
+        items:
+          type: string
+      1622|2501708124:
+        type: array
+        items:
+          type: string
+      1661|918649780:
+        type: array
+        items:
+          type: string
+      4214|2272800790:
+        type: array
+        items:
+          type: string
+      4240|2338383699:
+        type: array
+        items:
+          type: string
+      2852|4436549345:
+        type: array
+        items:
+          type: string
+      2865|3091337483:
+        type: array
+        items:
+          type: string
+      3021|5344815820:
+        type: array
+        items:
+          type: string
+      3163|1244356094:
+        type: array
+        items:
+          type: string
+      3199|3171283045:
+        type: array
+        items:
+          type: string
+      3259|3124082721:
+        type: array
+        items:
+          type: string
+      3332|2710189357:
+        type: array
+        items:
+          type: string
+      3733|7210865910:
+        type: array
+        items:
+          type: string
+      3775|459460538:
+        type: array
+        items:
+          type: string
+      4908|1620094073:
+        type: array
+        items:
+          type: string
+      4939|2829325065:
+        type: array
+        items:
+          type: string
+      5007|4189890426:
+        type: array
+        items:
+          type: string
+      5024|1264063796:
+        type: array
+        items:
+          type: string
+      5070|8427968746:
+        type: array
+        items:
+          type: string
+      5345|7765095504:
+        type: array
+        items:
+          type: string
+      5510|4788432889:
+        type: array
+        items:
+          type: string
+      5562|7782681871:
+        type: array
+        items:
+          type: string
+      5591|3199976309:
+        type: array
+        items:
+          type: string
+      5631|1911903138:
+        type: array
+        items:
+          type: string
+      5649|1685542263:
+        type: array
+        items:
+          type: string
+      5684|7008418184:
+        type: array
+        items:
+          type: string
+      5739|8884216472:
+        type: array
+        items:
+          type: string
+      5778|8690526144:
+        type: array
+        items:
+          type: string
+      4486|1929370649:
+        type: array
+        items:
+          type: string
+      4715|8507572030:
+        type: array
+        items:
+          type: string
+      4736|5492189473:
+        type: array
+        items:
+          type: string
+      4808|310867561:
+        type: array
+        items:
+          type: string
+      4813|782033093:
+        type: array
+        items:
+          type: string
+      4844|6180152881:
+        type: array
+        items:
+          type: string
+      7251|948825235:
+        type: array
+        items:
+          type: string
+      6055|3199543123:
+        type: array
+        items:
+          type: string
+      6170|8398913477:
+        type: array
+        items:
+          type: string
+      6197|3497527969:
+        type: array
+        items:
+          type: string
+      6338|464156324:
+        type: array
+        items:
+          type: string
+      6402|7582516938:
+        type: array
+        items:
+          type: string
+      6467|525007841:
+        type: array
+        items:
+          type: string
+      6471|9053472186:
+        type: array
+        items:
+          type: string
+      6678|2595410283:
+        type: array
+        items:
+          type: string
+      6690|8392463001:
+        type: array
+        items:
+          type: string
+      6702|1276032785:
+        type: array
+        items:
+          type: string
+      6706|3527639684:
+        type: array
+        items:
+          type: string
+      6917|5518431428:
+        type: array
+        items:
+          type: string
+      6919|6182711189:
+        type: array
+        items:
+          type: string
+      6925|5490849935:
+        type: array
+        items:
+          type: string
+      6972|2964817875:
+        type: array
+        items:
+          type: string
+      7214|8971929444:
+        type: array
+        items:
+          type: string
+      8095|2720733230:
+        type: array
+        items:
+          type: string
+      8203|6858931873:
+        type: array
+        items:
+          type: string
+      8228|8097065700:
+        type: array
+        items:
+          type: string
+      8370|1426613823:
+        type: array
+        items:
+          type: string
+      8438|4958337667:
+        type: array
+        items:
+          type: string
+      8494|2143384797:
+        type: array
+        items:
+          type: string
+      8534|198953469:
+        type: array
+        items:
+          type: string
+      8655|4827686767:
+        type: array
+        items:
+          type: string
+      8687|7313335669:
+        type: array
+        items:
+          type: string
+      8748|3286100706:
+        type: array
+        items:
+          type: string
+      7462|2704999700:
+        type: array
+        items:
+          type: string
+      7480|5154455771:
+        type: array
+        items:
+          type: string
+      7482|1558490928:
+        type: array
+        items:
+          type: string
+      7791|712010464:
+        type: array
+        items:
+          type: string
+      7814|7312549753:
+        type: array
+        items:
+          type: string
+      7903|3423718531:
+        type: array
+        items:
+          type: string
+      8063|1546760478:
+        type: array
+        items:
+          type: string
+      9208|2892197567:
+        type: array
+        items:
+          type: string
+      9320|3817648641:
+        type: array
+        items:
+          type: string
+      9360|4847183383:
+        type: array
+        items:
+          type: string
+      9559|2353411929:
+        type: array
+        items:
+          type: string
+      9725|1080673525:
+        type: array
+        items:
+          type: string
+      9855|7663751444:
+        type: array
+        items:
+          type: string
+      9959|7487295180:
+        type: array
+        items:
+          type: string
+      800251911|679811992:
+        type: array
+        items:
+          type: string
+      800256295|6766856606:
+        type: array
+        items:
+          type: string
+      800246606|1781799658:
+        type: array
+        items:
+          type: string
+      800252438|5924717732:
+        type: array
+        items:
+          type: string
+      575|6735202683:
+        type: array
+        items:
+          type: string
+      642|455178533:
+        type: array
+        items:
+          type: string
+      757|2993083047:
+        type: array
+        items:
+          type: string
+      959|3438384979:
+        type: array
+        items:
+          type: string
+      1011|31092250:
+        type: array
+        items:
+          type: string
+      255|3866773808:
+        type: array
+        items:
+          type: string
+      307|7817378385:
+        type: array
+        items:
+          type: string
+      366|7733544871:
+        type: array
+        items:
+          type: string
+      2341|8797890643:
+        type: array
+        items:
+          type: string
+      2415|3258736402:
+        type: array
+        items:
+          type: string
+      2598|4938089638:
+        type: array
+        items:
+          type: string
+      1144|1904420632:
+        type: array
+        items:
+          type: string
+      1390|4288846047:
+        type: array
+        items:
+          type: string
+      1453|5795292990:
+        type: array
+        items:
+          type: string
+      1548|6314042899:
+        type: array
+        items:
+          type: string
+      1593|35701912:
+        type: array
+        items:
+          type: string
+      1828|3426415064:
+        type: array
+        items:
+          type: string
+      1963|1228887732:
+        type: array
+        items:
+          type: string
+      1974|8105611854:
+        type: array
+        items:
+          type: string
+      4246|6905815125:
+        type: array
+        items:
+          type: string
+      2763|4213094025:
+        type: array
+        items:
+          type: string
+      2789|615225714:
+        type: array
+        items:
+          type: string
+      3397|5831879809:
+        type: array
+        items:
+          type: string
+      3418|4328113561:
+        type: array
+        items:
+          type: string
+      3489|4851122560:
+        type: array
+        items:
+          type: string
+      2959|3277696545:
+        type: array
+        items:
+          type: string
+      3154|369849396:
+        type: array
+        items:
+          type: string
+      3258|1943064992:
+        type: array
+        items:
+          type: string
+      4053|2084298223:
+        type: array
+        items:
+          type: string
+      4091|5484245078:
+        type: array
+        items:
+          type: string
+      4130|683811158:
+        type: array
+        items:
+          type: string
+      4142|8631642375:
+        type: array
+        items:
+          type: string
+      5674|3569505354:
+        type: array
+        items:
+          type: string
+      5724|910493850:
+        type: array
+        items:
+          type: string
+      5908|265539507:
+        type: array
+        items:
+          type: string
+      4455|4420825866:
+        type: array
+        items:
+          type: string
+      4468|6886579196:
+        type: array
+        items:
+          type: string
+      4552|4766110473:
+        type: array
+        items:
+          type: string
+      4625|7004837835:
+        type: array
+        items:
+          type: string
+      4657|47984087:
+        type: array
+        items:
+          type: string
+      5242|6453704697:
+        type: array
+        items:
+          type: string
+      5293|4926053903:
+        type: array
+        items:
+          type: string
+      5373|7535720052:
+        type: array
+        items:
+          type: string
+      7334|3683729989:
+        type: array
+        items:
+          type: string
+      5981|3670331993:
+        type: array
+        items:
+          type: string
+      6010|3002701106:
+        type: array
+        items:
+          type: string
+      6024|1246865755:
+        type: array
+        items:
+          type: string
+      6655|3173736434:
+        type: array
+        items:
+          type: string
+      6679|6513382682:
+        type: array
+        items:
+          type: string
+      6737|7652913960:
+        type: array
+        items:
+          type: string
+      6747|5540330405:
+        type: array
+        items:
+          type: string
+      6854|2982803502:
+        type: array
+        items:
+          type: string
+      6918|5958355278:
+        type: array
+        items:
+          type: string
+      6051|1477172260:
+        type: array
+        items:
+          type: string
+      6078|7361634625:
+        type: array
+        items:
+          type: string
+      6159|7487866728:
+        type: array
+        items:
+          type: string
+      6215|6652726194:
+        type: array
+        items:
+          type: string
+      6248|4741382802:
+        type: array
+        items:
+          type: string
+      6332|1002843590:
+        type: array
+        items:
+          type: string
+      6422|5817936125:
+        type: array
+        items:
+          type: string
+      6432|7335356385:
+        type: array
+        items:
+          type: string
+      4866|4002105939:
+        type: array
+        items:
+          type: string
+      4885|353223392:
+        type: array
+        items:
+          type: string
+      8595|3494131578:
+        type: array
+        items:
+          type: string
+      8670|969585637:
+        type: array
+        items:
+          type: string
+      8810|5856528558:
+        type: array
+        items:
+          type: string
+      8836|7678262993:
+        type: array
+        items:
+          type: string
+      9008|4167860596:
+        type: array
+        items:
+          type: string
+      7467|2011390786:
+        type: array
+        items:
+          type: string
+      7550|7106057486:
+        type: array
+        items:
+          type: string
+      7572|5772787026:
+        type: array
+        items:
+          type: string
+      7668|4577934556:
+        type: array
+        items:
+          type: string
+      7105|4280233575:
+        type: array
+        items:
+          type: string
+      8097|593881499:
+        type: array
+        items:
+          type: string
+      8120|5679418085:
+        type: array
+        items:
+          type: string
+      8134|4400735152:
+        type: array
+        items:
+          type: string
+      8271|2141194640:
+        type: array
+        items:
+          type: string
+      9230|8331155148:
+        type: array
+        items:
+          type: string
+      9311|5974584554:
+        type: array
+        items:
+          type: string
+      9859|6023961120:
+        type: array
+        items:
+          type: string
+      9938|3468445670:
+        type: array
+        items:
+          type: string
+      800254460|6845249362:
+        type: array
+        items:
+          type: string
+      800267096|8928130248:
+        type: array
+        items:
+          type: string
+      9519|2394324699:
+        type: array
+        items:
+          type: string
+      9666|6940203067:
+        type: array
+        items:
+          type: string
+      7987|6942743902:
+        type: array
+        items:
+          type: string
+  JavaScript2.out.result:
+    type: array
+    items:
+      type: string
+  DeepCopyKeysRS.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        ACTIVITY_ID:
+          type: integer
+        CUSTOMER_ID:
+          type: integer

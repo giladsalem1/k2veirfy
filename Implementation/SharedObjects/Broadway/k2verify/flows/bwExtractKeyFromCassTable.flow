@@ -1,0 +1,239 @@
+tags: D2D,k2verify
+stages:
+  Keys table details:
+    actors:
+      KEYS_TABLE_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            external: schema
+      KEYS_TABLE_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            external: schema
+      KEYS_TABLE_NAME:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_KEYS_TABLE_NAME
+          luName:
+            external: schema
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
+      SRC KP:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_SCHEMA_SRC
+          luName:
+            external: schema
+      SRC TABLE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_TABLE_SRC
+          luName:
+            external: schema
+      TAR KP:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_SCHEMA_TAR
+          luName:
+            external: schema
+      TAR TABLE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_TABLE_TAR
+          luName:
+            external: schema
+  Create keys table:
+    actors:
+      ErrorHandler2:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: already exists
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: doesn't exist
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: does not exist
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      Drop table:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: KEYS_TABLE_INTERFACE/variableValue
+          sql:
+            const: drop table ${@schema}.${@tableName}
+          tableName:
+            link: KEYS_TABLE_NAME/variableValue
+            schema: string
+            mandatory: false
+          schema:
+            link: KEYS_TABLE_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+      Create table:
+        parent: DbCreateTable
+        in:
+          interface:
+            const: null
+            link: KEYS_TABLE_INTERFACE/variableValue
+          schema:
+            const: null
+            link: KEYS_TABLE_SCHEMA/variableValue
+          table:
+            const: null
+            link: KEYS_TABLE_NAME/variableValue
+          fields:
+            const:
+            - name: group_id
+              type: text
+              pk: false
+              mandatory: false
+            - name: org_key
+              type: text
+              pk: true
+              mandatory: false
+  Stage 5:
+    actors:
+      bwLoadCassTableKeysToOPTable1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadCassTableKeysToOPTable
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          cass_keyspace:
+            link: SRC KP/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          cass_table:
+            link: SRC TABLE/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            external: buckets_count
+            schema: integer
+            mandatory: false
+            createdBy: flowName
+          operational_interface:
+            link: KEYS_TABLE_INTERFACE/variableValue
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+            mandatory: false
+            createdBy: flowName
+          operational_schema:
+            link: KEYS_TABLE_SCHEMA/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          keys_table_name:
+            link: KEYS_TABLE_NAME/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+      bwLoadCassTableKeysToOPTable11:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadCassTableKeysToOPTable
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          cass_keyspace:
+            link: TAR KP/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          cass_table:
+            link: TAR TABLE/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            external: buckets_count
+            schema: integer
+            mandatory: false
+            createdBy: flowName
+          operational_interface:
+            link: KEYS_TABLE_INTERFACE/variableValue
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+            mandatory: false
+            createdBy: flowName
+          operational_schema:
+            link: KEYS_TABLE_SCHEMA/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          keys_table_name:
+            link: KEYS_TABLE_NAME/variableValue
+            schema: string
+            editor:
+              id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+  Stage 8: {
+    }

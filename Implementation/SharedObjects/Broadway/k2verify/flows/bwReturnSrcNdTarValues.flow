@@ -1,0 +1,344 @@
+tags: D2D,k2verify
+stages:
+  Stage 1:
+    actors:
+      ToUpperCase:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: "var out = new Map();\r\nfor (var m in input) {\r\n  //print(m.toUpperCase());\r\
+                \n  //print(input[m]);\r\n  out[m.toUpperCase()] = input[m]\r\n}\r\
+                \nout;"
+              script: |-
+                var out = new Map();
+
+                for (var m in input) {
+                  //print(m.toUpperCase());
+                  //print(input[m]);
+                  out[m.toUpperCase()] = input[m];
+                }
+
+                out;
+          input:
+            external: record
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 28:
+    actors:
+      Target Secured?:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                var res = false;
+                columns.split(delimitter).forEach(function (column) {
+                    res = res || (column.trim().toUpperCase() == column_name.toUpperCase());
+                });
+
+                if(res && result == 'PASSED' && value != null && value.trim() != ''){
+                    "false";
+                } else {
+                    "true";
+                }
+              script: |-
+                var res = false;
+                columns.split(delimitter).forEach(function (column) {
+                  res = res || column.trim().toUpperCase() == column_name.toUpperCase();
+                });
+
+                if (res && result == 'PASSED' && value != null && value.trim() != '') {
+                  "false";
+                } else {
+                  "true";
+                }
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+          column_name:
+            link: ToUpperCase/result/COLUMN_NAME
+            schema: string
+            mandatory: false
+          result:
+            link: ToUpperCase/result/RESULT
+            schema: string
+            mandatory: false
+          value:
+            link: ToUpperCase/result/SOURCE_VALUE
+            schema: string
+            mandatory: false
+          delimitter:
+            external: delim
+            schema: string
+            mandatory: false
+        out:
+          result:
+            external: targetVerified
+            schema: string
+      Mismatched_Columns_Handler:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                var res = false;
+                columns.split(delimitter).forEach(function (column) {
+                    res = res || (column.trim().toUpperCase() == column_name.toUpperCase());
+                });
+
+                if(res && result == 'NOT PASSED' && value != null && value.trim() != ''){
+                    "PASSED";
+                } else if (res && result == 'PASSED' && value != null && value.trim() != ''){
+                    "NOT PASSED"
+                }else {
+                    result
+                }
+              script: |-
+                var res = false;
+                columns.split(delimitter).forEach(function (column) {
+                  res = res || column.trim().toUpperCase() == column_name.toUpperCase();
+                });
+
+                if (res && result == 'NOT PASSED' && value != null && value.trim() != '') {
+                  "PASSED";
+                } else if (res && result == 'PASSED' && value != null && value.trim() != '') {
+                  "NOT PASSED";
+                } else {
+                  result;
+                }
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+          column_name:
+            link: ToUpperCase/result/COLUMN_NAME
+            schema: string
+            mandatory: false
+          result:
+            link: ToUpperCase/result/RESULT
+            schema: string
+            mandatory: false
+          value:
+            link: ToUpperCase/result/SOURCE_VALUE
+            schema: string
+            mandatory: false
+          delimitter:
+            external: delim
+            schema: string
+            mandatory: false
+        out:
+          result:
+            external: matchResult
+            schema: string
+      ColumnName:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ToUpperCase/result/COLUMN_NAME
+        out:
+          value:
+            external: columnName
+            schema: string
+  Stage 7:
+    actors:
+      isPIIColumn:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              var res=false;
+              columns.split(delimitter).forEach(function (column) {
+                 if(column.trim().toUpperCase() == column_name.toUpperCase()){
+                    res=true;
+                 }
+              });
+              res;
+          columns:
+            external: columns
+            schema: string
+            mandatory: false
+          column_name:
+            link: ToUpperCase/result/COLUMN_NAME
+            schema: string
+            mandatory: false
+          delimitter:
+            external: delim
+            schema: any
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+  Stage 10:
+    dependsOn: Stage 7
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link: isPIIColumn/result
+    split: '--------------------'
+  Stage 11:
+    else: true
+    dependsOn: Stage 7
+    actors:
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ToUpperCase/result/TARGET_VALUE
+            schema: string
+        out:
+          value:
+            external: targetValue
+            schema: string
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ToUpperCase/result/SOURCE_VALUE
+            schema: string
+        out:
+          value:
+            external: sourceValue
+            schema: string
+  Stage 3:
+    dependsOn: Stage 10
+    actors:
+      IsNull1:
+        parent: IsNull
+        condition: result
+        in:
+          value:
+            link: ToUpperCase/result/SOURCE_COLUMN_ORIG_VALUE
+      NullValue1:
+        parent: NullValue
+        out:
+          value:
+            external: sourceValue
+    split: '--------------------'
+  Stage 2:
+    else: true
+    dependsOn: Stage 10
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: '*'
+            schema: string
+        out:
+          value:
+            external: sourceValue
+            schema: string
+    split: '--------------------'
+  Stage 12:
+    dependsOn: Stage 11
+  Stage 4:
+    dependsOn:
+    - Stage 2
+    - Stage 3
+    split: '--------------------'
+  Stage 14:
+    dependsOn: Stage 12
+  Stage 15:
+    dependsOn: Stage 4
+    actors:
+      IsNull2:
+        parent: IsNull
+        condition: result
+        in:
+          value:
+            link: ToUpperCase/result/TARGET_VALUE
+      NullValue2:
+        parent: NullValue
+        out:
+          value:
+            external: targetValue
+    split: '--------------------'
+  Stage 5:
+    else: true
+    dependsOn: Stage 4
+    actors:
+      EqualsIgnoreCase1:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: 'false'
+            schema: string
+          a:
+            link: Target Secured?/result
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: '*'
+            schema: string
+        out:
+          value:
+            external: targetValue
+            schema: string
+    split: '--------------------'
+  Stage 6:
+    else: true
+    dependsOn: Stage 4
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ToUpperCase/result/TARGET_COLUMN_ORIG_VALUE
+            schema: string
+        out:
+          value:
+            external: targetValue
+            schema: string
+    split: '--------------------'
+  Stage 16:
+    dependsOn: Stage 14
+  Stage 8: {
+    }
+schemas:
+  ToUpperCase.in.input:
+    type: object
+    properties:
+      result:
+        type: string
+      target_value:
+        type: string
+      target_column_orig_value:
+        type: string
+      column_name:
+        type: string
+      source_column_orig_value:
+        type: string
+      source_value:
+        type: string
+  ToUpperCase.out.result:
+    type: object
+    properties:
+      RESULT:
+        type: string
+      TARGET_VALUE: {
+        }
+      TARGET_COLUMN_ORIG_VALUE: {
+        }
+      COLUMN_NAME:
+        type: string
+      SOURCE_COLUMN_ORIG_VALUE: {
+        }
+      SOURCE_VALUE: {
+        }

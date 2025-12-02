@@ -1,0 +1,82 @@
+tags: application
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_INTERFACE1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |2-
+               SELECT
+                te.execution_id,
+                te.task_id,
+                te.execution_status,
+                te.started_by,
+                te.start_time,
+                te.end_time,
+                CONCAT(COALESCE(s.completed, 0), '/', COALESCE(s.total, 0)) AS table_completion_summary
+              FROM ${@schema_name}.task_execution AS te
+              LEFT JOIN (
+                SELECT
+                  task_id,
+                  execution_id,
+                  COUNT(*) AS total,
+                  SUM(CASE WHEN lower(status) = 'completed' THEN 1 ELSE 0 END) AS completed
+                FROM ${@schema_name}.task_execution_tables
+                GROUP BY task_id, execution_id
+              ) AS s
+                ON s.task_id = te.task_id
+               AND s.execution_id = te.execution_id
+              WHERE te.task_id = ${task_id}
+              ORDER BY te.execution_id DESC;
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        task_id:
+          type: integer
+        task_title:
+          type: string
+        task_status:
+          type: string
+        task_config: {
+          }
+        created_by:
+          type: string
+        created_at:
+          type: date
+        updated_by:
+          type: string
+        updated_at:
+          type: date

@@ -1,0 +1,250 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 11:
+    actors:
+      DbCommand5:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: select execution_status from ${@schema}.task_execution where task_id=${@task_id}
+              and execution_status='Stopping'
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 12:
+    dependsOn: Stage 11
+    actors:
+      JavaScript2:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: result == "" || result== null
+          result:
+            link:
+              path: DbCommand5/result/execution_status
+              iterate: First
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+    split: '--------------------'
+  Stage 13:
+    else: true
+    dependsOn: Stage 11
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: throw "Stop task request was already initiated"
+  Stage 5:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: select batch_id from ${@schema}.task_execution_tables where task_id=${@task_id}
+              and status='In_Progress'
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      DbCommand3:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: update ${@schema}.task_execution set execution_status='Stopping'
+              where task_id=${@task_id} and execution_status='In_Progress'
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 6:
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: DbCommand1/result/batch_id
+        out:
+          value:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: batch_cancel '${@batch_id}'
+          batch_id:
+            link:
+              path: Const2/value
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: sql
+  Stage 4:
+    last: 1
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: Batch was cancelled
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      BatchWait1:
+        parent: BatchWait
+        in:
+          batchId:
+            link:
+              path: Const2/value
+              iterate: Iterate
+  Stage 7:
+    actors:
+      Now1:
+        parent: Now
+      END_TIME:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 8:
+    actors:
+      DbCommand4:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: update ${@schema}.task_execution set execution_status='Stopped',
+              end_time='${@end_time}' where task_id=${@task_id} and execution_status='Stopping'
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          end_time:
+            link: END_TIME/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 9: {
+    }
+  Stage 10: {
+    }
+schemas:
+  DbCommand5.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        execution_status:
+          type: string
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        batch_id:
+          type: string
+  DbCommand3.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        batch_id:
+          type: string
+  Const2.out.value:
+    type: array
+    items:
+      type: string
+  DbCommand4.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        batch_id:
+          type: string

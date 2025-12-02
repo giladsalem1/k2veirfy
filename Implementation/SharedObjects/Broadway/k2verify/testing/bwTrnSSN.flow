@@ -1,0 +1,25 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: value
+  Stage 2:
+    actors:
+      StringFormat1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${value}_trn
+          value:
+            link: Const1/value
+            schema: any
+            mandatory: false
+            createdBy: format
+        out:
+          string:
+            external: value

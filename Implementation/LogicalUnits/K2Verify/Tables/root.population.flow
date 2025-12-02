@@ -1,0 +1,177 @@
+stages:
+  Input:
+    actors:
+      PopulationArgs:
+        parent: PopulationArgs
+        readonly: true
+        in:
+          IID:
+            external: IID
+            schema: any
+            mandatory: false
+      SRC TABLE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TABLE_SRC
+      TASK ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TASK_ID
+      EXEC ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_EXEC_ID
+      K2VERIFY_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            external: schema
+      K2VERIFY_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            external: schema
+      Now:
+        parent: Now
+      START_TIME:
+        parent: ToString
+        in:
+          value:
+            link: Now/date
+  Source:
+    actors:
+      SplitIID:
+        parent: Split
+        in:
+          delimiter:
+            const: _@_
+          string:
+            link: PopulationArgs/iid
+      IID:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: SplitIID/strings
+            schema: any
+            mandatory: false
+        out:
+          result:
+            schema: string
+  LU Table:
+    actors:
+      d2d_root:
+        parent: DbLoad
+        in:
+          interface:
+            const: fabric
+          schema:
+            const: null
+            external: schema
+          table:
+            const: null
+            external: table
+          fields:
+            const:
+            - IID
+          dialect:
+            const: sqlite
+          IID:
+            link: PopulationArgs/iid
+            schema: any
+  Post Load:
+    actors:
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: DATA_ASSURANCE
+            link: K2VERIFY_INTERFACE/variableValue
+            default: true
+          schema:
+            const: null
+            link: K2VERIFY_SCHEMA/variableValue
+          table:
+            const: task_execution_buckets
+          fields:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - bucket_id
+            - status
+            - total_records
+            - processed_records
+            - failed_records
+            - start_time
+            - end_time
+            - error_info
+          keys:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - bucket_id
+          dialect:
+            const: postgres
+          task_id:
+            link: TASK ID/result
+            schema: string
+            mandatory: false
+            createdBy: table
+          execution_id:
+            link: EXEC ID/result
+            schema: string
+            mandatory: false
+            createdBy: table
+          table_name:
+            link: SRC TABLE/result
+            schema: string
+            mandatory: false
+            createdBy: table
+          bucket_id:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: table
+          status:
+            const: In_Progress
+            schema: string
+            mandatory: false
+            createdBy: table
+          total_records:
+            schema: any
+            mandatory: false
+            createdBy: table
+          processed_records:
+            schema: any
+            mandatory: false
+            createdBy: table
+          failed_records:
+            const: 0
+            schema: integer
+            mandatory: false
+            createdBy: table
+          start_time:
+            link: START_TIME/string
+            schema: string
+            mandatory: false
+            createdBy: table
+          end_time:
+            schema: any
+            mandatory: false
+            createdBy: table
+          error_info:
+            schema: any
+            mandatory: false
+            createdBy: table
+  Stage 1: {
+    }

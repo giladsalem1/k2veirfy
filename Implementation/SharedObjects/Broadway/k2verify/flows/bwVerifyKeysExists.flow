@@ -1,0 +1,321 @@
+tags: d2d,d2dv2,D2D,k2verify
+stages:
+  Execution params:
+    transactional: true
+    actors:
+      SRC empty 1:
+        parent: Equals
+        in:
+          b:
+            const: [
+              ]
+            schema: '#ref'
+          a:
+            external: src_row
+      SRC empty 2:
+        parent: Equals
+        in:
+          b:
+            const:
+            - {
+              }
+            schema: '#ref'
+          a:
+            external: src_row
+      TAR empty 1:
+        parent: Equals
+        in:
+          b:
+            const: [
+              ]
+            schema: '#ref'
+          a:
+            external: tar_row
+      TAR empty 2:
+        parent: Equals
+        in:
+          b:
+            const:
+            - {
+              }
+            schema: '#ref'
+          a:
+            external: tar_row
+  Stage 10:
+    transactional: true
+    dependsOn: Execution params
+    actors:
+      SRC empty:
+        parent: Or
+        condition: result
+        in:
+          a:
+            link: SRC empty 1/result
+          b:
+            link: SRC empty 2/result
+      MapCreate1:
+        parent: MapCreate
+        in:
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+            mandatory: false
+          CUSTOMIZED_KEY:
+            external: customized_key
+            schema: string
+            mandatory: false
+          TARGET_COLUMN_VALUE:
+            external: target_column_value
+            schema: '#ref'
+            mandatory: false
+          MATCH_RESULT:
+            const: Target Key Not Found In Source
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 1:
+    transactional: true
+    dependsOn: Execution params
+    actors:
+      TAR empty:
+        parent: Or
+        condition: result
+        in:
+          a:
+            link: TAR empty 1/result
+          b:
+            link: TAR empty 2/result
+      MapCreate2:
+        parent: MapCreate
+        in:
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+            mandatory: false
+          CUSTOMIZED_KEY:
+            external: customized_key
+            schema: string
+            mandatory: false
+          SOURCE_COLUMN_VALUE:
+            external: source_column_value
+            schema: '#ref'
+            mandatory: false
+          MATCH_RESULT:
+            const: Source Key Not Found In Target
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 2:
+    else: true
+    transactional: true
+    dependsOn: Execution params
+  Stage 12:
+    transactional: true
+    actors:
+      Or1:
+        parent: Or
+        in:
+          a:
+            link: SRC empty/result
+          b:
+            link: TAR empty/result
+        out:
+          result:
+            external: keyNotFound
+  Stage 4:
+    transactional: true
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link: Or1/result
+      D2D Validation Results1:
+        parent: DbLoad
+        in:
+          interface:
+            const: fabric
+          schema:
+            const: null
+            external: schema
+          table:
+            const: null
+            external: table
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            schema: string
+          COLUMN_NAME:
+            external: key_columns
+            schema: string
+          MATCH_RESULT:
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            schema: string
+          TARGET_COLUMN_VALUE:
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            const: 'true'
+            schema: string
+            mandatory: false
+          params:
+            link:
+            - MapCreate1/map
+            - MapCreate2/map
+      D2D Validation In DB1:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            external: operational_interface
+          schema:
+            const: null
+            external: operational_schema
+          table:
+            const: null
+            external: field_summary_table_name
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          keys:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+          EXECUTION_ID:
+            schema: string
+          IID:
+            const: '0'
+            schema: string
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+          CUSTOMIZED_KEY:
+            schema: string
+          COLUMN_NAME:
+            external: key_columns
+            schema: string
+          MATCH_RESULT:
+            schema: string
+          SOURCE_COLUMN_VALUE:
+            schema: string
+          TARGET_COLUMN_VALUE:
+            schema: string
+          SOURCE_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_COLUMN_VALUE_TRANS:
+            schema: string
+          TARGET_VALUE_SECURED:
+            schema: string
+            mandatory: false
+          params:
+            link:
+            - MapCreate1/map
+            - MapCreate2/map
+schemas:
+  SRC empty 1.in.b:
+    type: array
+    items: {
+      }
+  SRC empty 2.in.b:
+    type: array
+    items: {
+      }
+  TAR empty 1.in.b:
+    type: array
+    items: {
+      }
+  TAR empty 2.in.b:
+    type: array
+    items: {
+      }
+  MapCreate1.in.TARGET_COLUMN_VALUE:
+    type: array
+    items: {
+      }
+  MapCreate1.out.map:
+    type: object
+    properties:
+      EXECUTION_ID:
+        type: string
+      CUSTOMIZED_KEY: {
+        }
+      TARGET_COLUMN_VALUE:
+        type: string
+      MATCH_RESULT:
+        type: string
+  MapCreate2.in.SOURCE_COLUMN_VALUE:
+    type: array
+    items: {
+      }
+  MapCreate2.out.map:
+    type: object
+    properties:
+      EXECUTION_ID: {
+        }
+      CUSTOMIZED_KEY: {
+        }
+      SOURCE_COLUMN_VALUE: {
+        }

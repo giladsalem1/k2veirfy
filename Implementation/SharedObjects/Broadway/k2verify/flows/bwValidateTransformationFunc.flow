@@ -1,0 +1,399 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      SrcTrn:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: src_trn_fun
+        out:
+          value:
+            schema: string
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+  Stage 2:
+    actors:
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            link: SrcTrn/value
+  Stage 3:
+    actors:
+      Split2:
+        parent: Split
+        in:
+          delimiter:
+            const: ':'
+          string:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+  Stage 4:
+    actors:
+      TrnColumn:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[0]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      TrnMethod:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 5:
+    last: 1
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: No results found for the given
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      bwValidateColumnsNames1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          columns:
+            link: TrnColumn/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            external: src_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            external: tar_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            external: src_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            external: src_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            external: tar_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            external: tar_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+      TrnMethodExists:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: list BF LU_NAME='K2Verify' name='${@trn_func}'
+          trn_func:
+            link: TrnMethod/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertMethodExists:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: true
+            schema: boolean
+          message:
+            const: Source transformation flow '${trnFlow}' does not exist
+          trnFlow:
+            link: TrnMethod/result
+            schema: any
+            mandatory: false
+            createdBy: message
+          actual:
+            link: ErrorHandler1/result
+  Stage 6:
+    actors:
+      TarTrn:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: tar_trn_fun
+        out:
+          value:
+            schema: string
+  Stage 7:
+    actors:
+      Split3:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            link: TarTrn/value
+  Stage 8:
+    actors:
+      Split4:
+        parent: Split
+        in:
+          delimiter:
+            const: ':'
+          string:
+            link:
+              path: Split3/strings
+              iterate: Iterate
+  Stage 9:
+    actors:
+      TrnColumn1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[0]
+          arr:
+            link: Split4/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      TrnMethod1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: Split4/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 10:
+    actors:
+      ErrorHandler2:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: No results found for the given
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      bwValidateColumnsNames11:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwValidateColumnsNames
+          columns:
+            link: TrnColumn1/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          case_sensitive:
+            const: 'false'
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          validation_env:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_interface:
+            external: src_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_interface:
+            external: tar_interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          column_mapping:
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_schema:
+            external: src_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_table:
+            external: src_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_table:
+            external: tar_table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_schema:
+            external: tar_schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+      TrnMethodExists1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: list BF LU_NAME='K2Verify' name='${@trn_func}'
+          trn_func:
+            link: TrnMethod1/result
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      assertMethodExists1:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            const: true
+            schema: boolean
+          message:
+            const: Target transformation flow '${trnFlow}' does not exist
+          trnFlow:
+            link: TrnMethod1/result
+            schema: any
+            mandatory: false
+            createdBy: message
+          actual:
+            link: ErrorHandler2/result
+schemas:
+  TrnColumn.in.arr:
+    type: array
+    items:
+      type: string
+  TrnMethod.in.arr:
+    type: array
+    items:
+      type: string
+  TrnMethodExists.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        param:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        schema: {
+          }
+        mandatory:
+          type: boolean
+        default: {
+          }
+        remark:
+          type: string
+        editor: {
+          }
+        context: {
+          }
+        hidden:
+          type: boolean
+        object_name:
+          type: string
+  TrnColumn1.in.arr:
+    type: array
+    items:
+      type: string
+  TrnMethod1.in.arr:
+    type: array
+    items:
+      type: string
+  TrnMethodExists1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        param:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        schema: {
+          }
+        mandatory:
+          type: boolean
+        default: {
+          }
+        remark:
+          type: string
+        editor: {
+          }
+        context: {
+          }
+        hidden:
+          type: boolean
+        object_name:
+          type: string

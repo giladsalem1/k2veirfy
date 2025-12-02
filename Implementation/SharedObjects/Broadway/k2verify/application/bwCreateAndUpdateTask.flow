@@ -1,0 +1,324 @@
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: old_task_id
+        out:
+          value:
+            schema: string
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            external: task_params
+        out:
+          object:
+            schema: '#ref'
+      FabricSetRead1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: username
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: Inactive
+            schema: string
+        out:
+          value:
+            schema: string
+      Now1:
+        parent: Now
+  Stage 2:
+    actors:
+      ToString1:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 3:
+    transactional: true
+    dependsOn: Stage 2
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: |-
+              if(!old_task_id){
+                  true
+              }
+              else{
+                  false
+              }
+          old_task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          schema:
+            const: k2verify
+          table:
+            const: tasks
+          fields:
+            const:
+            - task_title
+            - task_description
+            - properties
+            - source_interface
+            - target_interface
+            - created_by
+            - updated_by
+            - updated_at
+          keys:
+            const:
+            - task_id
+          dialect:
+            const: postgres
+          task_title:
+            link: JsonParser1/object/D2D_TASK_TITLE
+            schema: string
+            mandatory: false
+            createdBy: schema
+          task_description:
+            link: JsonParser1/object/D2D_TASK_DESCRIPTION
+            schema: string
+            mandatory: false
+            createdBy: schema
+          properties:
+            external: task_params
+            schema: '#ref'
+            mandatory: false
+            createdBy: schema
+          source_interface:
+            link: JsonParser1/object/D2D_INTERFACE_SRC
+            schema: string
+            mandatory: false
+            createdBy: schema
+          target_interface:
+            link: JsonParser1/object/D2D_INTERFACE_TAR
+            schema: string
+            mandatory: false
+            createdBy: schema
+          created_by:
+            link: FabricSetRead1/result
+            schema: string
+            mandatory: false
+            createdBy: schema
+          updated_by:
+            schema: any
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            schema: any
+            mandatory: false
+            createdBy: schema
+    split: '--------------------'
+  Stage 4:
+    else: true
+    transactional: true
+    dependsOn: Stage 2
+    actors:
+      DbLoad2:
+        parent: DbLoad
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          command:
+            const: update
+          schema:
+            const: k2verify
+          table:
+            const: tasks
+          fields:
+            const:
+            - task_id
+            - task_status
+            - updated_by
+            - updated_at
+          keys:
+            const:
+            - task_id
+          dialect:
+            const: postgres
+          task_id:
+            link: Const1/value
+            schema: any
+            mandatory: false
+            createdBy: schema
+          task_status:
+            link: Const2/value
+            schema: any
+            mandatory: false
+            createdBy: schema
+          updated_by:
+            link: FabricSetRead1/result
+            schema: any
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            link: ToString1/string
+            schema: any
+            mandatory: false
+            createdBy: schema
+  Stage 5:
+    dependsOn: Stage 3
+    split: '--------------------'
+  Stage 6:
+    transactional: true
+    dependsOn: Stage 4
+    actors:
+      DbLoad3:
+        parent: DbLoad
+        in:
+          interface:
+            const: POSTGRESQL_ADMIN
+          schema:
+            const: k2verify
+          table:
+            const: tasks
+          fields:
+            const:
+            - task_title
+            - task_description
+            - properties
+            - source_interface
+            - target_interface
+            - created_by
+            - updated_by
+            - updated_at
+          keys:
+            const:
+            - task_id
+          dialect:
+            const: postgres
+          task_title:
+            link: JsonParser1/object/D2D_TASK_TITLE
+            schema: string
+            mandatory: false
+            createdBy: schema
+          task_description:
+            link: JsonParser1/object/D2D_TASK_DESCRIPTION
+            schema: string
+            mandatory: false
+            createdBy: schema
+          properties:
+            external: task_params
+            schema: '#ref'
+            mandatory: false
+            createdBy: schema
+          source_interface:
+            link: JsonParser1/object/D2D_INTERFACE_SRC
+            schema: string
+            mandatory: false
+            createdBy: schema
+          target_interface:
+            link: JsonParser1/object/D2D_INTERFACE_TAR
+            schema: string
+            mandatory: false
+            createdBy: schema
+          created_by:
+            link: FabricSetRead1/result
+            schema: string
+            mandatory: false
+            createdBy: schema
+          updated_by:
+            schema: any
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            schema: any
+            mandatory: false
+            createdBy: schema
+schemas:
+  JsonParser1.out.object:
+    type: object
+    properties:
+      D2D_TASK_TITLE:
+        type: string
+      D2D_TASK_DESCRIPTION:
+        type: string
+      D2D_INTERFACE_SRC:
+        type: string
+      D2D_INTERFACE_TAR:
+        type: string
+      D2D_SCHEMA_SRC:
+        type: string
+      D2D_SCHEMA_TAR:
+        type: string
+      D2D_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      maxWorkersPerNode: {
+        }
+  DbLoad1.in.properties:
+    type: object
+    properties:
+      D2D_TASK_TITLE:
+        type: string
+      D2D_TASK_DESCRIPTION:
+        type: string
+      D2D_INTERFACE_SRC:
+        type: string
+      D2D_INTERFACE_TAR:
+        type: string
+      D2D_SCHEMA_SRC:
+        type: string
+      D2D_SCHEMA_TAR:
+        type: string
+      D2D_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      maxWorkersPerNode: {
+        }
+  DbLoad3.in.properties:
+    type: object
+    properties:
+      D2D_TASK_TITLE:
+        type: string
+      D2D_TASK_DESCRIPTION:
+        type: string
+      D2D_INTERFACE_SRC:
+        type: string
+      D2D_INTERFACE_TAR:
+        type: string
+      D2D_SCHEMA_SRC:
+        type: string
+      D2D_SCHEMA_TAR:
+        type: string
+      D2D_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      maxWorkersPerNode: {
+        }

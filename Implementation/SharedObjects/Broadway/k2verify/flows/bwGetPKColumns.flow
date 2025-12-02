@@ -1,0 +1,156 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customized_key
+        out:
+          value:
+            schema: string
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+  Stage 2:
+    dependsOn: Stage 1
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: key!=null && key!=''
+          key:
+            link: Const1/value
+            schema: any
+            mandatory: false
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customized_key
+        out:
+          value:
+            external: pk_columns
+            schema: string
+    split: '--------------------'
+  Stage 3:
+    else: true
+    dependsOn: Stage 1
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: MTable "catalog_field_info" not found
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      PII From Catalog mt:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: catalog_field_info
+          dataPlatform:
+            external: interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          schema:
+            external: schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          dataset:
+            external: table
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          pk:
+            const: 'true'
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+  Pii Cols:
+    dependsOn: Stage 2
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 3
+    actors:
+      Concat2:
+        parent: Concat
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          elements:
+            link: PII From Catalog mt/result/field
+        out:
+          string:
+            external: pk_columns
+schemas:
+  PII From Catalog mt.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        dataPlatform:
+          type: string
+        schema:
+          type: string
+        dataset:
+          type: string
+        class:
+          type: string
+        field:
+          type: string
+        sqlDataType:
+          type: string
+        sourceDataType:
+          type: string
+        sourceEntityType:
+          type: string
+        sourceNullable:
+          type: string
+        columnSize:
+          type: string
+        definedBy:
+          type: string
+        ordinalPosition:
+          type: string
+        pk: {
+          }
+        pii:
+          type: string
+        classification:
+          type: string
+        idx: {
+          }
+        V3: {
+          }

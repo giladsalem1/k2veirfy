@@ -1,0 +1,11 @@
+Source_Table_Name,Source_Interface,Source_Schema,Source_Transformation_Function_Name,source_columns_to_Ignore_null,Target_Table_Name,Target_Interface,Target_Schema,Target_Transformation_Function_Name,target_columns_to_Ignore_null,Customized_Key_Comparison,Pii_Columns,Excluded_Columns_Names,Active,Mode,Excluded_Rows_Sql,Column_Mapping,Buckets,Buckets_Method
+CUSTOMER_SRC,OracleT2T,CUSTOMER,,,CUSTOMER_TAR,OracleT2T,CUSTOMER,,,CUSTOMER_ID|SSN,FIRST_NAME|LAST_NAME,,TRUE,,,,100,bwGetBucketRows
+TEST_TABLE_SRC,OracleT2T,CUSTOMER,,,TEST_TABLE_TAR,OracleT2T,CUSTOMER,,,CUSTOMER_ID,SSN,,TRUE,,,,1000,bwGetBucketRows
+customer_src,dbCassandra,k2system_mar_compliance_solutions,FIRST_NAME:bwTrnFirstName,,customer_tar,dbCassandra,k2system_mar_compliance_solutions,,,customer_id|ssn,FIRST_NAME|LAST_NAME,,TRUE,,,,1000,bwGetBucketRows
+test_table,K2VERIFY_OPERATIONAL_DB,public,,,test_table,K2VERIFY_OPERATIONAL_DB,public,,,customer_id|SSN,,FIRST_NAME,TRUE,,,,1,bwGetBucketRows
+TEST_TABLE_SRC,Db2T2T,DB2INST1,,,TEST_TABLE_TAR2,Db2T2T,DB2INST1,,,CUSTOMER_ID,,,TRUE,,,FIRST_NAME:FIRST_N|CUSTOMER_ID:CUST_ID,100,bwGetBucketRows
+CUSTOMERS_SRC,d2d_oracle,CUSTOMER,,,CUSTOMERS_TRG,d2d_oracle,CUSTOMER,,,CUSTOMER_ID,FIRST_NAME|LAST_NAME,,TRUE,,,,5,bwGetBucketRows
+CUSTOMER_TEST,d2d_oracle,CUSTOMER,,,CUSTOMER_TEST_TRG,d2d_oracle,CUSTOMER,,,CUSTOMER_ID,,,TRUE,,,,5,bwGetBucketRows
+CUSTOMER_TEST_100K,d2d_oracle,CUSTOMER,,,CUSTOMER_TEST_100K_TRG,d2d_oracle,CUSTOMER,,,CUSTOMER_ID,,,TRUE,,,,10,bwGetBucketRows
+CUSTOMER_TEST_1M,d2d_oracle,CUSTOMER,,,CUSTOMER_TEST_1M_TRG,d2d_oracle,CUSTOMER,,,CUSTOMER_ID,,,TRUE,,,,10,bwGetBucketRows
+CUSTOMER_TEST_100K,d2d_oracle,CUSTOMER,,,CUSTOMER_TEST_100K_TRG_IDENTICAL,d2d_oracle,CUSTOMER,,,CUSTOMER_ID,,,TRUE,,,,10,bwGetBucketRows

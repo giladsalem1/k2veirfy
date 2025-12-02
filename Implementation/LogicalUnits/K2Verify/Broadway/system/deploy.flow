@@ -1,0 +1,87 @@
+tags: SYSTEM,system
+stages:
+  Parameters:
+    remark: "This flow will run automatically during deploy.\nIt will not run in case\
+      \ of soft deploy.\nIf the deploy command contains custom parameters, they can\
+      \ be accessed as additional external parameters with the same name. You can\
+      \ use the constants below, or use the external names in other actors. \n"
+    actors:
+      lu_name:
+        parent: Const
+        remark: This field contains the name of deployed LU
+        in:
+          value:
+            const: null
+            external: lu_name
+            schema: string
+        out:
+          value:
+            schema: string
+      nosync:
+        parent: Const
+        remark: |-
+          NOSYNC TRUE: Only schema changes trigger sync after deploy.
+          NOSYNC FALSE: Any deploy (even without any changes) triggers sync on the first time instance is accessed.
+        in:
+          value:
+            const: null
+            external: nosync
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+      is_first_deploy:
+        parent: Const
+        remark: A boolean representing if this is the first deploy
+        in:
+          value:
+            const: null
+            external: is_first_deploy
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+      is_studio:
+        parent: Const
+        remark: Will be true if this is the studio debug environment fabric instance
+        in:
+          value:
+            const: null
+            external: is_studio
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+  Stage 1:
+    actors:
+      BroadwayJob1:
+        parent: BroadwayJob
+      InterfaceListener1:
+        parent: InterfaceListener
+  Stage 2:
+    actors:
+      First Deploy:
+        parent: Equals
+        condition: result
+        disabled: true
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            external: is_first_deploy
+      bwCreateDATablesNdViews1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCreateK2verifyTablesNdViews
+          createTables:
+            const: true
+            schema: boolean
+            mandatory: false
+            createdBy: flowName
+          cleanTables:
+            const: true
+            schema: boolean
+            mandatory: false
+            createdBy: flowName

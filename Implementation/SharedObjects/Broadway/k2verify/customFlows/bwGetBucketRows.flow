@@ -1,0 +1,418 @@
+tags: D2D,k2verify
+stages:
+  Inputs:
+    actors:
+      CustomKey:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: customizedKey
+        out:
+          value:
+            schema: string
+      CheckDBType:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckDBType
+          interface:
+            external: interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          type:
+            schema: string
+      Delim:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: delimeter
+        out:
+          value:
+            schema: string
+      RESULT_INTERFACE:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      LOAD_SCHEMA:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      KEYS_TABLE_NAME:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: K2Verify
+          variableName:
+            const: K2VERIFY_KEYS_TABLE_NAME
+      Exclude Condition:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: excludeCondition
+        out:
+          value:
+            schema: string
+  Prepare keys:
+    actors:
+      strKeys:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: Delim/value
+          replace:
+            const: ' ,'
+          string:
+            link: CustomKey/value
+      concatKeys:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: Delim/value
+          replace:
+            const: ' || '
+          string:
+            link: CustomKey/value
+      Exclude Clause:
+        parent: StringFormat
+        in:
+          format:
+            const: ' and ${where} '
+          where:
+            link: Exclude Condition/value
+            schema: string
+            mandatory: false
+      IfElse1:
+        parent: IfElse
+        in:
+          test:
+            link: Exclude Condition/value
+          a:
+            link: Exclude Clause/string
+        out:
+          result:
+            schema: string
+  'Execute filteirng query ':
+    dependsOn: Prepare keys
+    actors:
+      Oracle DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: Oracle (Db)
+            schema: string
+          a:
+            link: CheckDBType/type
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ORA_HASH(${@concatKey}),
+              ${@bucketsNum}) = ${@bucketID} ${@and}
+          key:
+            link: strKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          concatKey:
+            link: concatKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 5:
+    else: true
+    dependsOn: Prepare keys
+    actors:
+      DB2 DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: DB2 (Db)
+            schema: string
+          a:
+            link: CheckDBType/type
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})),
+              ${@bucketsNum}) = ${@bucketID} ${@and}
+          key:
+            link: strKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          concatKey:
+            link: concatKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 4:
+    else: true
+    dependsOn: Prepare keys
+    actors:
+      PG DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: PostgreSQL (Db)
+            schema: string
+          a:
+            link: CheckDBType/type
+      DbCommand3:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE  MOD(ABS(hashtext(${@concatKey}
+              || '')::bigint),${@bucketsNum}) = ${@bucketID}
+          key:
+            link: strKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          concatKey:
+            link: concatKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 6:
+    else: true
+    dependsOn: Prepare keys
+    actors:
+      CASS DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: Cassandra (Db)
+            schema: string
+          a:
+            link: CheckDBType/type
+      DbCommand4:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: select org_key from ${@keysTableSchema}.${@keysTable} where group_id='${@bucketID}'
+          keysTableSchema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysTable:
+            link: KEYS_TABLE_NAME/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 1:
+    actors:
+      Concat1:
+        parent: Concat
+        height: 674
+        in:
+          delimiter:
+            const: null
+            link: Delim/value
+          elements:
+            link:
+            - path: DbCommand1/result
+              iterate: Iterate
+            - path: DbCommand2/result
+              iterate: Iterate
+            - path: DbCommand3/result
+              iterate: Iterate
+            - path: DbCommand4/result
+              iterate: Iterate
+  Stage 2:
+    actors:
+      ArrayToMap1:
+        parent: ArrayToMap
+        in:
+          keys:
+            const: null
+            link:
+              path: CustomKey/value
+              pos: 0
+          values:
+            link:
+              path: Concat1/string
+              pos: 0
+        out:
+          map:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: ArrayToMap1/map
+              pos: 0
+        out:
+          array:
+            external: bucketRows
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand2.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand3.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand4.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        org_key:
+          type: string
+  ArrayToMap1.out.map:
+    type: object
+    properties:
+      CUSTOMER_ID|SSN:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID|SSN:
+          type: string

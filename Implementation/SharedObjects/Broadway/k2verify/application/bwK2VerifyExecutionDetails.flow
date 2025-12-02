@@ -1,0 +1,110 @@
+tags: application,k2verify
+stages:
+  Stage 1:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: execution_id
+            schema: string
+        out:
+          value:
+            schema: string
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |-
+              SELECT
+                t.table_name,
+                t.batch_id,
+                t.status,
+                t.start_time,
+                t.end_time,
+                COALESCE(SUM(b.total_records), 0)     AS total_records,
+                COALESCE(SUM(b.processed_records), 0) AS processed_records,
+                COALESCE(SUM(b.failed_records), 0)    AS failed_records,
+                (
+                  SUM(CASE WHEN lower(b.status) = 'completed' THEN 1 ELSE 0 END)::text
+                  || '/' ||
+                  COALESCE(t.bucket_count, COUNT(b.bucket_id))::text
+                ) AS bucket_completion_summary
+              FROM ${@schema}.task_execution_tables t
+              LEFT JOIN ${@schema}.task_execution_buckets b
+                ON b.task_id = t.task_id
+               AND b.execution_id = t.execution_id
+               AND b.table_name = t.table_name
+              WHERE t.task_id      = ${task_id}
+                AND t.execution_id = ${execution_id}
+              GROUP BY
+                t.table_name, t.batch_id, t.status, t.start_time, t.end_time, t.bucket_count
+              ORDER BY t.table_name;
+          task_id:
+            link: Const1/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: Const2/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        table_name:
+          type: string
+        batch_id:
+          type: integer
+        table_status:
+          type: string
+        start_time:
+          type: date
+        end_time:
+          type: date
+        bucket_count:
+          type: integer
+        total_records:
+          type: integer
+        processed_records:
+          type: integer
+        failed_records:
+          type: integer

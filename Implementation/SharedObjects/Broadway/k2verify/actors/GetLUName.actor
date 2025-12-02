@@ -1,0 +1,13 @@
+{
+    "type": "GetLUName",
+    "badge": "Ge",
+    "inputs": [],
+    "outputs": [
+        {
+            "name": "lu_name",
+            "schema": {}
+        }
+    ],
+    "actorClass": "com.k2view.cdbms.usercode.common.K2Verify.GetLUName",
+    "addOutput": true
+}

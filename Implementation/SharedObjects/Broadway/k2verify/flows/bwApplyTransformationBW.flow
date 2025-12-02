@@ -1,0 +1,335 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: env
+        out:
+          value:
+            schema: string
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: transformationFunction
+        out:
+          value:
+            schema: string
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: delim
+        out:
+          value:
+            schema: string
+  Stage 6:
+    actors:
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: Const3/value
+          string:
+            link: Const4/value
+  Stage 8:
+    actors:
+      Split2:
+        parent: Split
+        in:
+          delimiter:
+            const: ':'
+          string:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+  Stage 10:
+    actors:
+      JavaScript3:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[0]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      JavaScript2:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 11:
+    actors:
+      StringFormat1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${env}_${col}
+          env:
+            link: Const2/value
+            schema: string
+            mandatory: false
+            createdBy: format
+          col:
+            link: JavaScript3/result
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 7:
+    last: 1
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          value:
+            link: JavaScript2/result
+          key:
+            link: StringFormat1/string
+        out:
+          map:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: records
+        out:
+          value:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      Columns:
+        parent: JavaScript
+        in:
+          script:
+            const: value.keySet();
+          value:
+            link:
+              path: Const1/value
+              iterate: Iterate
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+      Values:
+        parent: JavaScript
+        in:
+          script:
+            const: value.values();
+          value:
+            link:
+              path: Const1/value
+              iterate: Iterate
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: map.get(column);
+          column:
+            link:
+              path: Columns/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          map:
+            link: MapBuild1/map
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 13:
+    dependsOn: Stage 3
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: JavaScript1/result
+      InnerFlow1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: null
+            link: JavaScript1/result
+          value:
+            link:
+              path: Values/result
+              iterate: Iterate
+            schema: integer
+            mandatory: false
+        out:
+          value:
+            schema: integer
+    split: '--------------------'
+  Stage 14:
+    else: true
+    dependsOn: Stage 3
+    actors:
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Values/result
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+  Stage 15:
+    last: 1
+    actors:
+      MapBuild2:
+        parent: MapBuild
+        resetOnFirstIteration: true
+        in:
+          key:
+            link:
+              path: Columns/result
+              iterate: Iterate
+          value:
+            link:
+            - InnerFlow1/value
+            - Const5/value
+        out:
+          map:
+            schema: '#ref'
+  Stage 12:
+    last: 1
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: MapBuild2/map
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+  Stage 9:
+    actors:
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ArrayBuilder1/array
+        out:
+          value:
+            external: transformedRecords
+            schema: '#ref'
+schemas:
+  JavaScript3.in.arr:
+    type: array
+    items:
+      type: string
+  JavaScript2.in.arr:
+    type: array
+    items:
+      type: string
+  MapBuild1.out.map:
+    type: object
+    properties:
+      FIRST_NAME:
+        type: string
+      SSN:
+        type: string
+  Const1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  Columns.in.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: integer
+  Columns.out.result:
+    type: array
+    items:
+      type: string
+  Values.in.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: integer
+  Values.out.result:
+    type: array
+    items:
+      type: string
+  JavaScript1.in.map:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_SSN:
+        type: string
+  MapBuild2.out.map:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+  Const6.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string

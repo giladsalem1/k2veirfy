@@ -1,0 +1,979 @@
+{
+    "tags": [
+        "d2d",
+        "d2d\flows",
+        "D2D",
+        "k2verify"
+    ],
+    "levels": [
+        {
+            "stages": [
+                {
+                    "name": "Stage 1",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Interface",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "ENV",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Keys",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Delimiter",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "ColumnMapping",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 3",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "bwCheckDBType1",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwCheckDBType"
+                                    },
+                                    {
+                                        "name": "interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "type",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Split Customized Keys1",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Replace1",
+                            "actorType": {
+                                "parentType": "Replace",
+                                "inputs": [
+                                    {
+                                        "name": "search",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "replace",
+                                        "const": ","
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 10",
+                    "dependsOnList": [
+                        "Stage 3"
+                    ],
+                    "actors": [
+                        {
+                            "name": "NotEquals2",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "Cassandra (Db)"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 18",
+                    "dependsOnList": [
+                        "Stage 3"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "ForLoop2",
+                            "actorType": {
+                                "parentType": "ForLoop",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 14",
+                    "dependsOnList": [
+                        "Stage 10"
+                    ],
+                    "actors": []
+                },
+                {
+                    "name": "Stage 19",
+                    "dependsOnList": [
+                        "Stage 18"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Const2",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Const3",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "?"
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 16",
+                    "dependsOnList": [
+                        "Stage 14"
+                    ],
+                    "isLast": 1,
+                    "actors": []
+                },
+                {
+                    "name": "Stage 20",
+                    "dependsOnList": [
+                        "Stage 19"
+                    ],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "StringBuild2",
+                            "actorType": {
+                                "parentType": "StringBuild",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 7",
+                    "dependsOnList": [
+                        "Stage 16"
+                    ],
+                    "actors": []
+                },
+                {
+                    "name": "Stage 21",
+                    "dependsOnList": [
+                        "Stage 20"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Build Keys1",
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": " ${key} IN (${questionMarks})"
+                                    },
+                                    {
+                                        "name": "key",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "questionMarks",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 8",
+                    "dependsOnList": [
+                        "Stage 7"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Equals1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "Equals",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "SRC"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Split Customized Keys",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 15",
+                    "dependsOnList": [
+                        "Stage 7"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "bwGetColMapCustomKey1",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwGetColMapCustomKey"
+                                    },
+                                    {
+                                        "name": "ColumnMapping",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "CustomizedKey",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "string",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Split2",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 22",
+                    "dependsOnList": [
+                        "Stage 21"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 23",
+                    "dependsOnList": [
+                        "Stage 15",
+                        "Stage 8"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Build Keys",
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": " ${key} = ? "
+                                    },
+                                    {
+                                        "name": "key",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 24",
+                    "dependsOnList": [
+                        "Stage 22"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 11",
+                    "dependsOnList": [
+                        "Stage 23"
+                    ],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "Append Keys",
+                            "actorType": {
+                                "parentType": "StringBuild",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "and"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 9",
+                    "dependsOnList": [
+                        "Stage 24"
+                    ],
+                    "isLast": 1,
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 12",
+                    "dependsOnList": [
+                        "Stage 11"
+                    ],
+                    "actors": [
+                        {
+                            "name": "ForLoop1",
+                            "actorType": {
+                                "parentType": "ForLoop",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 25",
+                    "dependsOnList": [
+                        "Stage 9"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 28",
+                    "dependsOnList": [
+                        "Stage 12"
+                    ],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "Const1",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "StringBuild1",
+                            "actorType": {
+                                "parentType": "StringBuild",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": " OR"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 26",
+                    "dependsOnList": [
+                        "Stage 25"
+                    ],
+                    "isLast": 1,
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 29",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Const4",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "connections": [
+        {
+            "leftPort": {
+                "actor": "Interface",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "bwCheckDBType1",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ENV",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Equals1",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Keys",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Split Customized Keys",
+                "name": "string"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Keys",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Split Customized Keys1",
+                "name": "string"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Keys",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Replace1",
+                "name": "string"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Delimiter",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Split Customized Keys",
+                "name": "delimiter"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Delimiter",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Split Customized Keys1",
+                "name": "delimiter"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Delimiter",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Replace1",
+                "name": "search"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnMapping",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "bwGetColMapCustomKey1",
+                "name": "ColumnMapping"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "bwCheckDBType1",
+                "name": "type"
+            },
+            "rightPort": {
+                "actor": "NotEquals2",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split Customized Keys1",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "Build Keys1",
+                "name": "key"
+            },
+            "iterate": "First"
+        },
+        {
+            "leftPort": {
+                "actor": "Replace1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "bwGetColMapCustomKey1",
+                "name": "CustomizedKey"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ForLoop2",
+                "name": "i"
+            },
+            "rightPort": {
+                "actor": "Const2",
+                "name": "value"
+            },
+            "iterate": "Iterate"
+        },
+        {
+            "leftPort": {
+                "actor": "Const3",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "StringBuild2",
+                "name": "input"
+            },
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "StringBuild2",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Build Keys1",
+                "name": "questionMarks"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Build Keys1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Const4",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split Customized Keys",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "Build Keys",
+                "name": "key"
+            },
+            "iterate": "Iterate"
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetColMapCustomKey1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Split2",
+                "name": "string"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split2",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "Build Keys",
+                "name": "key"
+            },
+            "iterate": "Iterate"
+        },
+        {
+            "leftPort": {
+                "actor": "Build Keys",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Append Keys",
+                "name": "input"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Append Keys",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "StringBuild1",
+                "name": "input"
+            },
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "ForLoop1",
+                "name": "i"
+            },
+            "rightPort": {
+                "actor": "Const1",
+                "name": "value"
+            },
+            "iterate": "Iterate"
+        },
+        {
+            "leftPort": {
+                "actor": "StringBuild1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Const4",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "interface"
+            },
+            "rightPort": {
+                "actor": "Interface",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "env_prefix"
+            },
+            "rightPort": {
+                "actor": "ENV",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "customized_keys"
+            },
+            "rightPort": {
+                "actor": "Keys",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "delimiter"
+            },
+            "rightPort": {
+                "actor": "Delimiter",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "column_mapping"
+            },
+            "rightPort": {
+                "actor": "ColumnMapping",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "fetch_size"
+            },
+            "rightPort": {
+                "actor": "ForLoop2",
+                "name": "to"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "fetch_size"
+            },
+            "rightPort": {
+                "actor": "ForLoop1",
+                "name": "to"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Const4",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "flowArgs",
+                "name": "keys_for_select"
+            }
+        }
+    ]
+}
