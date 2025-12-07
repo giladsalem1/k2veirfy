@@ -18,12 +18,12 @@
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
         <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB" dbType="genericdb" active="true">
-          <dbHost> MANAGED_DB_IP</dbHost>
+          <dbHost>10.154.0.211</dbHost>
           <dbPort>5432</dbPort>
           <dbScheme>postgres</dbScheme>
-          <dbUser>MANAGED_DB_USER_NAME</dbUser>
-          <dbPasswordEncrypted>~encs2~F+cA0M7UAwjz+c7PpaYtPIVr07HfTeXcBQTQvEvpkDLvGs43xvieO/4j3LUzWvyHFLY1DpqOCM4&#x3D;</dbPasswordEncrypted>
-          <connString>jdbc:postgresql:// MANAGED_DB_IP:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <dbUser>k2verify_prod_5_solutions</dbUser>
+          <dbPasswordEncrypted>&amp;qnc7[V(y?kvx&#x3D;?S</dbPasswordEncrypted>
+          <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>60</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
