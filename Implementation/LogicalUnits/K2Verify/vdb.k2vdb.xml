@@ -44,7 +44,7 @@
     </TableProperties>
 	 <TableProperties name="table_summary">
       <Populations>
-        <Population name="table_summary_population.flow" order="902" disabled="false" populationType="Flow" />
+        <Population name="table_summary_population.flow" order="902" disabled="true" populationType="Flow" />
       </Populations>
     </TableProperties>
   </TablesProperties>
