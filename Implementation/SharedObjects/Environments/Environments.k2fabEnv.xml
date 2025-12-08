@@ -29,6 +29,18 @@
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG" dbType="genericdb" active="true">
+          <dbHost>10.154.0.211</dbHost>
+          <dbPort>5432</dbPort>
+          <dbScheme>postgres</dbScheme>
+          <dbUser>k2verify_prod_5_solutions</dbUser>
+          <dbPasswordEncrypted>~encs2~WLGULAdiN5LnVNYI7kOxi84d7dsrs53P4B/5A9EUHps2F+y0CtGrPbJ76DJOfvO1</dbPasswordEncrypted>
+          <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <minConnectionsNumber>0</minConnectionsNumber>
+          <maxConnectionsNumber>60</maxConnectionsNumber>
+          <JdbcDriverName>PostgreSQL</JdbcDriverName>
+          <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
+        </DbInterface>
       </DbInterfacesList>
       <GlobalsList>
         <Global name="K2VERIFY_CONF_SEPARATOR" luName="">
@@ -57,6 +69,34 @@
         </Global>
       </GlobalsList>
       <GenericInterfacesList>
+        <GenericInterface type="LOCAL" enabled="true" version="">
+          <Name>fs_home</Name>
+          <Properties>
+            <Property name="WorkingDir">
+              <Value>/opt/apps/fabric/</Value>
+            </Property>
+            <Property name="RECURSIVE">
+              <Value>False</Value>
+            </Property>
+            <Property name="testConnectionState">
+              <Value>ok</Value>
+            </Property>
+          </Properties>
+        </GenericInterface>
+        <GenericInterface type="LOCAL" enabled="true" version="">
+          <Name>fs_workspace</Name>
+          <Properties>
+            <Property name="WorkingDir">
+              <Value>/opt/apps/fabric/workspace</Value>
+            </Property>
+            <Property name="RECURSIVE">
+              <Value>False</Value>
+            </Property>
+            <Property name="testConnectionState">
+              <Value>ok</Value>
+            </Property>
+          </Properties>
+        </GenericInterface>
       </GenericInterfacesList>
     </Environment>
   </EnvironmentsList>
