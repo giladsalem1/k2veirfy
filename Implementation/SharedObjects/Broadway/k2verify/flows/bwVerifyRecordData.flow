@@ -490,19 +490,19 @@ stages:
         out:
           value:
             schema: '#ref'
-  Stage 14:
-    transactional: true
-    actors:
       Logger2:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 14 begin'
+            const: '### ${iid} bwReturnSrcNdTarValues BEFORE  '
           iid:
             external: bucket_id
             schema: any
             mandatory: false
             createdBy: message
+  Stage 14:
+    transactional: true
+    actors:
       bwReturnSrcNdTarValues1:
         parent: InnerFlow
         in:
@@ -536,16 +536,6 @@ stages:
             schema: string
           sourceValue:
             schema: string
-      Logger1:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} stage 14 end'
-          iid:
-            external: bucket_id
-            schema: any
-            mandatory: false
-            createdBy: message
   Stage 31:
     transactional: true
     actors:
@@ -724,6 +714,19 @@ stages:
             link: bwReturnSrcNdTarValues1/targetVerified
             schema: string
             mandatory: false
+  Stage 13:
+    transactional: true
+    actors:
+      Logger1:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} bwReturnSrcNdTarValues AFTER  '
+          iid:
+            external: bucket_id
+            schema: any
+            mandatory: false
+            createdBy: message
 schemas:
   Const3.out.value:
     type: object
