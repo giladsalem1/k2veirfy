@@ -757,7 +757,7 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} Stage 19 before looping on group keys'
+            const: '### ${iid} stage 19 before looping on group keys'
           iid:
             link: IID/value
             schema: any
