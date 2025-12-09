@@ -144,14 +144,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
-          Source_Transformation_Function_Name:
-            schema: any
-            mandatory: false
-            createdBy: functionName
-          Target_Transformation_Function_Name:
-            schema: any
-            mandatory: false
-            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -501,6 +493,16 @@ stages:
   Stage 14:
     transactional: true
     actors:
+      Logger2:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 14 begin'
+          iid:
+            external: bucket_id
+            schema: any
+            mandatory: false
+            createdBy: message
       bwReturnSrcNdTarValues1:
         parent: InnerFlow
         in:
@@ -534,6 +536,16 @@ stages:
             schema: string
           sourceValue:
             schema: string
+      Logger1:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 14 end'
+          iid:
+            external: bucket_id
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 31:
     transactional: true
     actors:
