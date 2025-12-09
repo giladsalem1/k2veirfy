@@ -336,6 +336,11 @@ stages:
   Stage 5:
     transactional: false
     actors:
+      Logger1:
+        parent: Logger
+        in:
+          message:
+            const: '### before keys retrival :bwGetBucketKeysList'
       bwGetBucketKeysList1:
         parent: InnerFlow
         in:
@@ -424,6 +429,11 @@ stages:
         out:
           result:
             schema: integer
+      Logger2:
+        parent: Logger
+        in:
+          message:
+            const: '### after keys retrival : bwGetBucketKeysList'
   Stage 21:
     transactional: false
     actors:
@@ -565,6 +575,13 @@ stages:
           sql:
             const: null
             link: Source Env Query/sql
+          rowsGeneratorDistribution:
+            const:
+              distribution: uniform
+              round: true
+              type: integer
+              minimum: 0
+              maximum: 10
           parent_rows:
             link: DeepCopy1/value
         out:
@@ -726,6 +743,11 @@ stages:
           actorId:
             const:
             - TargetDbQuery
+      Logger3:
+        parent: Logger
+        in:
+          message:
+            const: '### Stage 19 before looping on group keys'
   Stage 25:
     transactional: true
     actors:
@@ -1187,6 +1209,12 @@ stages:
   Stage 18:
     last: 1
     transactional: false
+    actors:
+      Logger4:
+        parent: Logger
+        in:
+          message:
+            const: '### stage 18 after looping on group keys'
   Stage 40:
     transactional: false
     actors:
