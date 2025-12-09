@@ -841,6 +841,7 @@ stages:
           message:
             const: '### ${iid} stage 23 before FILTER'
           iid:
+            link: IID/value
             schema: any
             mandatory: false
             createdBy: message
@@ -933,6 +934,7 @@ stages:
           message:
             const: '### ${iid} stage 23 after FILTER'
           iid:
+            link: IID/value
             schema: any
             mandatory: false
             createdBy: message
