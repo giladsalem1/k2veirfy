@@ -835,6 +835,15 @@ stages:
   Stage 23:
     transactional: true
     actors:
+      Logger5:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 23 before FILTER'
+          iid:
+            schema: any
+            mandatory: false
+            createdBy: message
       FilterSRCRow:
         parent: Filter
         in:
@@ -918,6 +927,15 @@ stages:
         out:
           value:
             schema: '#ref'
+      Logger6:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 23 after FILTER'
+          iid:
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 1:
     transactional: true
     actors:
