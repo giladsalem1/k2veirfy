@@ -835,16 +835,6 @@ stages:
   Stage 23:
     transactional: true
     actors:
-      Logger5:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} stage 23 before FILTER'
-          iid:
-            link: IID/value
-            schema: any
-            mandatory: false
-            createdBy: message
       FilterSRCRow:
         parent: Filter
         in:
@@ -928,11 +918,11 @@ stages:
         out:
           value:
             schema: '#ref'
-      Logger6:
+      Logger7:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 23 after FILTER'
+            const: '### ${iid} stage 12 before KEYS EXISTS '
           iid:
             link: IID/value
             schema: any
@@ -998,12 +988,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
-              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
+              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           operational_schema:
@@ -1038,6 +1028,16 @@ stages:
         out:
           keyNotFound:
             schema: boolean
+      Logger6:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 12 before verify'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 12:
     transactional: true
     actors:
@@ -1164,6 +1164,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+      Logger5:
+        parent: Logger
+        in:
+          message:
+            const: '### ${iid} stage 12 after verify'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 32:
     transactional: true
     actors:
