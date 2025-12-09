@@ -340,7 +340,12 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### before keys retrival :bwGetBucketKeysList'
+            const: '### ${iid} before keys retrival :bwGetBucketKeysList'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
       bwGetBucketKeysList1:
         parent: InnerFlow
         in:
@@ -433,7 +438,12 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### after keys retrival : bwGetBucketKeysList'
+            const: '### ${iid} after keys retrival : bwGetBucketKeysList'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 21:
     transactional: false
     actors:
@@ -747,7 +757,12 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### Stage 19 before looping on group keys'
+            const: '### ${iid} Stage 19 before looping on group keys'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 25:
     transactional: true
     actors:
@@ -1214,7 +1229,12 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### stage 18 after looping on group keys'
+            const: '### ${iid} stage 18 after looping on group keys'
+          iid:
+            link: IID/value
+            schema: any
+            mandatory: false
+            createdBy: message
   Stage 40:
     transactional: false
     actors:
