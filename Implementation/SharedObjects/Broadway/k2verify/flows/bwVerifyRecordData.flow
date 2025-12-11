@@ -494,7 +494,7 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} bwReturnSrcNdTarValues BEFORE  '
+            const: '### ${iid} bwReturnSrcNdTarValues - before  '
           iid:
             external: bucket_id
             schema: any
@@ -721,7 +721,7 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} bwReturnSrcNdTarValues AFTER  '
+            const: '### ${iid} bwReturnSrcNdTarValues - AFTER  '
           iid:
             external: bucket_id
             schema: any

@@ -340,10 +340,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} before keys retrival :bwGetBucketKeysList'
+            const: '### ${iid} bwGetBucketKeysList - before'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
       bwGetBucketKeysList1:
@@ -438,10 +438,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} after keys retrival : bwGetBucketKeysList'
+            const: '### ${iid} bwGetBucketKeysList - AFTER'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
   Stage 21:
@@ -757,10 +757,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 19 before looping on group keys'
+            const: '### ${iid} group-keys looping - before'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
   Stage 25:
@@ -918,16 +918,6 @@ stages:
         out:
           value:
             schema: '#ref'
-      Logger7:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} stage 12 before KEYS EXISTS '
-          iid:
-            link: IID/value
-            schema: any
-            mandatory: false
-            createdBy: message
   Stage 1:
     transactional: true
     actors:
@@ -1032,10 +1022,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 12 before verify'
+            const: '### ${iid} bwVerifyRecordData - before'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
   Stage 12:
@@ -1093,12 +1083,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
-              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
+              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           source_table_name:
@@ -1168,10 +1158,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 12 after verify'
+            const: '### ${iid} bwVerifyRecordData - AFTER'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
   Stage 32:
@@ -1259,10 +1249,10 @@ stages:
         parent: Logger
         in:
           message:
-            const: '### ${iid} stage 18 after looping on group keys'
+            const: '### ${iid} group-keys looping - AFTER'
           iid:
             link: IID/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: message
   Stage 40:
