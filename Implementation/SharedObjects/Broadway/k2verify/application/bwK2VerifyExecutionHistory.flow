@@ -1,4 +1,4 @@
-tags: application
+tags: application,k2verify
 stages:
   Stage 1:
     actors:
@@ -21,17 +21,8 @@ stages:
             const: null
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
           sql:
-            const: |2-
-               SELECT
-                te.execution_id,
-                te.task_id,
-                te.execution_status,
-                te.started_by,
-                te.start_time,
-                te.end_time,
-                CONCAT(COALESCE(s.completed, 0), '/', COALESCE(s.total, 0)) AS table_completion_summary
-              FROM ${@schema_name}.task_execution AS te
-              LEFT JOIN (
+            const: |
+              WITH table_completion AS (
                 SELECT
                   task_id,
                   execution_id,
@@ -39,9 +30,67 @@ stages:
                   SUM(CASE WHEN lower(status) = 'completed' THEN 1 ELSE 0 END) AS completed
                 FROM ${@schema_name}.task_execution_tables
                 GROUP BY task_id, execution_id
-              ) AS s
-                ON s.task_id = te.task_id
-               AND s.execution_id = te.execution_id
+              ),
+              table_stats AS (
+                SELECT
+                  execution_id::bigint AS execution_id,
+                  COUNT(*) AS total_tables,
+                  COUNT(*) FILTER (WHERE upper(match_result) <> 'PASSED') AS total_tables_failed
+                FROM ${@schema_name}.k2verify_table_summary
+                GROUP BY 1
+              ),
+              record_stats AS (
+                SELECT
+                  execution_id::bigint AS execution_id,
+                  SUM(number_of_fields_match)    AS total_match_fields,
+                  SUM(number_of_fields_mismatch) AS total_mismatch_fields
+                FROM ${@schema_name}.k2verify_record_summary
+                GROUP BY 1
+              )
+              SELECT
+                te.execution_id,
+                te.task_id,
+                t.task_title                         AS task_name,
+                te.execution_status,
+                te.started_by,
+                te.start_time,
+                te.end_time,
+                t.source_interface,
+                t.target_interface,
+
+                -- Query 1 field
+                CONCAT(COALESCE(tc.completed, 0), '/', COALESCE(tc.total, 0))
+                  AS table_completion_summary,
+
+                -- Query 2 fields
+                COALESCE(ts.total_tables, 0)        AS total_tables,
+                COALESCE(ts.total_tables_failed, 0) AS total_tables_failed,
+                COALESCE(rs.total_mismatch_fields, 0) AS non_pass_count,
+                TRUNC(
+                  CASE
+                    WHEN COALESCE(rs.total_match_fields, 0)
+                       + COALESCE(rs.total_mismatch_fields, 0) > 0
+                    THEN (COALESCE(rs.total_mismatch_fields, 0)::numeric
+                         / (COALESCE(rs.total_match_fields, 0)
+                          + COALESCE(rs.total_mismatch_fields, 0))::numeric) * 100
+                    ELSE 0
+                  END
+                , 2) AS percent_records_failed
+
+              FROM ${@schema_name}.task_execution te
+              JOIN ${@schema_name}.tasks t
+                ON t.task_id = te.task_id
+
+              LEFT JOIN table_completion tc
+                ON tc.task_id = te.task_id
+               AND tc.execution_id = te.execution_id
+
+              LEFT JOIN table_stats ts
+                ON ts.execution_id = te.execution_id::bigint
+
+              LEFT JOIN record_stats rs
+                ON rs.execution_id = te.execution_id::bigint
+
               WHERE te.task_id = ${task_id}
               ORDER BY te.execution_id DESC;
           task_id:

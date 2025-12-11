@@ -1,0 +1,141 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      TASK_ID:
+        parent: ToNumber
+        in:
+          value:
+            external: task_id
+      GetLUName1:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+  Stage 7:
+    actors:
+      K2VERIFY_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            link: GetLUName1/lu_name
+      K2VERIFY_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            link: GetLUName1/lu_name
+  Stage 5:
+    actors:
+      FetchTaskProps:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_INTERFACE/variableValue
+          sql:
+            const: select properties from ${@schema}.tasks where task_id=${task_id}
+          schema:
+            link: K2VERIFY_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: TASK_ID/number
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: string
+  Stage 2:
+    actors:
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            link: FetchTaskProps/result
+        out:
+          object:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      bwValidateMtableParams1:
+        parent: InnerFlow
+        height: 247
+        in:
+          flowName:
+            const: bwValidateMtableParams
+          taskProps:
+            link: JsonParser1/object
+            schema: '#ref'
+            mandatory: false
+            createdBy: flowName
+  Stage 4: {
+    }
+  Stage 6: {
+    }
+schemas:
+  JsonParser1.out.object:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_SCHEMA_SRC:
+        type: string
+      K2VERIFY_SCHEMA_TAR:
+        type: string
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
+  bwValidateMtableParams1.in.taskProps:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_SCHEMA_SRC:
+        type: string
+      K2VERIFY_SCHEMA_TAR:
+        type: string
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean

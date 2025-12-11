@@ -1,0 +1,209 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_INTERFACE1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      execution_id:
+        parent: ToString
+        in:
+          value:
+            external: execution_id
+  Stage 2:
+    actors:
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: select distinct source_table_name from ${@schema_name}.k2verify_table_summary
+              where execution_id =${execution_id}
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: execution_id/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      table name:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: DbCommand2/result/source_table_name
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+  Stage 4:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |-
+              select column_name,count(*) as total_failed
+               from ${@schema}.k2verify_field_summary where execution_id =${execution_id} and match_result='NOT PASSED' and source_table_name=${source_table_name} group by column_name
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_table_name:
+            link: table name/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          duplicateKeys:
+            const: all
+          key:
+            link: table name/value
+          value:
+            link:
+              path: DbCommand1/result
+              iterate: Iterate
+        out:
+          map:
+            external: map
+            schema: '#ref'
+  Stage 7:
+    last: 1
+  Stage 6: {
+    }
+schemas:
+  DbCommand2.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        source_table_name:
+          type: string
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        column_name:
+          type: string
+        total_failed:
+          type: integer
+  MapBuild1.out.map:
+    type: object
+    properties:
+      CUSTOMER_1:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_2:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_3:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_4:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_5:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_6:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_7:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_8:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer
+      CUSTOMER_SRC:
+        type: array
+        items:
+          type: object
+          properties:
+            column_name:
+              type: string
+            total_failed:
+              type: integer

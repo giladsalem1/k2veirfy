@@ -1,7 +1,7 @@
 [
     {
         "id": "k2view.k2verify",
-        "version": "0.0.4",
+        "version": "0.0.6",
         "artifacts": [
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/Broadway/system/deploy.flow",
@@ -25,7 +25,7 @@
             },
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/Mtable/mtK2VerifyConfig.csv",
-                "sha256": "1205bab92c36252016028c4e1dd1cada5902f44416f009f8ac235f438d6092f2"
+                "sha256": "9811d1865da4d2bf4c8991aad7c810894d7ed528f5a3d30b75f525d381307467"
             },
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/SecurityProfiles/SecurityProfiles.k2secProfiles.xml",
@@ -41,7 +41,7 @@
             },
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/Tables/field_summary.field_summary_population.flow",
-                "sha256": "79c0b3a107dd374a7851ce536e077035bf17d6eb64c2a47bd60045ee9cde328c"
+                "sha256": "ef645d6e358c3b480a4be7a4dc0dd61cc880d31db4d5a1a5c8796c6a3e2b6bfa"
             },
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/Tables/field_summary.k2table.xml",
@@ -76,88 +76,116 @@
                 "sha256": "738a546753b50e06e6653e782338d1077a4f3b4a2ce2fc058fac27d613d2a3a0"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/delete-icon-disabled.78d7fa3a.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/apps.json",
+                "sha256": "538a4dd8689d638f11f27ea051172c624650046dbfc546fc2344dd774aab0566"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/clipboard.43887793.svg",
+                "sha256": "43887793d71c5bf0c672ec5c61e6eec5f23373947b254a350c8ce1601da3a676"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/delete-icon-disabled.78d7fa3a.svg",
                 "sha256": "78d7fa3aeb9c0db8dc7fbfc91ecf445500ba35f21bf38ed4ed4cf72f7fe67dc7"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/delete-icon.2b6e22b6.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/delete-icon.2b6e22b6.svg",
                 "sha256": "2b6e22b6a9f6d2be6263c62289d59bcf945fd16947dd82566db8fa3e77ea11a1"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/fa-brands-400.061dd5c3.woff2",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/fa-brands-400.061dd5c3.woff2",
                 "sha256": "061dd5c333459ea42dba764617793fd6ea2d316b7ab644f157e4d2354dac02af"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/fa-regular-400.81159a6b.woff2",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/fa-regular-400.81159a6b.woff2",
                 "sha256": "81159a6b36876a5545555ae689144f074e2fc802d57d36f2c21bc6f3a12f4e48"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/fa-solid-900.bdd7887e.woff2",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/fa-solid-900.bdd7887e.woff2",
                 "sha256": "bdd7887ef769948024a5cc37a018f19da6a9b355b4a09973836115e0d31ead55"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/favicon.17e50649.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/favicon.17e50649.svg",
                 "sha256": "17e50649ce0babbf448e8a728d4475192b60b4d096a7d9414df727128435519e"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/filter_off.3d9ea484.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/filter_off.3d9ea484.svg",
                 "sha256": "3d9ea484c658811691d0986b682710392b684feaf25f6eadad76a3f053a32670"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/filter_on.6b5cc2ac.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/filter_on.6b5cc2ac.svg",
                 "sha256": "6b5cc2ac7399855c38985d7c97ac9a7a953c1f98b453ad6b7aeb2816a17caa63"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/history.5f9764ca.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/history.5f9764ca.svg",
                 "sha256": "5f9764caa1eddf4c8a921528dacdc53df07025a0bda89e09b4f2f6a4e9921de0"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/index.9afb5d49.js",
-                "sha256": "7f82d591c5648372952453dfd8278ae4a06c24e2b7f19d23fc4a4d19977a70f0"
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/html2canvas.esm.0eae2bf4.js",
+                "sha256": "800b944763b733c3944b4f82b6d2ffa7bdb9dc7792c5aef83b2b2081c00c0bb8"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/index.fff31178.css",
-                "sha256": "5c1f7b73c4b117ee33debeb89ec12e6a8dedbce3828cbce21500ee1ff6efa1b5"
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/index.7e5064ca.css",
+                "sha256": "e68ee0d3b39429bf8c8d0e4b6881d05e46b565af94b0678b1924939263eb7a94"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/info.ea6a721a.svg",
-                "sha256": "ea6a721a382fce20e17d9bc7bc4de070cf72a6ba7d89311913758bcb6c327634"
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/index.c68a44c7.js",
+                "sha256": "9eb0079c1dd91d303408245b3ad6220eae56f5ab65cffa479794ab17aff3f2a2"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/play-off.68ab7835.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/index.es.5107fd88.js",
+                "sha256": "a01786d487516538c3b67598acb86ef205a7b421a4c3847787211dbb401301b6"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/info.ed4c016e.svg",
+                "sha256": "ed4c016e4cffe5462876df4957590e6ddc8a928f13ca500daa577ac8ce0b7e1c"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/k2view-logo-dark.284b80b7.png",
+                "sha256": "284b80b72778004687981f694e4f1c8571b8a028f4095659bdbe36115ea5d16d"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/more_options.5c20aa42.svg",
+                "sha256": "5c20aa429dd1bbe711c33c783b0591a6d2475df195c2d130a380b0999da54372"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/play-off.68ab7835.svg",
                 "sha256": "68ab7835df350574c2faefa2aad0c70ac7f627ec5d8838db8be19eb749ea1443"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/play.8b700136.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/play.8b700136.svg",
                 "sha256": "8b700136f1f4ad858ac5ed9c70f39db0856bc946df4349c3a88014a5585933b7"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/sort_arrows.cb2e47ea.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/purify.es.71f4a289.js",
+                "sha256": "5065a33179f3e50bf772873f14b9b5eb09b74d5e9720ad43f14c13d3bdc49658"
+            },
+            {
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/sort_arrows.cb2e47ea.svg",
                 "sha256": "cb2e47ead5bb198a121b75f522b25ef61c3f4109205cc145472c32bc981b3db4"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/sort_arrows_down.de425f0f.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/sort_arrows_down.de425f0f.svg",
                 "sha256": "de425f0f22ddec75650ee32eaa83e69b03c2dcffb708bb1d4a0fd6f5a949502c"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/sort_arrows_up.9ee7f9dd.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/sort_arrows_up.9ee7f9dd.svg",
                 "sha256": "9ee7f9dda72e72cab656a491d4734f263877626c706ee6f42a9f6ce7f406895f"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/stop-circle-disabled.30c62ec7.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/stop-circle-disabled.30c62ec7.svg",
                 "sha256": "30c62ec7e50c6f4640adf4d5f78907eeb67c3a0d7ac0759ce49a1fe818414513"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/assets/stop-circle.6a652e0f.svg",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/assets/stop-circle.6a652e0f.svg",
                 "sha256": "6a652e0fb994403b7a4fd6026d6653e1b0f58910d305391677d68bb29f9a0f9a"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/K2Verify/index.html",
-                "sha256": "178c94a217095e5be0ef41412ec9a6ad7f80c5cb114ed10dea53bbbf91b9e719"
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/index.html",
+                "sha256": "3050bb92063a1d44a4f6e793dd98c0ed88cb424c8bc82edc1b3537fa1e857443"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/apps.json",
-                "sha256": "70f54f632e0c8599563ca98d9e3f5d24bdf6bf761cb4c4d44af66239b927ab05"
+                "path": "/Implementation/LogicalUnits/K2Verify/web/k2verify/translations.json",
+                "sha256": "f7c570c5997c7ee351d473e58375b9bae1fda442219518eb10a74c3e569115bb"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/actors/GetLUName.actor",
@@ -174,6 +202,10 @@
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwCreateTables.flow",
                 "sha256": "83e747d67f936d5746f8a3bc666c057b07e36a7f5e735f8e0737771f94969920"
+            },
+            {
+                "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwDownloadColumnLevelSummary.flow",
+                "sha256": "b3aa329f748b0931109f601fa73ef383bfd2105b03aba5463394a2898142ef8d"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwFetchDAExecutionHistoryDetails.flow",
@@ -204,28 +236,40 @@
                 "sha256": "c3fd1727f259ad64ca748f9da69303e4501dd4dd7aeface90c4de1ccf58b5f54"
             },
             {
+                "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyDeleteTask.flow",
+                "sha256": "f28731cac9052354326428bb933e2e0060aef2d9e72f0a88b7270d070dbee4cc"
+            },
+            {
+                "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyDownloadRecordDetailsData.flow",
+                "sha256": "3f72726a9fbabf2755bca14970daf627afd2dc53148958970c27f0f9988d2f1e"
+            },
+            {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyExecutionDetails.flow",
                 "sha256": "ff9d36782da4bf9757ddecf6a12efb5b280a7c0ddf4c225d065e566ab7bd904a"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyExecutionHistory.flow",
-                "sha256": "0140dfd52cfc4d46e30dca035072800318214d4033c8a7b1fe7242ee4f6544d1"
+                "sha256": "27b72d305457086c1b50c9e9c9d05a17f727fed8480ad193384b61717a150f60"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyExecutionHistoryAll.flow",
-                "sha256": "f48f25c2cc28960da8700cd5c7e055acda8f569baecec7419036df881d25c90b"
+                "sha256": "33b754fff239308d7648a79c1e19af7a0c919bee136910543137b1c0ebc4d701"
+            },
+            {
+                "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyFetchTableDetails.flow",
+                "sha256": "ec6ff97da3d13556e4ccbf25652fb16443c4b34256e017630916115bc211ed13"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyResultColumns.flow",
-                "sha256": "8001c0482e421dfa5c8c24e38e65ed6b81b919881785b173f0d8df9b1b6fce14"
+                "sha256": "cf49abe6804ac51c6dc94e1a9111976d6c6423138e7e021c3619c268794642fa"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyResultRecordDetails.flow",
-                "sha256": "f22c7c41e3cf5fcd82ba37912280b633dea821fb8c5988a4c47a030f20ca865d"
+                "sha256": "602f2f9f9484255e8df7291dbda14656c9cff79d0801672fccfba3ab12bbb960"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyResultTables.flow",
-                "sha256": "c1eec450f00c1ccb9582619253f64aa6614d9bd32a8b8d685d5a52e7e0c8fc6e"
+                "sha256": "067b41fd4f94562e4bf2ebaaa5d3ef80a289600a5b44a34cfb32fec61e24b96b"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyRunningTasks.flow",
@@ -240,8 +284,12 @@
                 "sha256": "9bc7f510d3aa6af976e50b504801707c3ec717a35034507fb07709072c27fd1b"
             },
             {
+                "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyValidateMTable.flow",
+                "sha256": "7718882033ecf7e09ac824c824afa864bde221e70a50842a269aeba81853f1f5"
+            },
+            {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/customFlows/bwGetBucketRows.flow",
-                "sha256": "a12463330b3c50aa81d8bd08c2042857787fa1eabc770520956bc2c01f153b29"
+                "sha256": "67e315e47a2309ed415d89254e1be25275beb03dae90d4ed42ef92811de60a35"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/customFlows/bwMapSrcToTarIID.flow",
@@ -265,7 +313,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwExecuteTableDataVerify.flow",
-                "sha256": "dc225fdf009b34a5abbca3f8fbe323c1d00dd9b8f3571d1a6e3f8e3b6c310e03"
+                "sha256": "0e3e0304690ca5290d28509d008dba2b7221edfb8b252b7053355e34027f5729"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwExtractKeyFromCassTable.flow",
@@ -273,11 +321,11 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwGenerateSelectStmt.flow",
-                "sha256": "c50ab192a5e8345d17b8befcb72dc72ebdf616bdb51541969f8b46209d66ae37"
+                "sha256": "1d6a89c6f46c00a3e7139c0c7120dd074ecf02bf08f6ebd5e0095fc7676c7f51"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwGetBucketKeysList.flow",
-                "sha256": "9cb9c756342b4fa62d841c824a2dbe2b54ceb09bd7c1c00b92df58b61852bcf1"
+                "sha256": "d2f74c90cb1cdef90a9d46dab86c638f597b20ec7c018f537d712225d4721294"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwGetColMapCustomKey.flow",
@@ -321,43 +369,43 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwLookupTableNames.flow",
-                "sha256": "750dc6bd971b40128f40e073d89ff7eef592cf9a4b31516207cda389695e6ee6"
+                "sha256": "765cef8bc93ea4d27980af58e7000586377772a15929346e8bb652377e6e5a6e"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwReturnSrcNdTarValues.flow",
-                "sha256": "042d77ce76a935187114fbdbaae06fc6fc6dec145923beb87b9bdcebf3fa218b"
+                "sha256": "6273c6e10d56407dc9fc5ceda3a91edc0cc2ca37c814ae892b6dc3993852d758"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwValidateCSColumnsNames.flow",
-                "sha256": "5f9119e4aa8e1d8fdf05b95ad0fd2e0405105ba06481bdd1432e5136d0286434"
+                "sha256": "697fe534f565463f89d599d25c6cfa19864172f02d36747421bcd5aeea1bb500"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwValidateColumnMapping.flow",
-                "sha256": "03217a5f4a8f806e27ffd63b46c11f7fe7ea124d2eba9e4c9f3c10ab96f4931b"
+                "sha256": "0d74030da0f8c323e7d69a0562e5eafe787fa3820152ac62e2bdc5f4b67d594d"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwValidateColumnsNames.flow",
-                "sha256": "0ede75b176eabf5f3dcef94169f08dd52fc39cc92d2871d038f85c124a5bfe3d"
+                "sha256": "cae27a3cd38d1a14cfa5175119950b4662ba18036fe802c133572344950edbf9"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwValidateMtableParams.flow",
-                "sha256": "d57dcb00f7f8141a3d1f8b6fd9542bfc595dbff2f66252499ec52ac48b427915"
+                "sha256": "a7823d69c573036dc12aba3281d7c71973ee889f225d944b23b3283e1e3970cc"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwValidateTransformationFunc.flow",
-                "sha256": "6f1f416d06964221d9677ca4412533192e95f89f12b8196c0608b1f8e1bb4a3c"
+                "sha256": "236425339dc6a01f9a28e8a72dbd2515f2463749544452b6aa3dcfb85e767e70"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifyKeysExists.flow",
-                "sha256": "dcb66becd64a76012cba694158a27c59a31c93cfc772fd4f5de17e538922dd5a"
+                "sha256": "04fc6d6b700b6daedba69cce788c3944a0f015650f2a382670870bf305440b13"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifyRecordData.flow",
-                "sha256": "6d32787bdc15789b4c948f6c44bba07618ac7474a03c05265bc7cb24ef74825d"
+                "sha256": "7b07ae1d670e12557d5902d2cd872b60fe3495bfd98ed0b5d234069bae7770b6"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifySourceNTargetData.flow",
-                "sha256": "20e07c333d9ca22cf7d5806b9d8bb97cb3de16f168363ed4c37807ea9e010a4d"
+                "sha256": "6824a34bc56b77f9acb22498049eb54a3a7b5decd0c5703f45d12c185a84e7f3"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/validationSql.actor",
@@ -401,11 +449,11 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/K2Verify/SharedGlobals.java",
-                "sha256": "512be8810105ed8d5a2045a12acc31e8838d777ccf89753288d6895cc6c4fe5c"
+                "sha256": "a3d860a61cc80c4a4003d6d537ad698e305c97db1eddbf7d0986c0b239acd1bb"
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/K2Verify/SharedLogic.java",
-                "sha256": "4fc59dd05336c699c9e823dcb3bddd1b53aed4e6e94c9611eb836ee999bb5c78"
+                "sha256": "3cd05d48874fa4458e4812a3ee76164719e36a1819606c49740df325f5689d1f"
             },
             {
                 "path": "/lib/json-20240303.jar",

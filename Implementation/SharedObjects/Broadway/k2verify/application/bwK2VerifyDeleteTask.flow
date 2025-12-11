@@ -1,0 +1,39 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2:
+    transactional: true
+    actors:
+      DbDelete1:
+        parent: DbDelete
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          schema:
+            const: null
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+          table:
+            const: tasks
+          keys:
+            const:
+            - task_id
+          dialect:
+            const: postgres
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: table

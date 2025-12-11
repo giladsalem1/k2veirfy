@@ -1,0 +1,167 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_INTERFACE1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      ToString1:
+        parent: ToString
+        in:
+          value:
+            external: execution_id
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: select distinct source_table_name,target_table_name,column_name,execution_id
+              from ${@schema_name}.k2verify_field_summary where execution_id = ${execution_id}
+              order by source_table_name
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ToString1/string
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      MTableLookup1:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: catalog_field_info
+          dataset:
+            link:
+              path: DbCommand1/result/source_table_name
+              iterate: Iterate
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+  Stage 4:
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: MTableLookup1/result
+        out:
+          array:
+            external: array
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        source_table_name:
+          type: string
+        target_table_name:
+          type: string
+        column_name:
+          type: string
+        execution_id:
+          type: string
+  MTableLookup1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        dataPlatform:
+          type: string
+        schema:
+          type: string
+        dataset:
+          type: string
+        class:
+          type: string
+        field:
+          type: string
+        sqlDataType:
+          type: string
+        pii:
+          type: string
+        sourceDataType:
+          type: string
+        sourceEntityType:
+          type: string
+        sourceNullable:
+          type: string
+        columnSize:
+          type: string
+        definedBy:
+          type: string
+        ordinalPosition:
+          type: string
+        classification:
+          type: string
+        idx: {
+          }
+        pk: {
+          }
+        V1: {
+          }
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        dataPlatform:
+          type: string
+        schema:
+          type: string
+        dataset:
+          type: string
+        class:
+          type: string
+        field:
+          type: string
+        sqlDataType:
+          type: string
+        pii: {
+          }
+        sourceDataType:
+          type: string
+        sourceEntityType:
+          type: string
+        sourceNullable:
+          type: string
+        columnSize:
+          type: string
+        definedBy:
+          type: string
+        ordinalPosition:
+          type: string
+        classification: {
+          }
+        idx: {
+          }
+        pk: {
+          }
+        V1: {
+          }

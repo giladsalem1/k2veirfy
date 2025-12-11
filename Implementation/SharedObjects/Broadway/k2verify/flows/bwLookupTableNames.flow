@@ -1,4 +1,4 @@
-tags: D2D
+tags: D2D,k2verify
 stages:
   Stage 1:
     actors:
@@ -7,6 +7,13 @@ stages:
         in:
           mtable:
             const: mtK2VerifyConfig
+          Active:
+            const: 'TRUE'
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
         out:
           result:
             external: result

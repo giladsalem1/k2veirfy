@@ -1,6 +1,7 @@
 tags: k2verify
 stages:
-  Stage 2:
+  Flow inputs:
+    remark: This flow validates the configurations of the k2verify mtable
     actors:
       TaskProperties:
         parent: Const
@@ -814,8 +815,6 @@ stages:
             schema: any
             mandatory: false
             createdBy: flowName
-  Stage 3: {
-    }
 schemas:
   TaskProperties.out.value:
     type: object

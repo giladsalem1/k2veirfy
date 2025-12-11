@@ -9,7 +9,7 @@
         {
             "stages": [
                 {
-                    "name": "Input",
+                    "name": "Flow inputs",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -68,11 +68,11 @@
         {
             "stages": [
                 {
-                    "name": "ColumnMapping handling",
+                    "name": "Column mapping set",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Split3",
+                            "name": "ColMapSet",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -91,11 +91,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 10",
+                    "name": "For each mapping",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Split4",
+                            "name": "ColMapping",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -114,11 +114,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 20",
+                    "name": "Src & Tar columns",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "JavaScript1",
+                            "name": "SrcColumn",
                             "actorType": {
                                 "parentType": "JavaScript",
                                 "inputs": [
@@ -148,7 +148,7 @@
                             }
                         },
                         {
-                            "name": "JavaScript2",
+                            "name": "TarColumn",
                             "actorType": {
                                 "parentType": "JavaScript",
                                 "inputs": [
@@ -184,11 +184,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 21",
+                    "name": "Validate columns exist",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "bwValidateColumnsNames1",
+                            "name": "ValidateColExistsInSrc",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -283,7 +283,7 @@
                             }
                         },
                         {
-                            "name": "bwValidateColumnsNames11",
+                            "name": "ValidateColExistsInTar",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -389,7 +389,7 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Split3",
+                "actor": "ColMapSet",
                 "name": "string"
             }
         },
@@ -399,58 +399,58 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Split3",
+                "actor": "ColMapSet",
                 "name": "delimiter"
             }
         },
         {
             "leftPort": {
-                "actor": "Split3",
+                "actor": "ColMapSet",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "Split4",
+                "actor": "ColMapping",
                 "name": "string"
             },
             "iterate": "Iterate"
         },
         {
             "leftPort": {
-                "actor": "Split4",
+                "actor": "ColMapping",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript2",
+                "actor": "TarColumn",
                 "name": "arr"
             }
         },
         {
             "leftPort": {
-                "actor": "Split4",
+                "actor": "ColMapping",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript1",
+                "actor": "SrcColumn",
                 "name": "arr"
             }
         },
         {
             "leftPort": {
-                "actor": "JavaScript1",
+                "actor": "SrcColumn",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "columns"
             }
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TarColumn",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "columns"
             }
         },
@@ -480,7 +480,7 @@
                 "name": "src_interface"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "src_interface"
             }
         },
@@ -490,7 +490,7 @@
                 "name": "tar_interface"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "tar_interface"
             }
         },
@@ -500,7 +500,7 @@
                 "name": "src_schema"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "src_schema"
             }
         },
@@ -510,7 +510,7 @@
                 "name": "src_table"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "src_table"
             }
         },
@@ -520,7 +520,7 @@
                 "name": "tar_schema"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "tar_schema"
             }
         },
@@ -530,7 +530,7 @@
                 "name": "tar_table"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames1",
+                "actor": "ValidateColExistsInSrc",
                 "name": "tar_table"
             }
         },
@@ -540,7 +540,7 @@
                 "name": "src_interface"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "src_interface"
             }
         },
@@ -550,7 +550,7 @@
                 "name": "tar_interface"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "tar_interface"
             }
         },
@@ -560,7 +560,7 @@
                 "name": "src_schema"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "src_schema"
             }
         },
@@ -570,7 +570,7 @@
                 "name": "src_table"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "src_table"
             }
         },
@@ -580,7 +580,7 @@
                 "name": "tar_schema"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "tar_schema"
             }
         },
@@ -590,7 +590,7 @@
                 "name": "tar_table"
             },
             "rightPort": {
-                "actor": "bwValidateColumnsNames11",
+                "actor": "ValidateColExistsInTar",
                 "name": "tar_table"
             }
         }

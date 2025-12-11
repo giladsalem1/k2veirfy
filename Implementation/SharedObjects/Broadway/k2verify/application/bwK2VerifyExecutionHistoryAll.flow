@@ -14,74 +14,6 @@ stages:
             const: K2VERIFY_OPERATIONAL_SCHEMA
   Stage 2:
     actors:
-      DbCommand1:
-        parent: DbCommand
-        disabled: true
-        in:
-          interface:
-            const: null
-            link: K2VERIFY_OPERATIONAL_INTERFACE/result
-          sql:
-            const: |
-              WITH table_stats AS (
-                  SELECT
-                      task_id,
-                      execution_id,
-                      COUNT(DISTINCT table_name) AS total_tables,
-                      COUNT(DISTINCT table_name) FILTER (WHERE lower(status) = 'failed') AS total_tables_failed
-                  FROM ${@schema}.task_execution_tables
-                  GROUP BY task_id, execution_id
-              ),
-              bucket_stats AS (
-                  SELECT
-                      task_id,
-                      execution_id,
-                      SUM(COALESCE(total_records, 0))  AS total_records,
-                      SUM(COALESCE(failed_records, 0)) AS total_failed_records
-                  FROM ${@schema}.task_execution_buckets
-                  GROUP BY task_id, execution_id
-              )
-              SELECT
-                  te.task_id                                      AS task_id,
-                  t.task_title                                    AS task_name,
-                  te.execution_id                                 AS execution_id,
-                  te.execution_status                             AS execution_result,
-                  te.start_time                                   AS start_time,
-                  te.end_time                   AS end_time,
-                  t.source_interface                              AS source_interface,
-                  t.target_interface                              AS target_interface,
-                  COALESCE(ts.total_tables, 0)                    AS total_tables,
-                  COALESCE(ts.total_tables_failed, 0)             AS total_tables_failed,
-                  COALESCE(bs.total_records, 0)                   AS total_records,
-                  CASE
-                      WHEN COALESCE(bs.total_records, 0) > 0 THEN
-                          ROUND(
-                              (bs.total_failed_records::numeric * 100.0)
-                              / bs.total_records::numeric,
-                              2
-                          )
-                      ELSE NULL
-                  END                                             AS percent_records_failed
-              FROM ${@schema}.task_execution te
-              JOIN ${@schema}.tasks t
-                  ON t.task_id = te.task_id
-              LEFT JOIN table_stats ts
-                  ON ts.task_id = te.task_id
-                 AND ts.execution_id = te.execution_id
-              LEFT JOIN bucket_stats bs
-                  ON bs.task_id = te.task_id
-                 AND bs.execution_id = te.execution_id
-              where lower(te.execution_status) <> 'in_progress'
-              ORDER BY te.start_time DESC;
-          schema:
-            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
-            schema: string
-            mandatory: false
-            createdBy: sql
-        out:
-          result:
-            external: result
-            schema: '#ref'
       DbCommand2:
         parent: DbCommand
         in:
@@ -103,50 +35,50 @@ stages:
                   FROM ${@schema}.task_execution te
                   JOIN ${@schema}.tasks t
                     ON t.task_id = te.task_id
+                  WHERE lower(te.execution_status) NOT IN ('in_progress', 'stopped')
               ),
               table_stats AS (
                   SELECT
                       execution_id::bigint AS execution_id,
                       COUNT(*) AS total_tables,
-                      COUNT(*) FILTER (
-                          WHERE UPPER(match_result) <> 'PASSED'
-                      ) AS total_tables_failed
+                      COUNT(*) FILTER (WHERE upper(match_result) <> 'PASSED') AS total_tables_failed
                   FROM ${@schema}.k2verify_table_summary
-                  GROUP BY execution_id::bigint
+                  GROUP BY 1
               ),
               record_stats AS (
                   SELECT
                       execution_id::bigint AS execution_id,
-                      COALESCE(SUM(number_of_fields_match), 0)    AS total_match_fields,
-                      COALESCE(SUM(number_of_fields_mismatch), 0) AS total_mismatch_fields
+                      SUM(number_of_fields_match)    AS total_match_fields,
+                      SUM(number_of_fields_mismatch) AS total_mismatch_fields
                   FROM ${@schema}.k2verify_record_summary
-                  GROUP BY execution_id::bigint
+                  GROUP BY 1
               )
               SELECT
-                  ti.task_id                          task_id,
-                  ti.task_title                       task_name,
-                  ti.execution_id                     execution_id,
-                  ti.execution_status                 execution_result,
-                  ti.start_time                       start_time,
-                  ti.end_time                         end_time,
-                  ti.source_interface                 source_interface,
-                  ti.target_interface                 target_interface,
-                  COALESCE(ts.total_tables, 0)        total_tables,
-                  COALESCE(ts.total_tables_failed, 0) total_tables_failed,
-                  COALESCE(rs.total_mismatch_fields, 0) non_pass_count,
-                  CASE
-                      WHEN (COALESCE(rs.total_match_fields, 0)
-                            + COALESCE(rs.total_mismatch_fields, 0)) > 0 THEN
-                          (rs.total_mismatch_fields::numeric
-                           / (rs.total_match_fields + rs.total_mismatch_fields)::numeric) * 100
-                      ELSE 0
-                  END percent_records_failed
+                  ti.task_id,
+                  ti.task_title AS task_name,
+                  ti.execution_id,
+                  ti.execution_status AS execution_status,
+                  ti.start_time,
+                  ti.end_time,
+                  ti.source_interface,
+                  ti.target_interface,
+                  COALESCE(ts.total_tables, 0) AS total_tables,
+                  COALESCE(ts.total_tables_failed, 0) AS total_tables_failed,
+                  COALESCE(rs.total_mismatch_fields, 0) AS non_pass_count,
+                  TRUNC(
+                CASE
+                  WHEN COALESCE(rs.total_match_fields, 0)
+                     + COALESCE(rs.total_mismatch_fields, 0) > 0
+                  THEN (COALESCE(rs.total_mismatch_fields, 0)::numeric
+                       / (COALESCE(rs.total_match_fields, 0)
+                        + COALESCE(rs.total_mismatch_fields, 0))::numeric) * 100
+                  ELSE 0
+                END
+              , 2) AS percent_records_failed
+
               FROM task_info ti
-              LEFT JOIN table_stats ts
-                     ON ts.execution_id = ti.execution_id
-              LEFT JOIN record_stats rs
-                     ON rs.execution_id = ti.execution_id
-              WHERE LOWER(ti.execution_status) <> 'in_progress'
+              LEFT JOIN table_stats ts ON ts.execution_id = ti.execution_id
+              LEFT JOIN record_stats rs ON rs.execution_id = ti.execution_id
               ORDER BY ti.start_time DESC;
           schema:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
@@ -158,27 +90,6 @@ stages:
             external: result
             schema: '#ref'
 schemas:
-  DbCommand1.out.result:
-    type: array
-    items:
-      type: object
-      properties:
-        task_id:
-          type: integer
-        task_title:
-          type: string
-        task_status:
-          type: string
-        task_config: {
-          }
-        created_by:
-          type: string
-        created_at:
-          type: date
-        updated_by:
-          type: string
-        updated_at:
-          type: date
   DbCommand2.out.result:
     type: array
     items:

@@ -277,7 +277,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 13",
+                    "name": "Stage 15",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -292,7 +292,149 @@
                                 ],
                                 "outputs": []
                             }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 8",
+                    "dependsOnList": [
+                        "Stage 15"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Equals1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "Equals",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "SRC"
+                                    }
+                                ],
+                                "outputs": []
+                            }
                         },
+                        {
+                            "name": "Const3",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 14",
+                    "dependsOnList": [
+                        "Stage 15"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "MappedCols",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwGetColsForSelectStmt"
+                                    },
+                                    {
+                                        "const": "TAR",
+                                        "name": "env",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "column_mapping",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "delim",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "select_columns",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "const": "true",
+                                        "name": "colsFromPII",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "columns_for_select",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "name": "columns",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 13",
+                    "dependsOnList": [],
+                    "actors": [
                         {
                             "name": "IfElse1",
                             "actorType": {
@@ -464,6 +606,14 @@
                                         }
                                     }
                                 ]
+                            }
+                        },
+                        {
+                            "name": "Lowercase1",
+                            "actorType": {
+                                "parentType": "Lowercase",
+                                "inputs": [],
+                                "outputs": []
                             }
                         }
                     ]
@@ -808,7 +958,9 @@
                                     },
                                     {
                                         "name": "colsFromPII",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "flowName",
                                         "mandatory": false
                                     }
@@ -935,8 +1087,8 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Get Columns from SRC",
-                "name": "table"
+                "actor": "Lowercase1",
+                "name": "string"
             }
         },
         {
@@ -947,6 +1099,26 @@
             "rightPort": {
                 "actor": "bwGetColsForSelectStmt1",
                 "name": "env"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ENV",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Replace1",
+                "name": "string"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ENV",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Equals1",
+                "name": "a"
             }
         },
         {
@@ -1031,11 +1203,31 @@
         },
         {
             "leftPort": {
+                "actor": "Delimiter",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "MappedCols",
+                "name": "delim"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "ColumnMapping",
                 "name": "value"
             },
             "rightPort": {
                 "actor": "bwGetColsForSelectStmt1",
+                "name": "column_mapping"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnMapping",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "MappedCols",
                 "name": "column_mapping"
             }
         },
@@ -1095,6 +1287,36 @@
                 "name": "strings"
             },
             "rightPort": {
+                "actor": "MappedCols",
+                "name": "select_columns"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split Excluded",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "Const3",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Const3",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Filter Columns",
+                "name": "excludeList"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "MappedCols",
+                "name": "columns"
+            },
+            "rightPort": {
                 "actor": "Filter Columns",
                 "name": "excludeList"
             }
@@ -1152,6 +1374,16 @@
                 "name": "sql"
             },
             "iterate": "First"
+        },
+        {
+            "leftPort": {
+                "actor": "Lowercase1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Get Columns from SRC",
+                "name": "table"
+            }
         },
         {
             "leftPort": {

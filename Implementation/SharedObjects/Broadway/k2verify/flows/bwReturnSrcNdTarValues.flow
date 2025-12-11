@@ -6,20 +6,7 @@ stages:
         parent: JavaScript
         in:
           script:
-            const:
-              userCode: "var out = new Map();\r\nfor (var m in input) {\r\n  //print(m.toUpperCase());\r\
-                \n  //print(input[m]);\r\n  out[m.toUpperCase()] = input[m]\r\n}\r\
-                \nout;"
-              script: |-
-                var out = new Map();
-
-                for (var m in input) {
-                  //print(m.toUpperCase());
-                  //print(input[m]);
-                  out[m.toUpperCase()] = input[m];
-                }
-
-                out;
+            const: input;
           input:
             external: record
             schema: '#ref'
@@ -169,7 +156,7 @@ stages:
             mandatory: false
           delimitter:
             external: delim
-            schema: any
+            schema: string
             mandatory: false
         out:
           result:

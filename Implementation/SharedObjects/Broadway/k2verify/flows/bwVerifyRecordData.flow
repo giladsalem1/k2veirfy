@@ -70,27 +70,6 @@ stages:
         out:
           map:
             schema: '#ref'
-  Stage 42:
-    transactional: true
-    actors:
-      LuFunction1:
-        parent: LuFunction
-        in:
-          functionName:
-            const: fnGetCustomizedKey
-          rowMap:
-            link: SrcAndTarMapMerge/map
-            schema: '#ref'
-            mandatory: false
-            createdBy: functionName
-          customizedKey:
-            external: customized_key
-            schema: string
-            mandatory: false
-            createdBy: functionName
-        out:
-          customizedKey:
-            schema: string
   Stage 34:
     transactional: true
     actors:
@@ -141,6 +120,11 @@ stages:
             createdBy: functionName
           targetEnv:
             const: TAR
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          pii_columns:
+            external: columns
             schema: string
             mandatory: false
             createdBy: functionName
@@ -347,7 +331,7 @@ stages:
             external: target_table_name
             schema: string
           CUSTOMIZED_KEY:
-            link: LuFunction1/customizedKey
+            external: customized_key_values
             schema: string
           COLUMN_NAME:
             link:
@@ -418,7 +402,7 @@ stages:
             external: target_table_name
             schema: string
           CUSTOMIZED_KEY:
-            link: LuFunction1/customizedKey
+            external: customized_key_values
             schema: string
           COLUMN_NAME:
             link:
@@ -490,52 +474,20 @@ stages:
         out:
           value:
             schema: '#ref'
-      Logger2:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwReturnSrcNdTarValues - before  '
-          iid:
-            external: bucket_id
-            schema: any
-            mandatory: false
-            createdBy: message
   Stage 14:
     transactional: true
     actors:
-      bwReturnSrcNdTarValues1:
-        parent: InnerFlow
+      Const7:
+        parent: Const
         in:
-          flowName:
-            const: bwReturnSrcNdTarValues
-          record:
+          value:
+            const: null
             link:
               path: Const5/value
               iterate: Iterate
-            schema: '#ref'
-            mandatory: false
-            createdBy: flowName
-          columns:
-            external: columns
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          delim:
-            external: delim
-            schema: string
-            mandatory: false
-            createdBy: flowName
         out:
-          targetVerified:
-            schema: string
-          matchResult:
-            schema: string
-          columnName:
-            schema: string
-          targetValue:
-            schema: string
-          sourceValue:
-            schema: string
+          value:
+            schema: '#ref'
   Stage 31:
     transactional: true
     actors:
@@ -546,7 +498,7 @@ stages:
             const: PASSED
             schema: string
           a:
-            link: bwReturnSrcNdTarValues1/matchResult
+            link: Const7/value/RESULT
   Loop Through Each Column:
     transactional: true
     actors:
@@ -564,7 +516,7 @@ stages:
             const: NOT PASSED
             schema: string
           a:
-            link: bwReturnSrcNdTarValues1/matchResult
+            link: Const7/value/RESULT
   Transform:
     last: 1
     transactional: true
@@ -623,26 +575,26 @@ stages:
             external: target_table_name
             schema: string
           CUSTOMIZED_KEY:
-            link: LuFunction1/customizedKey
+            external: customized_key_values
             schema: string
           COLUMN_NAME:
-            link: bwReturnSrcNdTarValues1/columnName
+            link: Const7/value/COLUMN_NAME
             schema: string
           MATCH_RESULT:
-            link: bwReturnSrcNdTarValues1/matchResult
+            link: Const7/value/RESULT
             schema: string
           SOURCE_COLUMN_VALUE:
-            link: bwReturnSrcNdTarValues1/sourceValue
+            link: Const7/value/SOURCE_VALUE
             schema: string
           TARGET_COLUMN_VALUE:
-            link: bwReturnSrcNdTarValues1/targetValue
+            link: Const7/value/TARGET_VALUE
             schema: string
           SOURCE_COLUMN_VALUE_TRANS:
             schema: string
           TARGET_COLUMN_VALUE_TRANS:
             schema: string
           TARGET_VALUE_SECURED:
-            link: bwReturnSrcNdTarValues1/targetVerified
+            link: Const7/value/TARGET_SECURED
             schema: string
             mandatory: false
       D2D Validation In DB:
@@ -692,63 +644,50 @@ stages:
             external: target_table_name
             schema: string
           CUSTOMIZED_KEY:
-            link: LuFunction1/customizedKey
+            external: customized_key_values
             schema: string
           COLUMN_NAME:
-            link: bwReturnSrcNdTarValues1/columnName
+            link: Const7/value/COLUMN_NAME
             schema: string
           MATCH_RESULT:
-            link: bwReturnSrcNdTarValues1/matchResult
+            link: Const7/value/RESULT
             schema: string
           SOURCE_COLUMN_VALUE:
-            link: bwReturnSrcNdTarValues1/sourceValue
+            link: Const7/value/SOURCE_VALUE
             schema: string
           TARGET_COLUMN_VALUE:
-            link: bwReturnSrcNdTarValues1/targetValue
+            link: Const7/value/TARGET_VALUE
             schema: string
           SOURCE_COLUMN_VALUE_TRANS:
             schema: string
           TARGET_COLUMN_VALUE_TRANS:
             schema: string
           TARGET_VALUE_SECURED:
-            link: bwReturnSrcNdTarValues1/targetVerified
+            link: Const7/value/TARGET_SECURED
             schema: string
             mandatory: false
-  Stage 13:
-    transactional: true
-    actors:
-      Logger1:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwReturnSrcNdTarValues - AFTER  '
-          iid:
-            external: bucket_id
-            schema: any
-            mandatory: false
-            createdBy: message
 schemas:
   Const3.out.value:
     type: object
     properties:
-      SRC_FIRST_NAME:
-        type: string
-      SRC_LAST_NAME:
-        type: string
       SRC_CUSTOMER_ID:
         type: string
       SRC_SSN:
         type: string
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
   Const4.out.value:
     type: object
     properties:
-      TAR_FIRST_NAME:
-        type: string
-      TAR_LAST_NAME:
-        type: string
       TAR_CUSTOMER_ID:
         type: string
       TAR_SSN:
+        type: string
+      TAR_FIRST_NAME:
+        type: string
+      TAR_LAST_NAME:
         type: string
   JavaScript1.in.value:
     type: object
@@ -786,25 +725,6 @@ schemas:
         type: string
       target_SSN:
         type: string
-  LuFunction1.in.rowMap:
-    type: object
-    properties:
-      SRC_FIRST_NAME:
-        type: string
-      SRC_LAST_NAME:
-        type: string
-      SRC_CUSTOMER_ID:
-        type: string
-      SRC_SSN:
-        type: string
-      TAR_FIRST_NAME:
-        type: string
-      TAR_LAST_NAME:
-        type: string
-      TAR_CUSTOMER_ID:
-        type: string
-      TAR_SSN:
-        type: string
   LuFunction2.in.row:
     type: object
     properties:
@@ -827,7 +747,352 @@ schemas:
   LuFunction2.out.result:
     type: object
     properties:
+      CREATED_AT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      CHILDREN_COUNT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      MARITAL_STATUS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      LOYALTY_POINTS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SIGNUP_DATE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      EMAIL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      PREFERRED_LANGUAGE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      NATIONAL_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      COUNTRY:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      COMM_CHANNEL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      FAVORITE_NUMBER:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ALT_EMAIL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      LAST_LOGIN_TZ:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      UPDATED_AT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      TIMEZONE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      HOME_LAT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      IS_VIP:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
       CUSTOMER_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      BALANCE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      CREDIT_LIMIT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SMALL_FLAG:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PASSPORT_NO:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      STATE_PROVINCE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PHONE:
         type: object
         properties:
           result:
@@ -857,6 +1122,36 @@ schemas:
             type: string
           source_value:
             type: string
+      RISK_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      ROW_VERSION:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
       FIRST_NAME:
         type: object
         properties:
@@ -872,6 +1167,261 @@ schemas:
             type: string
           source_value:
             type: string
+      MARKETING_OPT_IN:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      VALID_TO:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      NOTES:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ADDRESS_LINE1:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      PREFERENCES_JSON:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ADDRESS_LINE2:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      POSTAL_CODE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      FLOAT_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      AVATAR_RAW:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      GENDER:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      MIDDLE_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      VALID_FROM:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      DATE_OF_BIRTH:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PROFILE_BLOB:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      HEIGHT_CM:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      LAST_LOGIN_TS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      WEIGHT_KG:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
       SSN:
         type: object
         properties:
@@ -887,6 +1437,66 @@ schemas:
             type: string
           source_value:
             type: string
+      ALT_PHONE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      CITY:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      HOME_LON:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      DOUBLE_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
   Const1.in.value:
     type: array
     items: {
@@ -898,7 +1508,352 @@ schemas:
   Const2.out.value:
     type: object
     properties:
+      CREATED_AT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      CHILDREN_COUNT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      MARITAL_STATUS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      LOYALTY_POINTS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SIGNUP_DATE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      EMAIL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      PREFERRED_LANGUAGE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      NATIONAL_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      COUNTRY:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      COMM_CHANNEL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      FAVORITE_NUMBER:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ALT_EMAIL:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      LAST_LOGIN_TZ:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      UPDATED_AT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      TIMEZONE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      HOME_LAT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      IS_VIP:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
       CUSTOMER_ID:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      BALANCE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      CREDIT_LIMIT:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      SMALL_FLAG:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PASSPORT_NO:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      STATE_PROVINCE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PHONE:
         type: object
         properties:
           result:
@@ -928,6 +1883,36 @@ schemas:
             type: string
           source_value:
             type: string
+      RISK_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      ROW_VERSION:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
       FIRST_NAME:
         type: object
         properties:
@@ -943,6 +1928,261 @@ schemas:
             type: string
           source_value:
             type: string
+      MARKETING_OPT_IN:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      VALID_TO:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      NOTES:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ADDRESS_LINE1:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      PREFERENCES_JSON:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      ADDRESS_LINE2:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      POSTAL_CODE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      FLOAT_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      AVATAR_RAW:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      GENDER:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      MIDDLE_NAME:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      VALID_FROM:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      DATE_OF_BIRTH:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      PROFILE_BLOB:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      HEIGHT_CM:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      LAST_LOGIN_TS:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      WEIGHT_KG:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
       SSN:
         type: object
         properties:
@@ -958,22 +2198,151 @@ schemas:
             type: string
           source_value:
             type: string
+      ALT_PHONE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      CITY:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value:
+            type: string
+          target_column_orig_value:
+            type: string
+          column_name:
+            type: string
+          source_column_orig_value:
+            type: string
+          source_value:
+            type: string
+      HOME_LON:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
+      DOUBLE_SCORE:
+        type: object
+        properties:
+          result:
+            type: string
+          target_value: {
+            }
+          target_column_orig_value: {
+            }
+          column_name:
+            type: string
+          source_column_orig_value: {
+            }
+          source_value: {
+            }
   Const5.out.value:
-    type: array
-    items: {
-      }
-  bwReturnSrcNdTarValues1.in.record:
     type: object
     properties:
-      result:
+      CUSTOMER_ID:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      LAST_NAME:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      FIRST_NAME:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      SSN:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+  Const7.out.value:
+    type: object
+    properties:
+      SOURCE_VALUE:
         type: string
-      target_value:
+      TARGET_VALUE:
         type: string
-      target_column_orig_value:
+      TARGET_COLUMN_ORIG_VALUE:
         type: string
-      column_name:
+      TARGET_SECURED:
         type: string
-      source_column_orig_value:
+      COLUMN_NAME:
         type: string
-      source_value:
+      SOURCE_COLUMN_ORIG_VALUE:
+        type: string
+      RESULT:
         type: string

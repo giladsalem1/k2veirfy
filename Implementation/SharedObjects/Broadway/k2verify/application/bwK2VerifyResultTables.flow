@@ -118,7 +118,6 @@ stages:
               LEFT JOIN ${@schema}.task_execution_tables tet
                 ON tet.execution_id::text = ts.execution_id
                AND tet.table_name         = ts.source_table_name
-
               ORDER BY ts.source_table_name, ts.target_table_name;
           schema:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result

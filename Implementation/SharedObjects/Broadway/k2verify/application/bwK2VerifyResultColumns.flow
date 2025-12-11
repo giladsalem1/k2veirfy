@@ -23,7 +23,7 @@ stages:
           sql:
             const: |-
               select column_name,count(*) as total_failed
-               from ${@schema}.k2verify_field_summary where execution_id =${execution_id} and match_result='NOT PASSED' and source_table_name=${source_table_name} group by column_name
+               from ${@schema}.k2verify_field_summary where execution_id =${execution_id} and lower(match_result) = 'not passed' and source_table_name=${source_table_name} group by column_name
           execution_id:
             external: execution_id
             schema: string

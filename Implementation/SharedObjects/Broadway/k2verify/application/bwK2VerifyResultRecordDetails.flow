@@ -39,51 +39,75 @@ stages:
               userCode: |
                 let queryParts = [];
 
-                const baseQuery = `select * from \${@schema_name}.k2verify_field_summary where execution_id = \${execution_id} and source_table_name = \${source_table_name} and `;
+                const baseQuery = `select *
+                from \${@schema_name}.k2verify_field_summary
+                where execution_id = \${execution_id}
+                  and source_table_name = \${source_table_name}`;
+
+                // collect match_result values based on conditions
+                const matchResults = [];
 
                 // records_only_in_source
                 if (conditions.indexOf("records_only_in_source") >= 0) {
-                  queryParts.push(
-                    baseQuery + `lower(match_result) = 'source key not found in target'`
-                  );
+                  matchResults.push("source key not found in target");
                 }
 
                 // records_only_in_target
                 if (conditions.indexOf("records_only_in_target") >= 0) {
-                  queryParts.push(
-                    baseQuery + `lower(match_result) = 'target key not found in source'`
-                  );
+                  matchResults.push("target key not found in source");
                 }
 
                 // mismatched_records
                 if (conditions.indexOf("mismatched_records") >= 0) {
-                  queryParts.push(
-                    baseQuery + `lower(match_result) = 'not passed'`
-                  );
+                  matchResults.push("not passed");
                 }
 
-                const finalQuery = queryParts.join(" union ");
+                // build final query
+                let finalQuery;
+
+                if (matchResults.length > 0) {
+                  const inList = matchResults.map(v => `'${v}'`).join(", ");
+                  finalQuery = `${baseQuery}
+                  and lower(match_result) in (${inList})`;
+                } else {
+                  // no conditions selected -> just base query (or return empty result if you prefer)
+                  finalQuery = baseQuery;
+                }
 
                 finalQuery;
               script: |-
                 var queryParts = [];
-                var baseQuery = "select * from ${@schema_name}.k2verify_field_summary where execution_id = ${execution_id} and source_table_name = ${source_table_name} and "; // records_only_in_source
+                var baseQuery = "select *\nfrom ${@schema_name}.k2verify_field_summary\nwhere execution_id = ${execution_id}\n  and source_table_name = ${source_table_name}"; // collect match_result values based on conditions
+
+                var matchResults = []; // records_only_in_source
 
                 if (conditions.indexOf("records_only_in_source") >= 0) {
-                  queryParts.push(baseQuery + "lower(match_result) = 'source key not found in target'");
+                  matchResults.push("source key not found in target");
                 } // records_only_in_target
 
 
                 if (conditions.indexOf("records_only_in_target") >= 0) {
-                  queryParts.push(baseQuery + "lower(match_result) = 'target key not found in source'");
+                  matchResults.push("target key not found in source");
                 } // mismatched_records
 
 
                 if (conditions.indexOf("mismatched_records") >= 0) {
-                  queryParts.push(baseQuery + "lower(match_result) = 'not passed'");
+                  matchResults.push("not passed");
+                } // build final query
+
+
+                var finalQuery;
+
+                if (matchResults.length > 0) {
+                  var inList = matchResults.map(function (v) {
+                    return "'" + v + "'";
+                  }).join(", ");
+                  finalQuery = baseQuery + "\n  and lower(match_result) in (" + inList + ")";
+                } else {
+                  // no conditions selected -> just base query (or return empty result if you prefer)
+                  finalQuery = baseQuery;
                 }
 
-                var finalQuery = queryParts.join(" union ");
                 finalQuery;
           conditions:
             link: Split1/strings
@@ -92,6 +116,28 @@ stages:
         out:
           result:
             schema: string
+  Stage 8:
+    actors:
+      StringFormat2:
+        parent: StringFormat
+        in:
+          format:
+            const: ${query} limit ${queryLimit} offset ${queryOffset}
+          queryLimit:
+            external: queryLimit
+            schema: string
+            mandatory: false
+            createdBy: format
+          query:
+            link: JavaScript1/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          queryOffset:
+            external: queryOffset
+            schema: string
+            mandatory: false
+            createdBy: format
   Stage 3:
     actors:
       DbCommand1:
@@ -102,7 +148,7 @@ stages:
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
           sql:
             const: null
-            link: JavaScript1/result
+            link: StringFormat2/string
           schema_name:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
             schema: string
@@ -120,7 +166,92 @@ stages:
             createdBy: sql
         out:
           result:
-            external: result
+            schema: '#ref'
+      StringFormat1:
+        parent: StringFormat
+        in:
+          format:
+            const: select count(1) from (${query})
+          query:
+            link: JavaScript1/result
+            schema: string
+            mandatory: false
+  Stage 5:
+    actors:
+      DbFetchField1:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: null
+            link: StringFormat1/string
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_table_name:
+            external: source_table_name
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: integer
+      DeepCopy1:
+        parent: DeepCopy
+        in:
+          value:
+            link: DbCommand1/result
+        out:
+          value:
+            schema: '#ref'
+  Stage 6:
+    actors:
+      MapBuild2:
+        parent: MapBuild
+        in:
+          key:
+            const: count
+            schema: string
+          value:
+            link: DbFetchField1/result
+        out:
+          map:
+            schema: '#ref'
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            const: rows
+            schema: string
+          value:
+            link: DeepCopy1/value
+            schema: '#ref'
+        out:
+          map:
+            schema: '#ref'
+  Stage 7:
+    actors:
+      MapMerge1:
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: MapBuild2/map
+              pos: 0
+            - path: MapBuild1/map
+              pos: 1
+        out:
+          map:
+            external: map
             schema: '#ref'
 schemas:
   JavaScript1.in.conditions:
@@ -136,3 +267,131 @@ schemas:
           type: string
         total_failed:
           type: integer
+  DeepCopy1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        execution_id:
+          type: string
+        iid:
+          type: string
+        source_table_name:
+          type: string
+        target_table_name:
+          type: string
+        customized_key:
+          type: string
+        column_name:
+          type: string
+        match_result:
+          type: string
+        target_value_secured: {
+          }
+        source_column_value:
+          type: string
+        target_column_value: {
+          }
+        source_column_value_trans: {
+          }
+        target_column_value_trans: {
+          }
+        bw_transformation_flow: {
+          }
+        null_compare: {
+          }
+        lookup: {
+          }
+        default_value: {
+          }
+  MapBuild2.out.map:
+    type: object
+    properties:
+      count:
+        type: integer
+  MapBuild1.in.value:
+    type: array
+    items: {
+      }
+  MapBuild1.out.map:
+    type: object
+    properties:
+      rows:
+        type: array
+        items:
+          type: object
+          properties:
+            execution_id:
+              type: string
+            iid:
+              type: string
+            source_table_name:
+              type: string
+            target_table_name:
+              type: string
+            customized_key:
+              type: string
+            column_name:
+              type: string
+            match_result:
+              type: string
+            target_value_secured:
+              type: string
+            source_column_value:
+              type: string
+            target_column_value:
+              type: string
+            source_column_value_trans:
+              type: string
+            target_column_value_trans:
+              type: string
+            bw_transformation_flow:
+              type: boolean
+            null_compare:
+              type: boolean
+            lookup:
+              type: boolean
+            default_value:
+              type: boolean
+  MapMerge1.out.map:
+    type: object
+    properties:
+      count:
+        type: integer
+      rows:
+        type: array
+        items:
+          type: object
+          properties:
+            execution_id:
+              type: string
+            iid:
+              type: string
+            source_table_name:
+              type: string
+            target_table_name:
+              type: string
+            customized_key:
+              type: string
+            column_name:
+              type: string
+            match_result:
+              type: string
+            target_value_secured:
+              type: string
+            source_column_value:
+              type: string
+            target_column_value:
+              type: string
+            source_column_value_trans:
+              type: string
+            target_column_value_trans:
+              type: string
+            bw_transformation_flow:
+              type: boolean
+            null_compare:
+              type: boolean
+            lookup:
+              type: boolean
+            default_value:
+              type: boolean

@@ -1,6 +1,6 @@
 tags: k2verify
 stages:
-  Stage 1:
+  Flow inputs:
     actors:
       SrcTrn:
         parent: Const
@@ -18,9 +18,18 @@ stages:
             const: K2Verify
           variableName:
             const: K2VERIFY_CONF_SEPARATOR
-  Stage 2:
+      TarTrn:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: tar_trn_fun
+        out:
+          value:
+            schema: string
+  split src transformations:
     actors:
-      Split1:
+      SplitSrcTrns:
         parent: Split
         in:
           delimiter:
@@ -28,18 +37,18 @@ stages:
             link: SEPERATOR/variableValue
           string:
             link: SrcTrn/value
-  Stage 3:
+  'Split column / method ':
     actors:
-      Split2:
+      SplitColumn/Method:
         parent: Split
         in:
           delimiter:
             const: ':'
           string:
             link:
-              path: Split1/strings
+              path: SplitSrcTrns/strings
               iterate: Iterate
-  Stage 4:
+  Src trn details:
     actors:
       TrnColumn:
         parent: JavaScript
@@ -47,7 +56,7 @@ stages:
           script:
             const: arr[0]
           arr:
-            link: Split2/strings
+            link: SplitColumn%2FMethod/strings
             schema: '#ref'
             mandatory: false
         out:
@@ -59,16 +68,16 @@ stages:
           script:
             const: arr[1]
           arr:
-            link: Split2/strings
+            link: SplitColumn%2FMethod/strings
             schema: '#ref'
             mandatory: false
         out:
           result:
             schema: string
-  Stage 5:
+  Validate src column&method:
     last: 1
     actors:
-      ErrorHandler1:
+      ErrorHandler:
         parent: ErrorHandler
         error: result
         in:
@@ -83,7 +92,7 @@ stages:
                 flowName: ''
                 number_of_retries: ''
                 retry_interval: ''
-      bwValidateColumnsNames1:
+      ValidateSrcTrnCol:
         parent: InnerFlow
         in:
           flowName:
@@ -166,21 +175,10 @@ stages:
             mandatory: false
             createdBy: message
           actual:
-            link: ErrorHandler1/result
-  Stage 6:
+            link: ErrorHandler/result
+  split tar transformations:
     actors:
-      TarTrn:
-        parent: Const
-        in:
-          value:
-            const: null
-            external: tar_trn_fun
-        out:
-          value:
-            schema: string
-  Stage 7:
-    actors:
-      Split3:
+      SplitTarTrns:
         parent: Split
         in:
           delimiter:
@@ -188,44 +186,44 @@ stages:
             link: SEPERATOR/variableValue
           string:
             link: TarTrn/value
-  Stage 8:
+  Split column / method:
     actors:
-      Split4:
+      SplitColumn/Method2:
         parent: Split
         in:
           delimiter:
             const: ':'
           string:
             link:
-              path: Split3/strings
+              path: SplitTarTrns/strings
               iterate: Iterate
-  Stage 9:
+  Tar trn details:
     actors:
-      TrnColumn1:
+      'TrnColumn ':
         parent: JavaScript
         in:
           script:
             const: arr[0]
           arr:
-            link: Split4/strings
+            link: SplitColumn%2FMethod2/strings
             schema: '#ref'
             mandatory: false
         out:
           result:
             schema: string
-      TrnMethod1:
+      'TrnMethod ':
         parent: JavaScript
         in:
           script:
             const: arr[1]
           arr:
-            link: Split4/strings
+            link: SplitColumn%2FMethod2/strings
             schema: '#ref'
             mandatory: false
         out:
           result:
             schema: string
-  Stage 10:
+  Validate tar column&method:
     actors:
       ErrorHandler2:
         parent: ErrorHandler
@@ -242,13 +240,13 @@ stages:
                 flowName: ''
                 number_of_retries: ''
                 retry_interval: ''
-      bwValidateColumnsNames11:
+      ValidateTarTrnCol:
         parent: InnerFlow
         in:
           flowName:
             const: bwValidateColumnsNames
           columns:
-            link: TrnColumn1/result
+            link: TrnColumn /result
             schema: string
             mandatory: false
             createdBy: flowName
@@ -296,7 +294,7 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-      TrnMethodExists1:
+      'TrnMethodExists ':
         parent: DbCommand
         in:
           interface:
@@ -304,14 +302,14 @@ stages:
           sql:
             const: list BF LU_NAME='K2Verify' name='${@trn_func}'
           trn_func:
-            link: TrnMethod1/result
+            link: TrnMethod /result
             schema: any
             mandatory: false
             createdBy: sql
         out:
           result:
             schema: '#ref'
-      assertMethodExists1:
+      'assertMethodExists ':
         parent: assertNotEquals
         in:
           unexpected:
@@ -320,7 +318,7 @@ stages:
           message:
             const: Target transformation flow '${trnFlow}' does not exist
           trnFlow:
-            link: TrnMethod1/result
+            link: TrnMethod /result
             schema: any
             mandatory: false
             createdBy: message
@@ -362,15 +360,15 @@ schemas:
           type: boolean
         object_name:
           type: string
-  TrnColumn1.in.arr:
+  TrnColumn .in.arr:
     type: array
     items:
       type: string
-  TrnMethod1.in.arr:
+  TrnMethod .in.arr:
     type: array
     items:
       type: string
-  TrnMethodExists1.out.result:
+  TrnMethodExists .out.result:
     type: array
     items:
       type: object

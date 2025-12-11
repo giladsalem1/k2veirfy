@@ -1,8 +1,8 @@
 tags: k2verify
 stages:
-  Inputs:
+  Flow inputs:
     actors:
-      JavaScript3:
+      Column!=Null:
         parent: JavaScript
         condition: result
         in:
@@ -77,6 +77,8 @@ stages:
         out:
           sql:
             schema: '#ref'
+  Columns:
+    actors:
       ColsFromMtable:
         parent: Split
         in:
@@ -120,29 +122,10 @@ stages:
             schema: string
           columns:
             schema: '#ref'
-  Stage 5:
-    dependsOn: Validation queries
-    split: '--------------------'
-  Stage 8:
-    dependsOn: Validation queries
+  SRC env:
+    dependsOn: Columns
     actors:
-      JavaScript2:
-        parent: JavaScript
-        condition: result
-        in:
-          script:
-            const: env=='TAR' || env=='BOTH'
-          env:
-            link: ValidationEnv/value
-            schema: string
-            mandatory: false
-        out:
-          result:
-            schema: boolean
-  Stage 6:
-    dependsOn: Stage 5
-    actors:
-      JavaScript1:
+      SrcEnv:
         parent: JavaScript
         condition: result
         in:
@@ -155,7 +138,27 @@ stages:
         out:
           result:
             schema: boolean
-      Validate src column:
+    split: '--------------------'
+  TAR env:
+    dependsOn: Columns
+    actors:
+      TarEnv:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: env=='TAR' || env=='BOTH'
+          env:
+            link: ValidationEnv/value
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+  Validate column in source:
+    dependsOn: SRC env
+    actors:
+      ValidateSrcColumn:
         parent: DbCommand
         in:
           interface:
@@ -183,9 +186,17 @@ stages:
         out:
           result:
             schema: '#ref'
+      DeepCopy1:
+        parent: DeepCopy
+        in:
+          value:
+            link: ValidateSrcColumn/result
+        out:
+          value:
+            schema: string
     split: '--------------------'
-  Stage 3:
-    dependsOn: Stage 8
+  Validate column in target:
+    dependsOn: TAR env
     actors:
       Validate tar column:
         parent: DbCommand
@@ -215,21 +226,6 @@ stages:
         out:
           result:
             schema: '#ref'
-  Stage 7:
-    dependsOn: Stage 6
-    actors:
-      DeepCopy1:
-        parent: DeepCopy
-        in:
-          value:
-            link: Validate src column/result
-        out:
-          value:
-            schema: string
-    split: '--------------------'
-  Stage 1:
-    dependsOn: Stage 3
-    actors:
       DeepCopy3:
         parent: DeepCopy
         in:
@@ -238,8 +234,8 @@ stages:
         out:
           value:
             schema: string
-  Stage 2:
-    dependsOn: Stage 7
+  Assert column found in src:
+    dependsOn: Validate column in source
     actors:
       assertNotEquals1:
         parent: assertNotEquals
@@ -261,8 +257,8 @@ stages:
           actual:
             link: DeepCopy1/value
     split: '--------------------'
-  Stage 4:
-    dependsOn: Stage 1
+  Assert column found in tar:
+    dependsOn: Validate column in target
     actors:
       assertNotEquals2:
         parent: assertNotEquals
@@ -310,7 +306,7 @@ schemas:
     type: array
     items:
       type: string
-  Validate src column.out.result:
+  ValidateSrcColumn.out.result:
     type: array
     items:
       type: object

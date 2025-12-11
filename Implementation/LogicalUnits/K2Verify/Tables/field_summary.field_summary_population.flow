@@ -1,5 +1,5 @@
 stages:
-  Input:
+  Population args:
     actors:
       PopulationArgs:
         parent: PopulationArgs
@@ -39,6 +39,11 @@ stages:
         in:
           key:
             const: K2VERIFY_INTERFACE_SRC
+      K2VERIFY_INTERFACE_SRC_TYPE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_INTERFACE_SRC_TYPE
       SRC SCHEMA:
         parent: FabricSetRead
         in:
@@ -59,7 +64,7 @@ stages:
         in:
           key:
             const: K2VERIFY_EXEC_ID
-  Get Details:
+  Bucket number:
     actors:
       SplitIID:
         parent: Split
@@ -80,7 +85,7 @@ stages:
         out:
           result:
             schema: string
-  Stage 2:
+  Fetch table verify config:
     actors:
       MTableLookup1:
         parent: MTableLookup
@@ -132,7 +137,7 @@ stages:
         out:
           result:
             schema: '#ref'
-  Process Table by Table:
+  Table info:
     transactional: false
     actors:
       Row Info:
@@ -142,7 +147,7 @@ stages:
             const: null
             link:
               path: MTableLookup1/result
-              iterate: Iterate
+              iterate: First
         out:
           value:
             schema: '#ref'
@@ -234,7 +239,6 @@ stages:
           string:
             link: Row Info/value/Excluded_Columns_Names
   If Active in Config:
-    last: 1
     transactional: false
     actors:
       Check Active:
@@ -359,6 +363,11 @@ stages:
             createdBy: flowName
           target_transformation_function:
             link: Row Info/value/Target_Transformation_Function_Name
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          interfaceType:
+            link: K2VERIFY_INTERFACE_SRC_TYPE/result
             schema: any
             mandatory: false
             createdBy: flowName

@@ -1,0 +1,126 @@
+{
+  "k2verifyHome.title": "k2verify Tasks",
+  "k2verifyHome.newTask": "New Task",
+
+  "k2verifyHome.toasts.loadFailed": "Failed to load tasks",
+  "k2verifyHome.toasts.missingTaskId": "Missing task id",
+  "k2verifyHome.toasts.executionFailed": "Execution failed",
+  "k2verifyHome.toasts.stopFailed": "Failed to stop execution",
+  "k2verifyHome.toasts.deleteFailed": "Failed to delete task",
+  "k2verifyHome.toasts.deletedOk": "Task {{taskId}} deleted",
+  "k2verifyHome.toasts.validationFailed": "Validation failed",
+  "k2verifyHome.validationErrorTitle": "Validation Error",
+
+  "popup.cancel": "Cancel",
+  "popup.ok": "OK",
+  "popup.expand": "Show details",
+  "popup.collapse": "Hide details",
+  "k2verifyExecution.title": "k2verify Execution Details",
+  "k2verifyExecution.taskIdLabel": "Task ID",
+  "k2verifyExecution.executionIdLabel": "Execution ID",
+
+  "k2verifyExecution.stopAlt": "Stop",
+  "k2verifyExecution.stopTitle": "Stop Task",
+
+  "k2verifyExecution.bucketTitle": "Bucket Details for",
+  "k2verifyExecution.tableLabel": "- Table:",
+  "k2verifyExecution.selectRowHint": "(select a row to view details)",
+  "k2verifyExecution.selectInfoHint": "* Select the info icon to view bucket details of each table.",
+
+  "k2verifyExecution.toasts.missingTaskId": "Missing task id",
+  "k2verifyExecution.toasts.executionFailed": "Execution failed",
+  "k2verifyExecution.toasts.stopFailedWithMsg": "Failed to stop Task #{{taskId}}: {{msg}}",
+  "k2verifyExecution.toasts.cancelRequested": "Cancellation requested for Task #{{taskId}}",
+  "k2verifyExecution.toasts.noTableName": "No table_name found for this row",
+  "k2verifyExecution.toasts.fetchExecutionFailed": "Failed to fetch the execution data.",
+  "k2verifyExecution.toasts.fetchBucketFailed": "Failed to fetch bucket details for the selected table.",
+  "k2verifyResults.noDataTitle": "No data available",
+  "k2verifyResults.noDataSubtitle": "This page was opened without execution context.",
+
+  "k2verifyResults.tableLevelTitle": "Table Level Summary",
+  "k2verifyResults.columnLevelTitle": "Column Level Summary",
+  "k2verifyResults.recordDetailsTitle": "Record Details",
+  "k2verifyResults.loadingDetails":"Preparing Download",
+  "k2verifyResults.downloadReport":"Download Report",
+
+  "k2verifyResults.tableLabel": "Table:",
+  "k2verifyResults.columnLevelHint": "Click on a metric button in the table above to view column-level details",
+  "k2verifyResults.recordDetailsHint": "Select metrics from the table above to view detailed records",
+
+  "k2verifyResults.toasts.loadTableSummaryFailed": "Failed to load table level summary",
+  "k2verifyResults.toasts.loadColumnFailed": "Failed to load column level data",
+  "k2verifyResults.toasts.loadRecordFailed": "Failed to load record details",
+  "k2verifyHistory.title": "Task History",
+  "k2verifyHistory.missingTaskId": "Missing task id in the URL.",
+  "k2verifyHistory.goBack": "Go Back",
+  "k2verifyHistory.summaryTitle": "k2verify Task Execution Summary for Task Id:",
+  "k2verifyHistory.toasts.loadFailed": "Failed to load task execution history",
+  "k2verifyTaskCreation.toasts.mtableFailed": "Failed to bring the mtable data",
+  "k2verifyTaskCreation.toasts.executionFailed": "Execution failed",
+  "k2verifyHistoryDetailed.title": "k2verify Execution Details -",
+  "k2verifyHistoryDetailed.taskIdLabel": "Task ID:",
+  "k2verifyHistoryDetailed.executionIdLabel": "Execution ID:",
+
+  "k2verifyHistoryDetailed.bucketTitle": "Bucket Details -",
+  "k2verifyHistoryDetailed.tableLabel": "Table:",
+  "k2verifyHistoryDetailed.noBucketRows": "No bucket rows found.",
+  "k2verifyHistoryDetailed.selectInfoHint": "* Select the info icon to view bucket details of each table.",
+
+  "k2verifyHistoryDetailed.missingTitle": "Task Execution Details",
+  "k2verifyHistoryDetailed.missingTaskId": "Missing task id.",
+  "k2verifyHistoryDetailed.missingExecutionId": "Missing execution id.",
+  "k2verifyHistoryDetailed.goBack": "Go Back",
+
+  "k2verifyHistoryDetailed.toasts.loadHistoryFailed": "Failed to load task execution history",
+  "k2verifyHistoryDetailed.toasts.loadBucketFailed": "Failed to load bucket details",
+  "k2verifyHistoryDetailed.toasts.noTableName": "No table_name found for this row",
+  "k2verifyTaskResults.title": "k2verify Task Execution Results",
+  "k2verifyTaskResults.toasts.loadFailed": "Failed to load task execution history",
+    "k2verifyTaskOptions.title": "Create k2verify Task",
+  
+    "k2verifyTaskOptions.taskTitleLabel": "Task title",
+    "k2verifyTaskOptions.taskTitlePlaceholder": "e.g., Customer Table Assurance",
+    "k2verifyTaskOptions.taskDescriptionLabel": "Task description",
+    "k2verifyTaskOptions.taskDescriptionPlaceholder": "Describe what the task is going to do.",
+  
+    "k2verifyTaskOptions.sourceInterfaceLabel": "Source interface",
+    "k2verifyTaskOptions.sourceInterfaceSelectPlaceholder": "Select source interface",
+    "k2verifyTaskOptions.targetInterfaceLabel": "Target interface",
+    "k2verifyTaskOptions.targetInterfaceSelectPlaceholder": "Select target interface",
+  
+    "k2verifyTaskOptions.sourceSchemaLabel": "Source schema",
+    "k2verifyTaskOptions.sourceSchemaSelectPlaceholder": "Select source schema",
+    "k2verifyTaskOptions.targetSchemaLabel": "Target schema",
+    "k2verifyTaskOptions.targetSchemaSelectPlaceholder": "Select target schema",
+  
+    "k2verifyTaskOptions.loading": "Loading...",
+    "k2verifyTaskOptions.errors.loadingInterfaces": "Error loading interfaces",
+    "k2verifyTaskOptions.errors.loadingSchemas": "Error loading schemas",
+  
+    "k2verifyTaskOptions.errors.noCompatibleSource": "No compatible source interfaces for the selected target",
+    "k2verifyTaskOptions.errors.noSourceFound": "No source interfaces found in mapping table",
+    "k2verifyTaskOptions.errors.noCompatibleTarget": "No compatible target interfaces for the selected source",
+    "k2verifyTaskOptions.errors.noTargetFound": "No target interfaces found in mapping table",
+  
+    "k2verifyTaskOptions.errors.noSourceSchema": "No source schema for the selected source interface",
+    "k2verifyTaskOptions.errors.noTargetSchema": "No target schema for the selected target interface",
+    "k2verifyTaskOptions.errors.selectSourceInterfaceFirst": "Select Source Interface First",
+    "k2verifyTaskOptions.errors.selectTargetInterfaceFirst": "Select Target Interface First",
+  
+    "k2verifyTaskOptions.validation.selectAtLeastOnePair": "Please select at least one source-target table pair.",
+  
+    "k2verifyTaskOptions.piiOnlyLabel": "Verify PII fields only",
+    "k2verifyTaskOptions.logPassLabel": "Include passed verifications in the Report",
+  
+    "k2verifyTaskOptions.concurrencyLabel": "Concurrency threads per node",
+    "k2verifyTaskOptions.concurrencyPlaceholder": "e.g., 4. Leave blank to use system default.",
+  
+    "k2verifyTaskOptions.save": "Save",
+    "k2verifyTaskOptions.reset": "Reset",
+    "k2verifyTaskOptions.cancel": "Cancel"
+
+
+  
+
+
+}

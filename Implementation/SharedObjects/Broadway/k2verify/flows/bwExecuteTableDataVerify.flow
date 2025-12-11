@@ -8,11 +8,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 5",
+                    "name": "Flow inputs",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "GetLUName1",
+                            "name": "LUName",
                             "actorType": {
                                 "parentType": "GetLUName",
                                 "inputs": [],
@@ -49,7 +49,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 6",
+                    "name": "Opetational DB",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -85,11 +85,12 @@
         {
             "stages": [
                 {
-                    "name": "Stage 4",
+                    "name": "Comparison config",
                     "dependsOnList": [],
+                    "remark": "Tables comparison custom configurations are stored in mtK2VerifyConfig mtable. This actor retrieves those configurations from the mtable.",
                     "actors": [
                         {
-                            "name": "MTableLookup1",
+                            "name": "MTableLookup",
                             "actorType": {
                                 "parentType": "MTableLookup",
                                 "inputs": [
@@ -227,7 +228,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 8",
+                    "name": "Update table verify started",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -240,38 +241,7 @@
                             }
                         },
                         {
-                            "name": "StringFormat1",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "WITH RECURSIVE  cnt(IID) AS (SELECT 0 UNION ALL SELECT IID+1 FROM cnt LIMIT ${groupsCnt}  ) SELECT \"${table_name}_@_\"||IID as IID FROM cnt"
-                                    },
-                                    {
-                                        "name": "groupsCnt",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "table_name",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "DbLoad1",
+                            "name": "StartedTableVerify",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -366,6 +336,34 @@
                                 ],
                                 "outputs": []
                             }
+                        },
+                        {
+                            "name": "InterfaceType",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwCheckDBType"
+                                    },
+                                    {
+                                        "name": "interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "type",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
@@ -374,7 +372,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 9",
+                    "name": "Set table verify globals",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -406,6 +404,23 @@
                                     {
                                         "name": "sql",
                                         "const": "set K2VERIFY_INTERFACE_SRC=?;"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "SRC Interface Type",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_INTERFACE_SRC_TYPE=?;"
                                     }
                                 ],
                                 "outputs": []
@@ -603,51 +618,22 @@
         {
             "stages": [
                 {
-                    "name": "Stage 1",
+                    "name": "Interface Type",
                     "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "bwCheckDBType1",
-                            "actorType": {
-                                "parentType": "InnerFlow",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwCheckDBType"
-                                    },
-                                    {
-                                        "name": "interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "type",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
+                    "actors": []
                 }
             ]
         },
         {
             "stages": [
                 {
-                    "name": "Stage 26",
+                    "name": "Cassandra interface",
                     "dependsOnList": [
-                        "Stage 1"
+                        "Interface Type"
                     ],
                     "actors": [
                         {
-                            "name": "EqualsIgnoreCase2",
+                            "name": "CassandraInterface",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "EqualsIgnoreCase",
@@ -664,7 +650,7 @@
                             }
                         },
                         {
-                            "name": "bwExtractKeyFromCassTable1",
+                            "name": "ExtractKeysFromCassTable",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -703,9 +689,9 @@
                     ]
                 },
                 {
-                    "name": "Stage 27",
+                    "name": "Else",
                     "dependsOnList": [
-                        "Stage 1"
+                        "Interface Type"
                     ],
                     "hasElse": true,
                     "actors": []
@@ -715,11 +701,12 @@
         {
             "stages": [
                 {
-                    "name": "Stage 29",
+                    "name": "Batch command params",
                     "dependsOnList": [],
+                    "remark": "the batch is executed on the comparison buckets",
                     "actors": [
                         {
-                            "name": "NotNull2",
+                            "name": "MaxWorkers",
                             "actorType": {
                                 "parentType": "NotNull",
                                 "inputs": [],
@@ -727,7 +714,7 @@
                             }
                         },
                         {
-                            "name": "StringFormat2",
+                            "name": "MaxWorkersString",
                             "actorType": {
                                 "parentType": "StringFormat",
                                 "inputs": [
@@ -744,22 +731,43 @@
                                 ],
                                 "outputs": []
                             }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 3",
-                    "dependsOnList": [],
-                    "actors": [
+                        },
                         {
                             "name": "IfElse1",
                             "actorType": {
                                 "parentType": "IfElse",
                                 "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "FormatBatchSql",
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": "WITH RECURSIVE  cnt(IID) AS (SELECT 0 UNION ALL SELECT IID+1 FROM cnt LIMIT ${groupsCnt}  ) SELECT \"${table_name}_@_\"||IID as IID FROM cnt"
+                                    },
+                                    {
+                                        "name": "groupsCnt",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_name",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    }
+                                ],
                                 "outputs": []
                             }
                         }
@@ -770,11 +778,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 28",
+                    "name": "Batch command",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "LKP Batch Command",
+                            "name": "BatchCommand",
                             "actorType": {
                                 "parentType": "StringFormat",
                                 "inputs": [
@@ -815,11 +823,11 @@
         {
             "stages": [
                 {
-                    "name": "User Input",
+                    "name": "Execute buckets bacth",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Execute Batch",
+                            "name": "ExecuteBatch",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -863,11 +871,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 7",
+                    "name": "Table verify in progress",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "DbLoad2",
+                            "name": "VerifyInProgress",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -970,7 +978,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 13",
+                    "name": "Wait for the batch to finish",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -989,7 +997,17 @@
                                 "inputs": [],
                                 "outputs": []
                             }
-                        },
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Table verify end_time",
+                    "dependsOnList": [],
+                    "actors": [
                         {
                             "name": "Now2",
                             "actorType": {
@@ -1013,13 +1031,13 @@
         {
             "stages": [
                 {
-                    "name": "Stage 14",
+                    "name": "Batch succeeded",
                     "dependsOnList": [
-                        "Stage 13"
+                        "Table verify end_time"
                     ],
                     "actors": [
                         {
-                            "name": "IsNull1",
+                            "name": "BatchSuccess",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "IsNull",
@@ -1030,14 +1048,14 @@
                     ]
                 },
                 {
-                    "name": "Stage 15",
+                    "name": "Batch was cancelled",
                     "dependsOnList": [
-                        "Stage 13"
+                        "Table verify end_time"
                     ],
                     "hasElse": true,
                     "actors": [
                         {
-                            "name": "EqualsIgnoreCase1",
+                            "name": "IsCancelled",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "EqualsIgnoreCase",
@@ -1054,7 +1072,7 @@
                             }
                         },
                         {
-                            "name": "DbLoad4",
+                            "name": "VerifyCancelled",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -1162,14 +1180,14 @@
                     ]
                 },
                 {
-                    "name": "Stage 11",
+                    "name": "Batch failed",
                     "dependsOnList": [
-                        "Stage 13"
+                        "Table verify end_time"
                     ],
                     "hasElse": true,
                     "actors": [
                         {
-                            "name": "DbLoad5",
+                            "name": "VerifyFailed",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -1281,40 +1299,23 @@
         {
             "stages": [
                 {
-                    "name": "Stage 2",
+                    "name": "dummy",
                     "dependsOnList": [
-                        "Stage 14"
+                        "Batch succeeded"
                     ],
-                    "actors": [
-                        {
-                            "name": "Now1",
-                            "actorType": {
-                                "parentType": "Now",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "END_TIME",
-                            "actorType": {
-                                "parentType": "ToString",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
+                    "actors": []
                 },
                 {
                     "name": "Stage 16",
                     "dependsOnList": [
-                        "Stage 15"
+                        "Batch was cancelled"
                     ],
                     "actors": []
                 },
                 {
                     "name": "Stage 20",
                     "dependsOnList": [
-                        "Stage 11"
+                        "Batch failed"
                     ],
                     "actors": []
                 }
@@ -1323,13 +1324,13 @@
         {
             "stages": [
                 {
-                    "name": "Stage 10",
+                    "name": "Buckets failed",
                     "dependsOnList": [
-                        "Stage 2"
+                        "dummy"
                     ],
                     "actors": [
                         {
-                            "name": "GreaterThan1",
+                            "name": "BucketsFailed > 0",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "GreaterThan",
@@ -1343,7 +1344,7 @@
                             }
                         },
                         {
-                            "name": "Const1",
+                            "name": "Failed",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -1370,12 +1371,12 @@
                 {
                     "name": "Stage 12",
                     "dependsOnList": [
-                        "Stage 2"
+                        "dummy"
                     ],
                     "hasElse": true,
                     "actors": [
                         {
-                            "name": "Const2",
+                            "name": "Completed",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -1418,14 +1419,14 @@
         {
             "stages": [
                 {
-                    "name": "Stage 18",
+                    "name": "Table verify completed",
                     "dependsOnList": [
                         "Stage 12",
-                        "Stage 10"
+                        "Buckets failed"
                     ],
                     "actors": [
                         {
-                            "name": "DbLoad3",
+                            "name": "VerifyCompleted",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -1550,11 +1551,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 23",
+                    "name": "Table summary ",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Table Summary Rows",
+                            "name": "TableSummaryRows",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1640,7 +1641,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 25",
+                    "name": "Table results",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -1688,11 +1689,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 24",
+                    "name": "Load table summary report",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Check Report Condition",
+                            "name": "CheckReportCondition",
                             "condition": "insert",
                             "actorType": {
                                 "parentType": "InnerFlow",
@@ -1727,7 +1728,7 @@
                             }
                         },
                         {
-                            "name": "DbLoad6",
+                            "name": "TableSummaryReport",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -1845,7 +1846,7 @@
     "connections": [
         {
             "leftPort": {
-                "actor": "GetLUName1",
+                "actor": "LUName",
                 "name": "lu_name"
             },
             "rightPort": {
@@ -1855,7 +1856,7 @@
         },
         {
             "leftPort": {
-                "actor": "GetLUName1",
+                "actor": "LUName",
                 "name": "lu_name"
             },
             "rightPort": {
@@ -1865,21 +1866,21 @@
         },
         {
             "leftPort": {
-                "actor": "GetLUName1",
+                "actor": "LUName",
                 "name": "lu_name"
             },
             "rightPort": {
-                "actor": "Check Report Condition",
+                "actor": "CheckReportCondition",
                 "name": "schema"
             }
         },
         {
             "leftPort": {
-                "actor": "GetLUName1",
+                "actor": "LUName",
                 "name": "lu_name"
             },
             "rightPort": {
-                "actor": "bwExtractKeyFromCassTable1",
+                "actor": "ExtractKeysFromCassTable",
                 "name": "schema"
             }
         },
@@ -1899,7 +1900,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "start_time"
             }
         },
@@ -1909,7 +1910,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "start_time"
             }
         },
@@ -1919,7 +1920,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "start_time"
             }
         },
@@ -1929,7 +1930,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "start_time"
             }
         },
@@ -1939,7 +1940,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "start_time"
             }
         },
@@ -1949,7 +1950,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "interface"
             }
         },
@@ -1959,7 +1960,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "interface"
             }
         },
@@ -1969,7 +1970,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "interface"
             }
         },
@@ -1979,7 +1980,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "interface"
             }
         },
@@ -1989,7 +1990,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "interface"
             }
         },
@@ -1999,7 +2000,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "interface"
             }
         },
@@ -2009,7 +2010,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "schema"
             }
         },
@@ -2019,7 +2020,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "schema"
             }
         },
@@ -2029,7 +2030,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "schema"
             }
         },
@@ -2039,7 +2040,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "schema"
             }
         },
@@ -2049,7 +2050,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "schema"
             }
         },
@@ -2059,13 +2060,13 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "result_schema"
             }
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2076,11 +2077,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "StringFormat1",
+                "actor": "FormatBatchSql",
                 "name": "table_name"
             },
             "iterate": "First",
@@ -2090,11 +2091,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "StringFormat1",
+                "actor": "FormatBatchSql",
                 "name": "groupsCnt"
             },
             "iterate": "First",
@@ -2104,7 +2105,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2119,7 +2120,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2134,7 +2135,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2149,7 +2150,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2164,7 +2165,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2179,7 +2180,7 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
@@ -2194,11 +2195,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "bucket_count"
             },
             "iterate": "First",
@@ -2208,11 +2209,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwCheckDBType1",
+                "actor": "InterfaceType",
                 "name": "interface"
             },
             "iterate": "First",
@@ -2222,11 +2223,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwExtractKeyFromCassTable1",
+                "actor": "ExtractKeysFromCassTable",
                 "name": "customized_key"
             },
             "iterate": "First",
@@ -2236,11 +2237,11 @@
         },
         {
             "leftPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwExtractKeyFromCassTable1",
+                "actor": "ExtractKeysFromCassTable",
                 "name": "buckets_count"
             },
             "iterate": "First",
@@ -2250,27 +2251,28 @@
         },
         {
             "leftPort": {
-                "actor": "StringFormat1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "LKP Batch Command",
-                "name": "sql"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "bwCheckDBType1",
+                "actor": "InterfaceType",
                 "name": "type"
             },
             "rightPort": {
-                "actor": "EqualsIgnoreCase2",
+                "actor": "CassandraInterface",
                 "name": "a"
             }
         },
         {
             "leftPort": {
-                "actor": "NotNull2",
+                "actor": "InterfaceType",
+                "name": "type"
+            },
+            "rightPort": {
+                "actor": "SRC Interface Type",
+                "name": "params"
+            },
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "MaxWorkers",
                 "name": "result"
             },
             "rightPort": {
@@ -2280,7 +2282,7 @@
         },
         {
             "leftPort": {
-                "actor": "StringFormat2",
+                "actor": "MaxWorkersString",
                 "name": "string"
             },
             "rightPort": {
@@ -2294,23 +2296,33 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "LKP Batch Command",
+                "actor": "BatchCommand",
                 "name": "maxWorkers"
             }
         },
         {
             "leftPort": {
-                "actor": "LKP Batch Command",
+                "actor": "FormatBatchSql",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Execute Batch",
+                "actor": "BatchCommand",
                 "name": "sql"
             }
         },
         {
             "leftPort": {
-                "actor": "Execute Batch",
+                "actor": "BatchCommand",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "ExecuteBatch",
+                "name": "sql"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ExecuteBatch",
                 "name": "result"
             },
             "rightPort": {
@@ -2324,11 +2336,11 @@
         },
         {
             "leftPort": {
-                "actor": "Execute Batch",
+                "actor": "ExecuteBatch",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "batch_id"
             },
             "iterate": "First",
@@ -2338,11 +2350,11 @@
         },
         {
             "leftPort": {
-                "actor": "Execute Batch",
+                "actor": "ExecuteBatch",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "batch_id"
             },
             "iterate": "First",
@@ -2352,11 +2364,11 @@
         },
         {
             "leftPort": {
-                "actor": "Execute Batch",
+                "actor": "ExecuteBatch",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "batch_id"
             },
             "iterate": "First",
@@ -2366,11 +2378,11 @@
         },
         {
             "leftPort": {
-                "actor": "Execute Batch",
+                "actor": "ExecuteBatch",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "batch_id"
             },
             "iterate": "First",
@@ -2384,7 +2396,7 @@
                 "name": "error"
             },
             "rightPort": {
-                "actor": "IsNull1",
+                "actor": "BatchSuccess",
                 "name": "value"
             }
         },
@@ -2394,7 +2406,7 @@
                 "name": "error"
             },
             "rightPort": {
-                "actor": "EqualsIgnoreCase1",
+                "actor": "IsCancelled",
                 "name": "a"
             }
         },
@@ -2404,7 +2416,7 @@
                 "name": "failed"
             },
             "rightPort": {
-                "actor": "GreaterThan1",
+                "actor": "BucketsFailed > 0",
                 "name": "a"
             }
         },
@@ -2424,7 +2436,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "end_time"
             }
         },
@@ -2434,64 +2446,54 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "end_time"
             }
         },
         {
             "leftPort": {
-                "actor": "Now1",
-                "name": "date"
-            },
-            "rightPort": {
-                "actor": "END_TIME",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "END_TIME",
+                "actor": "END_TIME1",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "end_time"
             }
         },
         {
             "leftPort": {
-                "actor": "Const1",
+                "actor": "Failed",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "status"
             }
         },
         {
             "leftPort": {
-                "actor": "Const2",
+                "actor": "Completed",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "status"
             }
         },
         {
             "leftPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad6",
+                "actor": "TableSummaryReport",
                 "name": "params"
             },
             "iterate": "Iterate"
         },
         {
             "leftPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "result"
             },
             "rightPort": {
@@ -2504,7 +2506,7 @@
         },
         {
             "leftPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "result"
             },
             "rightPort": {
@@ -2517,7 +2519,7 @@
         },
         {
             "leftPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "result"
             },
             "rightPort": {
@@ -2534,7 +2536,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Check Report Condition",
+                "actor": "CheckReportCondition",
                 "name": "result"
             }
         },
@@ -2544,7 +2546,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad6",
+                "actor": "TableSummaryReport",
                 "name": "match_result"
             }
         },
@@ -2554,7 +2556,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Source_Table_Name"
             }
         },
@@ -2564,7 +2566,7 @@
                 "name": "Source_Interface"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Source_Interface"
             }
         },
@@ -2574,7 +2576,7 @@
                 "name": "Source_Schema"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Source_Schema"
             }
         },
@@ -2584,7 +2586,7 @@
                 "name": "Target_Table_Name"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Target_Table_Name"
             }
         },
@@ -2594,7 +2596,7 @@
                 "name": "Target_Interface"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Target_Interface"
             }
         },
@@ -2604,7 +2606,7 @@
                 "name": "Target_Schema"
             },
             "rightPort": {
-                "actor": "MTableLookup1",
+                "actor": "MTableLookup",
                 "name": "Target_Schema"
             }
         },
@@ -2614,7 +2616,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "task_id"
             }
         },
@@ -2624,7 +2626,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "execution_id"
             }
         },
@@ -2634,7 +2636,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "StartedTableVerify",
                 "name": "table_name"
             }
         },
@@ -2684,7 +2686,7 @@
                 "name": "maxWorkers"
             },
             "rightPort": {
-                "actor": "NotNull2",
+                "actor": "MaxWorkers",
                 "name": "value"
             }
         },
@@ -2694,7 +2696,7 @@
                 "name": "maxWorkers"
             },
             "rightPort": {
-                "actor": "StringFormat2",
+                "actor": "MaxWorkersString",
                 "name": "maxWorkers"
             }
         },
@@ -2704,7 +2706,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "task_id"
             }
         },
@@ -2714,7 +2716,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "execution_id"
             }
         },
@@ -2724,7 +2726,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "DbLoad2",
+                "actor": "VerifyInProgress",
                 "name": "table_name"
             }
         },
@@ -2734,7 +2736,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "task_id"
             }
         },
@@ -2744,7 +2746,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "execution_id"
             }
         },
@@ -2754,7 +2756,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "DbLoad4",
+                "actor": "VerifyCancelled",
                 "name": "table_name"
             }
         },
@@ -2764,7 +2766,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "task_id"
             }
         },
@@ -2774,7 +2776,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "execution_id"
             }
         },
@@ -2784,7 +2786,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "DbLoad5",
+                "actor": "VerifyFailed",
                 "name": "table_name"
             }
         },
@@ -2794,7 +2796,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "task_id"
             }
         },
@@ -2804,7 +2806,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "execution_id"
             }
         },
@@ -2814,7 +2816,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "DbLoad3",
+                "actor": "VerifyCompleted",
                 "name": "table_name"
             }
         },
@@ -2824,7 +2826,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "execution_id"
             }
         },
@@ -2834,7 +2836,7 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "Table Summary Rows",
+                "actor": "TableSummaryRows",
                 "name": "source_table_name"
             }
         }

@@ -1,6 +1,8 @@
 tags: d2d,d2dv2,D2D,k2verify
 stages:
   Execution params:
+    remark: This flow performs data verification between two record sets — one from
+      the source and one from the target.
     actors:
       FETCH_SIZE:
         parent: GetLUVariable
@@ -46,7 +48,7 @@ stages:
         out:
           value:
             schema: string
-      Exclude Condition:
+      ExcludeCondition:
         parent: Const
         in:
           value:
@@ -141,61 +143,27 @@ stages:
         out:
           value:
             schema: string
-  Prepare Data:
+  Comparison keys:
     actors:
-      ReplaceDelimeter:
-        parent: Replace
-        in:
-          search:
-            const: null
-            link: SEPERATOR/variableValue
-          replace:
-            const: ','
-          string:
-            link: CustomizedKey/value
-      Split2:
+      CustomKeysArr:
         parent: Split
         in:
-          string:
-            link: ReplaceDelimeter/string
-      bwGetColsForSelectStmt1:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetColsForSelectStmt
-          env:
-            const: TAR
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          column_mapping:
-            external: ColumnMapping
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          delim:
+          delimiter:
+            const: null
             link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          select_columns:
-            link: Split2/strings
-            schema: any
-            mandatory: false
-            createdBy: flowName
-          colsFromPII:
-            const: 'true'
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          columns_for_select:
-            schema: string
-          columns:
-            schema: '#ref'
+          string:
+            link: CustomizedKey/value
+      PIIColumnsArr:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          string:
+            link: PIIColumns/value
   Prep Data Queries:
     actors:
-      Source Env Query:
+      SourceEnvQuery:
         parent: InnerFlow
         in:
           flowName:
@@ -246,14 +214,16 @@ stages:
             mandatory: false
             createdBy: flowName
           excludeCondition:
-            link: Exclude Condition/value
-            schema: any
+            link: ExcludeCondition/value
+            schema: string
             mandatory: false
             createdBy: flowName
         out:
           sql:
             schema: string
-      Target Env Query:
+          columns:
+            schema: '#ref'
+      TargetEnvQuery:
         parent: InnerFlow
         in:
           flowName:
@@ -304,8 +274,8 @@ stages:
             mandatory: false
             createdBy: flowName
           excludeCondition:
-            link: Exclude Condition/value
-            schema: any
+            link: ExcludeCondition/value
+            schema: string
             mandatory: false
             createdBy: flowName
         out:
@@ -333,20 +303,10 @@ stages:
             schema: string
           schema:
             schema: string
-  Stage 5:
+  Exctract comparison keys:
     transactional: false
     actors:
-      Logger1:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwGetBucketKeysList - before'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-      bwGetBucketKeysList1:
+      GetBucketKeysList:
         parent: InnerFlow
         in:
           flowName:
@@ -407,8 +367,8 @@ stages:
             mandatory: false
             createdBy: flowName
           excludeCondition:
-            link: Exclude Condition/value
-            schema: any
+            link: ExcludeCondition/value
+            schema: string
             mandatory: false
             createdBy: flowName
           columnMapping:
@@ -416,49 +376,33 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          interfaceType:
+            external: interfaceType
+            schema: string
+            mandatory: false
+            createdBy: flowName
         out:
           keys_list:
             schema: '#ref'
-  Stage 27:
+  Num of records to compare:
     transactional: false
     actors:
-      Num of records:
+      '# Records':
         parent: JavaScript
         in:
           script:
             const: arr.length
           arr:
-            link: bwGetBucketKeysList1/keys_list
+            link: GetBucketKeysList/keys_list
             schema: '#ref'
             mandatory: false
         out:
           result:
             schema: integer
-      Logger2:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwGetBucketKeysList - AFTER'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-  Stage 21:
+  'Update # records for report':
     transactional: false
     actors:
-      ArrayGrouper1:
-        parent: ArrayGrouper
-        in:
-          size:
-            const: null
-            link: FETCH_SIZE/variableValue
-          input:
-            link: bwGetBucketKeysList1/keys_list
-        out:
-          result:
-            schema: '#ref'
-      DbCommand1:
+      UpdateRecordsNum:
         parent: DbCommand
         in:
           interface:
@@ -494,11 +438,25 @@ stages:
             mandatory: false
             createdBy: sql
           total_records:
-            link: Num of records/result
+            link: '# Records/result'
             schema: integer
             mandatory: false
             createdBy: sql
-  Stage 22:
+  Prepare groups of keys:
+    transactional: false
+    actors:
+      ArrayGrouper:
+        parent: ArrayGrouper
+        in:
+          size:
+            const: null
+            link: FETCH_SIZE/variableValue
+          input:
+            link: GetBucketKeysList/keys_list
+        out:
+          result:
+            schema: '#ref'
+  For each group of keys:
     transactional: true
     actors:
       Const1:
@@ -507,17 +465,16 @@ stages:
           value:
             const: null
             link:
-              path: ArrayGrouper1/result
+              path: ArrayGrouper/result
               iterate: Iterate
         out:
           value:
             schema: '#ref'
-  Deep Copy One:
+  Keys formatted in arrays and maps:
     transactional: true
     actors:
-      bwGetKeysMapsList1:
+      GetKeysMapsList:
         parent: InnerFlow
-        height: 234
         in:
           flowName:
             const: bwGetKeysMapsList
@@ -554,22 +511,22 @@ stages:
             schema: '#ref'
           TarKeysCombinations:
             schema: '#ref'
-  Stage 4:
+  Keys for comparison:
     transactional: true
     actors:
-      DeepCopy1:
+      DeepCopySrcKeys:
         parent: DeepCopy
         in:
           value:
-            link: bwGetKeysMapsList1/SrcKeysMapsList
+            link: GetKeysMapsList/SrcKeysMapsList
         out:
           value:
             schema: '#ref'
-      DeepCopy2:
+      DeepCopyTarKeys:
         parent: DeepCopy
         in:
           value:
-            link: bwGetKeysMapsList1/TarKeysMapsList
+            link: GetKeysMapsList/TarKeysMapsList
         out:
           value:
             schema: '#ref'
@@ -584,20 +541,16 @@ stages:
             link: SRC DB Interface/value
           sql:
             const: null
-            link: Source Env Query/sql
-          rowsGeneratorDistribution:
-            const:
-              distribution: uniform
-              round: true
-              type: integer
-              minimum: 0
-              maximum: 10
+            link: SourceEnvQuery/sql
+          size:
+            const: null
+            link: FETCH_SIZE/variableValue
           parent_rows:
-            link: DeepCopy1/value
+            link: DeepCopySrcKeys/value
         out:
           result:
             schema: '#ref'
-      bwApplyTransformationBW1:
+      ApplySrcTransformation:
         parent: InnerFlow
         in:
           flowName:
@@ -625,11 +578,11 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-      DeepCopy Source RS:
+      DeepCopySourceRS:
         parent: DeepCopy
         in:
           value:
-            link: bwApplyTransformationBW1/transformedRecords
+            link: ApplySrcTransformation/transformedRecords
         out:
           value:
             schema: '#ref'
@@ -644,13 +597,16 @@ stages:
             link: TAR DB Interface/value
           sql:
             const: null
-            link: Target Env Query/sql
+            link: TargetEnvQuery/sql
+          size:
+            const: null
+            link: FETCH_SIZE/variableValue
           parent_rows:
-            link: DeepCopy2/value
+            link: DeepCopyTarKeys/value
         out:
           result:
             schema: '#ref'
-      bwApplyTransformationBW11:
+      ApplyTarTransformation:
         parent: InnerFlow
         in:
           flowName:
@@ -678,22 +634,22 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-      DeepCopy Target RS:
+      DeepCopyTargetRS:
         parent: DeepCopy
         in:
           value:
-            link: bwApplyTransformationBW11/transformedRecords
+            link: ApplyTarTransformation/transformedRecords
         out:
           value:
             schema: '#ref'
-  Stage 19:
+  Keys arrays and maps:
     transactional: true
     actors:
       keysMaps:
         parent: DeepCopy
         in:
           value:
-            link: bwGetKeysMapsList1/SrcKeysMapsList
+            link: GetKeysMapsList/SrcKeysMapsList
         out:
           value:
             schema: '#ref'
@@ -702,42 +658,25 @@ stages:
         in:
           value:
             const: null
-            link: bwGetKeysMapsList1/SrcCustomKeysList
+            link: GetKeysMapsList/SrcCustomKeysList
         out:
           value:
             schema: '#ref'
-      KeysValsCombos:
+      SrcKeysValsCombos:
         parent: Const
         in:
           value:
             const: null
-            link: bwGetKeysMapsList1/SrcKeysCombinations
+            link: GetKeysMapsList/SrcKeysCombinations
         out:
           value:
             schema: '#ref'
-      keysMaps1:
-        parent: DeepCopy
-        in:
-          value:
-            link: bwGetKeysMapsList1/TarKeysMapsList
-        out:
-          value:
-            schema: '#ref'
-      CustomKeys1:
+      TarKeysValsCombos:
         parent: Const
         in:
           value:
             const: null
-            link: bwGetKeysMapsList1/TarCustomKeysList
-        out:
-          value:
-            schema: '#ref'
-      KeysValsCombos1:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: bwGetKeysMapsList1/TarKeysCombinations
+            link: GetKeysMapsList/TarKeysCombinations
         out:
           value:
             schema: '#ref'
@@ -753,20 +692,10 @@ stages:
           actorId:
             const:
             - TargetDbQuery
-      Logger3:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} group-keys looping - before'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-  Stage 25:
+  Primary key formats:
     transactional: true
     actors:
-      Const2:
+      PrimaryKeyMap:
         parent: Const
         in:
           value:
@@ -777,7 +706,7 @@ stages:
         out:
           value:
             schema: '#ref'
-      Const3:
+      PrimaryKeyString:
         parent: Const
         in:
           value:
@@ -788,51 +717,29 @@ stages:
         out:
           value:
             schema: '#ref'
-      Const4:
+      PrimaryKeySrcValue:
         parent: Const
         in:
           value:
             const: null
             link:
-              path: KeysValsCombos/value
+              path: SrcKeysValsCombos/value
               iterate: Iterate
         out:
           value:
             schema: '#ref'
-      Const5:
+      PrimaryKeyTarValue:
         parent: Const
         in:
           value:
             const: null
             link:
-              path: keysMaps1/value
+              path: TarKeysValsCombos/value
               iterate: Iterate
         out:
           value:
             schema: '#ref'
-      Const6:
-        parent: Const
-        in:
-          value:
-            const: null
-            link:
-              path: CustomKeys1/value
-              iterate: Iterate
-        out:
-          value:
-            schema: '#ref'
-      Const7:
-        parent: Const
-        in:
-          value:
-            const: null
-            link:
-              path: KeysValsCombos1/value
-              iterate: Iterate
-        out:
-          value:
-            schema: '#ref'
-  Stage 23:
+  Record for key:
     transactional: true
     actors:
       FilterSRCRow:
@@ -855,15 +762,15 @@ stages:
                 });
                 arr.indexOf(false) == -1;
           keys:
-            link: Split2/strings
+            link: CustomKeysArr/strings
             schema: '#ref'
             mandatory: false
           keysObj:
-            link: Const2/value
+            link: PrimaryKeyMap/value
             schema: '#ref'
             mandatory: false
           values:
-            link: DeepCopy Source RS/value
+            link: DeepCopySourceRS/value
         out:
           values:
             schema: '#ref'
@@ -887,41 +794,35 @@ stages:
                 });
                 arr.indexOf(false) == -1;
           keys:
-            link: Split2/strings
+            link: CustomKeysArr/strings
             schema: '#ref'
             mandatory: false
           keysObj:
-            link: Const2/value
+            link: PrimaryKeyMap/value
             schema: '#ref'
             mandatory: false
           values:
-            link: DeepCopy Target RS/value
+            link: DeepCopyTargetRS/value
         out:
           values:
             schema: '#ref'
-  Stage 24:
+  Deep copy record:
     transactional: true
     actors:
-      DeepCopySRCRow:
+      DeepCopy1:
         parent: DeepCopy
         in:
           value:
             link: FilterSRCRow/values
-        out:
-          value:
-            schema: '#ref'
-      DeepCopyTARRow:
+      DeepCopy2:
         parent: DeepCopy
         in:
           value:
             link: FilterTARRow/values
-        out:
-          value:
-            schema: '#ref'
-  Stage 1:
+  Verify record exists:
     transactional: true
     actors:
-      bwVerifyKeysExists1:
+      VerifyKeysExists:
         parent: InnerFlow
         in:
           flowName:
@@ -946,30 +847,30 @@ stages:
             mandatory: false
             createdBy: flowName
           src_row:
-            link: DeepCopySRCRow/value
+            link: DeepCopy1/value
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
-            link: DeepCopyTARRow/value
+            link: DeepCopy2/value
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           customized_key:
-            link: Const3/value
+            link: PrimaryKeyString/value
             schema: string
             mandatory: false
             createdBy: flowName
           target_column_value:
             link:
-              path: Const7/value
+              path: PrimaryKeyTarValue/value
               iterate: First
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           source_column_value:
             link:
-              path: Const4/value
+              path: PrimaryKeySrcValue/value
               iterate: First
             schema: '#ref'
             mandatory: false
@@ -978,12 +879,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
+              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
-              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           operational_schema:
@@ -1018,20 +919,10 @@ stages:
         out:
           keyNotFound:
             schema: boolean
-      Logger6:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwVerifyRecordData - before'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-  Stage 12:
+  Record exists->verify data:
     transactional: true
     actors:
-      Equals1:
+      RecordExists:
         parent: Equals
         condition: result
         in:
@@ -1039,8 +930,8 @@ stages:
             const: false
             schema: boolean
           a:
-            link: bwVerifyKeysExists1/keyNotFound
-      bwVerifyRecordData2:
+            link: VerifyKeysExists/keyNotFound
+      VerifyRecordData:
         parent: InnerFlow
         in:
           flowName:
@@ -1083,12 +974,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
+              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
-              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           source_table_name:
@@ -1132,14 +1023,14 @@ stages:
             createdBy: flowName
           src_row:
             link:
-              path: DeepCopySRCRow/value
+              path: DeepCopy1/value
               iterate: First
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
             link:
-              path: DeepCopyTARRow/value
+              path: DeepCopy2/value
               iterate: First
             schema: '#ref'
             mandatory: false
@@ -1149,51 +1040,41 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          delim:
-            link: SEPERATOR/variableValue
+          customized_key_values:
+            link: PrimaryKeyString/value
             schema: string
             mandatory: false
             createdBy: flowName
-      Logger5:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} bwVerifyRecordData - AFTER'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-  Stage 32:
+  '# processed records':
     transactional: true
     actors:
-      Count1:
+      '# ProcessedRecords':
         parent: Count
         out:
           value:
             schema: integer
-      MathDivMod1:
+      MathDivMod:
         parent: MathDivMod
         in:
           b:
             const: 50
             schema: integer
           a:
-            link: Count1/value
-  Stage 2:
+            link: '# ProcessedRecords/value'
+  Write each 1000:
     transactional: true
-    dependsOn: Stage 32
+    dependsOn: '# processed records'
     actors:
-      Equals2:
+      1000 processed:
         parent: Equals
         condition: result
         in:
           b:
-            const: 10
+            const: 1000
             schema: integer
           a:
-            link: MathDivMod1/mod
-      DbCommand2:
+            link: MathDivMod/mod
+      'Update #Processed':
         parent: DbCommand
         in:
           interface:
@@ -1229,7 +1110,7 @@ stages:
             mandatory: false
             createdBy: sql
           processed_records:
-            link: Count1/value
+            link: '# ProcessedRecords/value'
             schema: integer
             mandatory: false
             createdBy: sql
@@ -1237,25 +1118,14 @@ stages:
   Stage 39:
     else: true
     transactional: true
-    dependsOn: Stage 32
-  Stage 6:
+    dependsOn: '# processed records'
+  Merge:
     last: 1
     transactional: true
-  Stage 18:
+  Close loop:
     last: 1
     transactional: false
-    actors:
-      Logger4:
-        parent: Logger
-        in:
-          message:
-            const: '### ${iid} group-keys looping - AFTER'
-          iid:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: message
-  Stage 40:
+  Bucket verify end_time:
     transactional: false
     actors:
       Now1:
@@ -1265,10 +1135,10 @@ stages:
         in:
           value:
             link: Now1/date
-  Stage 3:
+  Bucket Verify Completed:
     transactional: false
     actors:
-      DbCommand3:
+      UpdateBucketVerifyCompleted:
         parent: DbCommand
         in:
           interface:
@@ -1305,7 +1175,7 @@ stages:
             mandatory: false
             createdBy: sql
           processed_records:
-            link: Num of records/result
+            link: '# Records/result'
             schema: integer
             mandatory: false
             createdBy: sql
@@ -1315,15 +1185,15 @@ stages:
             mandatory: false
             createdBy: sql
 schemas:
-  bwGetColsForSelectStmt1.out.columns:
+  SourceEnvQuery.out.columns:
     type: array
     items:
       type: string
-  Target Env Query.out.columns:
+  TargetEnvQuery.out.columns:
     type: array
     items:
       type: string
-  bwGetBucketKeysList1.out.keys_list:
+  GetBucketKeysList.out.keys_list:
     type: array
     items:
       type: object
@@ -1332,11 +1202,11 @@ schemas:
           type: integer
         CUSTOMER_ID:
           type: integer
-  Num of records.in.arr:
+  '# Records.in.arr':
     type: array
     items:
       type: string
-  ArrayGrouper1.out.result:
+  ArrayGrouper.out.result:
     type: array
     items:
       type: array
@@ -1352,41 +1222,15 @@ schemas:
       properties:
         org_key:
           type: string
-  bwGetKeysMapsList1.in.keyValues:
+  GetKeysMapsList.in.keyValues:
     type: array
     items:
       type: string
-  bwGetKeysMapsList1.out.SrcCustomKeysList:
+  GetKeysMapsList.out.SrcCustomKeysList:
     type: array
     items:
       type: string
-  bwGetKeysMapsList1.out.SrcKeysMapsList:
-    type: array
-    items:
-      type: object
-      properties:
-        CUSTOMER_ID:
-          type: string
-  bwGetKeysMapsList1.out.SrcKeysCombinations:
-    type: array
-    items:
-      type: string
-  bwGetKeysMapsList1.out.TarCustomKeysList:
-    type: array
-    items:
-      type: string
-  bwGetKeysMapsList1.out.TarKeysMapsList:
-    type: array
-    items:
-      type: object
-      properties:
-        CUST_ID:
-          type: string
-  bwGetKeysMapsList1.out.TarKeysCombinations:
-    type: array
-    items:
-      type: string
-  DeepCopy1.out.value:
+  GetKeysMapsList.out.SrcKeysMapsList:
     type: array
     items:
       type: object
@@ -1395,7 +1239,35 @@ schemas:
           type: string
         SSN:
           type: string
-  DeepCopy2.out.value:
+  GetKeysMapsList.out.SrcKeysCombinations:
+    type: array
+    items:
+      type: string
+  GetKeysMapsList.out.TarCustomKeysList:
+    type: array
+    items:
+      type: string
+  GetKeysMapsList.out.TarKeysMapsList:
+    type: array
+    items:
+      type: object
+      properties:
+        CUST_ID:
+          type: string
+  GetKeysMapsList.out.TarKeysCombinations:
+    type: array
+    items:
+      type: string
+  DeepCopySrcKeys.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DeepCopyTarKeys.out.value:
     type: array
     items:
       type: object
@@ -1417,7 +1289,7 @@ schemas:
           type: string
         LAST_NAME:
           type: string
-  bwApplyTransformationBW1.in.records:
+  ApplySrcTransformation.in.records:
     type: array
     items:
       type: object
@@ -1428,18 +1300,20 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  bwApplyTransformationBW1.out.transformedRecords:
+  ApplySrcTransformation.out.transformedRecords:
     type: array
     items:
       type: object
       properties:
-        SRC_FIRST_NAME:
-          type: string
         SRC_CUSTOMER_ID:
           type: string
         SRC_SSN:
           type: string
-  DeepCopy Source RS.out.value:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
+          type: string
+  DeepCopySourceRS.out.value:
     type: array
     items:
       type: object
@@ -1481,7 +1355,7 @@ schemas:
           type: string
         LAST_NAME:
           type: string
-  bwApplyTransformationBW11.in.records:
+  ApplyTarTransformation.in.records:
     type: array
     items:
       type: object
@@ -1492,7 +1366,7 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  bwApplyTransformationBW11.out.transformedRecords:
+  ApplyTarTransformation.out.transformedRecords:
     type: array
     items:
       type: object
@@ -1503,7 +1377,7 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  DeepCopy Target RS.out.value:
+  DeepCopyTargetRS.out.value:
     type: array
     items:
       type: object
@@ -1545,63 +1419,36 @@ schemas:
     type: array
     items:
       type: string
-  KeysValsCombos.out.value:
+  SrcKeysValsCombos.out.value:
     type: array
     items:
       type: string
-  keysMaps1.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        CUSTOMER_ID:
-          type: string
-        SSN:
-          type: string
-  CustomKeys1.out.value:
+  TarKeysValsCombos.out.value:
     type: array
     items:
       type: string
-  KeysValsCombos1.out.value:
-    type: array
-    items:
-      type: string
-  Const2.out.value:
+  PrimaryKeyMap.out.value:
     type: object
     properties:
       CUSTOMER_ID:
         type: string
       SSN:
         type: string
-  Const3.out.value:
+  PrimaryKeyString.out.value:
     type: object
     properties:
       CUSTOMER_ID:
         type: string
       SSN:
         type: string
-  Const4.out.value:
+  PrimaryKeySrcValue.out.value:
     type: object
     properties:
       CUSTOMER_ID:
         type: string
       SSN:
         type: string
-  Const5.out.value:
-    type: object
-    properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  Const6.out.value:
-    type: object
-    properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  Const7.out.value:
+  PrimaryKeyTarValue.out.value:
     type: object
     properties:
       CUSTOMER_ID:
@@ -1840,207 +1687,7 @@ schemas:
           }
         TAR_ROW_VERSION: {
           }
-  DeepCopySRCRow.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        SRC_CUSTOMER_ID:
-          type: integer
-        SRC_FIRST_NAME:
-          type: string
-        SRC_MIDDLE_NAME:
-          type: string
-        SRC_LAST_NAME:
-          type: string
-        SRC_EMAIL:
-          type: string
-        SRC_ALT_EMAIL:
-          type: string
-        SRC_PHONE:
-          type: string
-        SRC_ALT_PHONE:
-          type: string
-        SRC_SSN:
-          type: string
-        SRC_DATE_OF_BIRTH:
-          type: date
-        SRC_ADDRESS_LINE1:
-          type: string
-        SRC_ADDRESS_LINE2:
-          type: string
-        SRC_CITY:
-          type: string
-        SRC_STATE_PROVINCE:
-          type: string
-        SRC_POSTAL_CODE:
-          type: string
-        SRC_COUNTRY:
-          type: string
-        SRC_GENDER:
-          type: string
-        SRC_MARITAL_STATUS:
-          type: string
-        SRC_NATIONAL_ID:
-          type: string
-        SRC_PASSPORT_NO:
-          type: string
-        SRC_SIGNUP_DATE:
-          type: date
-        SRC_LAST_LOGIN_TS:
-          type: date
-        SRC_BALANCE:
-          type: integer
-        SRC_CREDIT_LIMIT:
-          type: integer
-        SRC_RISK_SCORE:
-          type: integer
-        SRC_LOYALTY_POINTS:
-          type: integer
-        SRC_IS_VIP:
-          type: string
-        SRC_PREFERRED_LANGUAGE:
-          type: string
-        SRC_TIMEZONE:
-          type: string
-        SRC_MARKETING_OPT_IN:
-          type: string
-        SRC_COMM_CHANNEL:
-          type: string
-        SRC_HOME_LAT:
-          type: integer
-        SRC_HOME_LON:
-          type: integer
-        SRC_FAVORITE_NUMBER:
-          type: integer
-        SRC_SMALL_FLAG:
-          type: integer
-        SRC_FLOAT_SCORE:
-          type: number
-        SRC_DOUBLE_SCORE:
-          type: number
-        SRC_HEIGHT_CM:
-          type: integer
-        SRC_WEIGHT_KG:
-          type: integer
-        SRC_CHILDREN_COUNT:
-          type: integer
-        SRC_CREATED_AT:
-          type: date
-        SRC_UPDATED_AT:
-          type: date
-        SRC_VALID_FROM:
-          type: date
-        SRC_VALID_TO:
-          type: date
-        SRC_ROW_VERSION:
-          type: integer
-  DeepCopyTARRow.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        TAR_CUSTOMER_ID:
-          type: integer
-        TAR_FIRST_NAME:
-          type: string
-        TAR_MIDDLE_NAME: {
-          }
-        TAR_LAST_NAME:
-          type: string
-        TAR_EMAIL:
-          type: string
-        TAR_ALT_EMAIL: {
-          }
-        TAR_PHONE:
-          type: string
-        TAR_ALT_PHONE: {
-          }
-        TAR_SSN:
-          type: string
-        TAR_DATE_OF_BIRTH: {
-          }
-        TAR_ADDRESS_LINE1:
-          type: string
-        TAR_ADDRESS_LINE2: {
-          }
-        TAR_CITY:
-          type: string
-        TAR_STATE_PROVINCE: {
-          }
-        TAR_POSTAL_CODE:
-          type: string
-        TAR_COUNTRY:
-          type: string
-        TAR_GENDER:
-          type: string
-        TAR_MARITAL_STATUS:
-          type: string
-        TAR_NATIONAL_ID: {
-          }
-        TAR_PASSPORT_NO: {
-          }
-        TAR_SIGNUP_DATE:
-          type: date
-        TAR_LAST_LOGIN_TS: {
-          }
-        TAR_LAST_LOGIN_TZ: {
-          }
-        TAR_BALANCE:
-          type: integer
-        TAR_CREDIT_LIMIT:
-          type: integer
-        TAR_RISK_SCORE:
-          type: integer
-        TAR_LOYALTY_POINTS:
-          type: integer
-        TAR_IS_VIP:
-          type: string
-        TAR_PREFERRED_LANGUAGE:
-          type: string
-        TAR_TIMEZONE:
-          type: string
-        TAR_MARKETING_OPT_IN: {
-          }
-        TAR_COMM_CHANNEL: {
-          }
-        TAR_AVATAR_RAW: {
-          }
-        TAR_PROFILE_BLOB: {
-          }
-        TAR_NOTES: {
-          }
-        TAR_PREFERENCES_JSON: {
-          }
-        TAR_HOME_LAT: {
-          }
-        TAR_HOME_LON: {
-          }
-        TAR_FAVORITE_NUMBER: {
-          }
-        TAR_SMALL_FLAG: {
-          }
-        TAR_FLOAT_SCORE: {
-          }
-        TAR_DOUBLE_SCORE: {
-          }
-        TAR_HEIGHT_CM: {
-          }
-        TAR_WEIGHT_KG: {
-          }
-        TAR_CHILDREN_COUNT: {
-          }
-        TAR_CREATED_AT:
-          type: date
-        TAR_UPDATED_AT: {
-          }
-        TAR_VALID_FROM: {
-          }
-        TAR_VALID_TO: {
-          }
-        TAR_ROW_VERSION: {
-          }
-  bwVerifyKeysExists1.in.src_row:
+  VerifyKeysExists.in.src_row:
     type: array
     items:
       type: object
@@ -2053,7 +1700,7 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  bwVerifyKeysExists1.in.tar_row:
+  VerifyKeysExists.in.tar_row:
     type: array
     items:
       type: object
@@ -2066,15 +1713,15 @@ schemas:
           type: string
         TAR_SSN:
           type: string
-  bwVerifyKeysExists1.in.target_column_value:
+  VerifyKeysExists.in.target_column_value:
     type: array
     items: {
       }
-  bwVerifyKeysExists1.in.source_column_value:
+  VerifyKeysExists.in.source_column_value:
     type: array
     items: {
       }
-  bwVerifyRecordData2.in.src_row:
+  VerifyRecordData.in.src_row:
     type: object
     properties:
       SRC_FIRST_NAME:
@@ -2085,7 +1732,7 @@ schemas:
         type: string
       SRC_SSN:
         type: string
-  bwVerifyRecordData2.in.tar_row:
+  VerifyRecordData.in.tar_row:
     type: object
     properties:
       TAR_FIRST_NAME:

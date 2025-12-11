@@ -23,7 +23,7 @@ public class SharedGlobals {
 	@category("K2VERIFY")
 	public static String K2VERIFY_CONF_SEPARATOR = "|";
 	@category("K2VERIFY")		
-	public static String K2VERIFY_KEYS_FETCH_SIZE = "3";
+	public static String K2VERIFY_KEYS_FETCH_SIZE = "10";
 	@category("K2VERIFY")		
 	public static String K2VERIFY_CQLSH_BIN_DIR = "/opt/apps/fabric/workspace/apache-cassandra-4.1.3/bin";
 	@category("K2VERIFY")		

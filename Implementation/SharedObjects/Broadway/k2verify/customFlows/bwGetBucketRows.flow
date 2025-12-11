@@ -11,19 +11,6 @@ stages:
         out:
           value:
             schema: string
-      CheckDBType:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwCheckDBType
-          interface:
-            external: interface
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          type:
-            schema: string
       Delim:
         parent: Const
         in:
@@ -115,7 +102,7 @@ stages:
             const: Oracle (Db)
             schema: string
           a:
-            link: CheckDBType/type
+            external: interfaceType
       DbCommand1:
         parent: DbCommand
         in:
@@ -176,7 +163,7 @@ stages:
             const: DB2 (Db)
             schema: string
           a:
-            link: CheckDBType/type
+            external: interfaceType
       DbCommand2:
         parent: DbCommand
         in:
@@ -237,7 +224,7 @@ stages:
             const: PostgreSQL (Db)
             schema: string
           a:
-            link: CheckDBType/type
+            external: interfaceType
       DbCommand3:
         parent: DbCommand
         in:
@@ -246,7 +233,7 @@ stages:
             external: interface
           sql:
             const: SELECT ${@key} FROM ${@schema}.${@table} WHERE  MOD(ABS(hashtext(${@concatKey}
-              || '')::bigint),${@bucketsNum}) = ${@bucketID}
+              || '')::bigint),${@bucketsNum}) = ${@bucketID} ${@and}
           key:
             link: strKeys/string
             schema: string
@@ -277,6 +264,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: any
+            mandatory: false
+            createdBy: sql
         out:
           result:
             schema: '#ref'
@@ -293,7 +285,7 @@ stages:
             const: Cassandra (Db)
             schema: string
           a:
-            link: CheckDBType/type
+            external: a
       DbCommand4:
         parent: DbCommand
         in:
@@ -302,6 +294,7 @@ stages:
             link: RESULT_INTERFACE/variableValue
           sql:
             const: select org_key from ${@keysTableSchema}.${@keysTable} where group_id='${@bucketID}'
+              ${@and}
           keysTableSchema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -315,6 +308,11 @@ stages:
           keysTable:
             link: KEYS_TABLE_NAME/variableValue
             schema: string
+            mandatory: false
+            createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: any
             mandatory: false
             createdBy: sql
         out:
