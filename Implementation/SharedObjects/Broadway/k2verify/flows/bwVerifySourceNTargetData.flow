@@ -153,14 +153,6 @@ stages:
             link: SEPERATOR/variableValue
           string:
             link: CustomizedKey/value
-      PIIColumnsArr:
-        parent: Split
-        in:
-          delimiter:
-            const: null
-            link: SEPERATOR/variableValue
-          string:
-            link: PIIColumns/value
   Prep Data Queries:
     actors:
       SourceEnvQuery:
@@ -499,36 +491,13 @@ stages:
             mandatory: false
             createdBy: flowName
         out:
-          SrcCustomKeysList:
-            schema: '#ref'
           SrcKeysMapsList:
             schema: '#ref'
           SrcKeysCombinations:
             schema: '#ref'
-          TarCustomKeysList:
-            schema: '#ref'
           TarKeysMapsList:
             schema: '#ref'
           TarKeysCombinations:
-            schema: '#ref'
-  Keys for comparison:
-    transactional: true
-    actors:
-      DeepCopySrcKeys:
-        parent: DeepCopy
-        in:
-          value:
-            link: GetKeysMapsList/SrcKeysMapsList
-        out:
-          value:
-            schema: '#ref'
-      DeepCopyTarKeys:
-        parent: DeepCopy
-        in:
-          value:
-            link: GetKeysMapsList/TarKeysMapsList
-        out:
-          value:
             schema: '#ref'
   Execute Query - Source:
     transactional: true
@@ -546,7 +515,7 @@ stages:
             const: null
             link: FETCH_SIZE/variableValue
           parent_rows:
-            link: DeepCopySrcKeys/value
+            link: GetKeysMapsList/SrcKeysMapsList
         out:
           result:
             schema: '#ref'
@@ -578,14 +547,6 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-      DeepCopySourceRS:
-        parent: DeepCopy
-        in:
-          value:
-            link: ApplySrcTransformation/transformedRecords
-        out:
-          value:
-            schema: '#ref'
   Execute Query - Target:
     transactional: true
     actors:
@@ -602,7 +563,7 @@ stages:
             const: null
             link: FETCH_SIZE/variableValue
           parent_rows:
-            link: DeepCopyTarKeys/value
+            link: GetKeysMapsList/TarKeysMapsList
         out:
           result:
             schema: '#ref'
@@ -634,31 +595,74 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-      DeepCopyTargetRS:
-        parent: DeepCopy
+  Stage 2:
+    transactional: true
+    actors:
+      FilterSrcRow:
+        parent: LuFunction
         in:
-          value:
-            link: ApplyTarTransformation/transformedRecords
+          functionName:
+            const: fnMergeValuesNdKeysArray
+          targetList:
+            link: GetKeysMapsList/SrcKeysMapsList
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          sourceList:
+            link: ApplySrcTransformation/transformedRecords
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          joinKeys:
+            link: CustomKeysArr/strings
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          env_prefix:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
-          value:
+          result:
+            schema: '#ref'
+      FilterTarRow:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnMergeValuesNdKeysArray
+          targetList:
+            link: GetKeysMapsList/TarKeysMapsList
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          sourceList:
+            link: ApplyTarTransformation/transformedRecords
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          joinKeys:
+            link: CustomKeysArr/strings
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          env_prefix:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
             schema: '#ref'
   Keys arrays and maps:
     transactional: true
     actors:
-      keysMaps:
-        parent: DeepCopy
-        in:
-          value:
-            link: GetKeysMapsList/SrcKeysMapsList
-        out:
-          value:
-            schema: '#ref'
-      CustomKeys:
+      Const4:
         parent: Const
         in:
           value:
             const: null
-            link: GetKeysMapsList/SrcCustomKeysList
+            link: GetKeysMapsList/SrcKeysMapsList
         out:
           value:
             schema: '#ref'
@@ -701,18 +705,7 @@ stages:
           value:
             const: null
             link:
-              path: keysMaps/value
-              iterate: Iterate
-        out:
-          value:
-            schema: '#ref'
-      PrimaryKeyString:
-        parent: Const
-        in:
-          value:
-            const: null
-            link:
-              path: CustomKeys/value
+              path: Const4/value
               iterate: Iterate
         out:
           value:
@@ -742,83 +735,46 @@ stages:
   Record for key:
     transactional: true
     actors:
-      FilterSRCRow:
-        parent: Filter
+      ToString1:
+        parent: ToString
         in:
-          script:
-            const:
-              userCode: |-
-                let arr=[];
-                keys.forEach(key => {
-                    const tarCol='SRC_'+key.toUpperCase();
-                    arr.push(value.get(tarCol)+"" == keysObj.get(key)+"")
-                });
-                arr.indexOf(false)==-1;
-              script: |-
-                var arr = [];
-                keys.forEach(function (key) {
-                  var tarCol = 'SRC_' + key.toUpperCase();
-                  arr.push(value.get(tarCol) + "" == keysObj.get(key) + "");
-                });
-                arr.indexOf(false) == -1;
-          keys:
-            link: CustomKeysArr/strings
-            schema: '#ref'
-            mandatory: false
-          keysObj:
+          value:
             link: PrimaryKeyMap/value
-            schema: '#ref'
-            mandatory: false
-          values:
-            link: DeepCopySourceRS/value
-        out:
-          values:
-            schema: '#ref'
-      FilterTARRow:
-        parent: Filter
-        in:
-          script:
-            const:
-              userCode: |-
-                let arr=[];
-                keys.forEach(key => {
-                    const tarCol='TAR_'+key.toUpperCase();
-                    arr.push(value.get(tarCol)+"" == keysObj.get(key)+"")
-                });
-                arr.indexOf(false)==-1;
-              script: |-
-                var arr = [];
-                keys.forEach(function (key) {
-                  var tarCol = 'TAR_' + key.toUpperCase();
-                  arr.push(value.get(tarCol) + "" == keysObj.get(key) + "");
-                });
-                arr.indexOf(false) == -1;
-          keys:
-            link: CustomKeysArr/strings
-            schema: '#ref'
-            mandatory: false
-          keysObj:
-            link: PrimaryKeyMap/value
-            schema: '#ref'
-            mandatory: false
-          values:
-            link: DeepCopyTargetRS/value
-        out:
-          values:
-            schema: '#ref'
   Deep copy record:
     transactional: true
     actors:
-      DeepCopy1:
-        parent: DeepCopy
+      JavaScript1:
+        parent: JavaScript
         in:
-          value:
-            link: FilterSRCRow/values
-      DeepCopy2:
-        parent: DeepCopy
+          script:
+            const: map.get(key)
+          map:
+            link: FilterSrcRow/result
+            schema: '#ref'
+            mandatory: false
+          key:
+            link: ToString1/string
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+      JavaScript2:
+        parent: JavaScript
         in:
-          value:
-            link: FilterTARRow/values
+          script:
+            const: map.get(key)
+          map:
+            link: FilterTarRow/result
+            schema: '#ref'
+            mandatory: false
+          key:
+            link: ToString1/string
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
   Verify record exists:
     transactional: true
     actors:
@@ -847,17 +803,17 @@ stages:
             mandatory: false
             createdBy: flowName
           src_row:
-            link: DeepCopy1/value
+            link: JavaScript1/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
-            link: DeepCopy2/value
+            link: JavaScript2/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           customized_key:
-            link: PrimaryKeyString/value
+            link: ToString1/string
             schema: string
             mandatory: false
             createdBy: flowName
@@ -1022,16 +978,12 @@ stages:
             mandatory: false
             createdBy: flowName
           src_row:
-            link:
-              path: DeepCopy1/value
-              iterate: First
+            link: JavaScript1/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
-            link:
-              path: DeepCopy2/value
-              iterate: First
+            link: JavaScript2/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
@@ -1041,7 +993,7 @@ stages:
             mandatory: false
             createdBy: flowName
           customized_key_values:
-            link: PrimaryKeyString/value
+            link: ToString1/string
             schema: string
             mandatory: false
             createdBy: flowName
@@ -1226,10 +1178,6 @@ schemas:
     type: array
     items:
       type: string
-  GetKeysMapsList.out.SrcCustomKeysList:
-    type: array
-    items:
-      type: string
   GetKeysMapsList.out.SrcKeysMapsList:
     type: array
     items:
@@ -1240,10 +1188,6 @@ schemas:
         SSN:
           type: string
   GetKeysMapsList.out.SrcKeysCombinations:
-    type: array
-    items:
-      type: string
-  GetKeysMapsList.out.TarCustomKeysList:
     type: array
     items:
       type: string
@@ -1258,24 +1202,6 @@ schemas:
     type: array
     items:
       type: string
-  DeepCopySrcKeys.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        CUSTOMER_ID:
-          type: string
-        SSN:
-          type: string
-  DeepCopyTarKeys.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        CUSTOMER_ID:
-          type: string
-        SSN:
-          type: string
   SourceDbQuery.out.result:
     type: array
     items:
@@ -1313,35 +1239,6 @@ schemas:
           type: string
         SRC_LAST_NAME:
           type: string
-  DeepCopySourceRS.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        source_additional_phone:
-          type: string
-        source_birthday:
-          type: date
-        source_customer_id:
-          type: integer
-        source_email:
-          type: string
-        source_first_name:
-          type: string
-        source_id_number:
-          type: string
-        source_last_name:
-          type: string
-        source_occupation:
-          type: string
-        source_primary_phone:
-          type: string
-        source_social_net_fb:
-          type: string
-        source_social_net_lnk:
-          type: string
-        source_social_net_tw:
-          type: string
   TargetDbQuery.out.result:
     type: array
     items:
@@ -1377,36 +1274,7 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  DeepCopyTargetRS.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        target_additional_phone:
-          type: string
-        target_birthday:
-          type: date
-        target_customer_id:
-          type: integer
-        target_email:
-          type: string
-        target_first_name:
-          type: string
-        target_id_number:
-          type: string
-        target_last_name:
-          type: string
-        target_occupation:
-          type: string
-        target_primary_phone:
-          type: string
-        target_social_net_fb:
-          type: string
-        target_social_net_lnk:
-          type: string
-        target_social_net_tw:
-          type: string
-  keysMaps.out.value:
+  FilterSrcRow.in.targetList:
     type: array
     items:
       type: object
@@ -1415,10 +1283,284 @@ schemas:
           type: string
         SSN:
           type: string
-  CustomKeys.out.value:
+  FilterSrcRow.in.sourceList:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
+          type: string
+  FilterSrcRow.in.joinKeys:
     type: array
     items:
       type: string
+  FilterSrcRow.out.result:
+    type: object
+    properties:
+      '["CUSTOMER_ID":"2","SSN":"111"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"3","SSN":"948374937"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"4","SSN":"4591444199"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"5","SSN":"1301890237"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"6","SSN":"8018278983"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"7","SSN":"9197473043"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"8","SSN":"504595173"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"9","SSN":"2388942964"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"10","SSN":"6212711780"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"1","SSN":"8125440566"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+  FilterTarRow.in.targetList:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  FilterTarRow.in.sourceList:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
+          type: string
+  FilterTarRow.in.joinKeys:
+    type: array
+    items:
+      type: string
+  FilterTarRow.out.result:
+    type: object
+    properties:
+      '["CUSTOMER_ID":"2","SSN":"111"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"3","SSN":"948374937"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"4","SSN":"4591444199"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"5","SSN":"1301890237"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"6","SSN":"8018278983"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"7","SSN":"9197473043"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"8","SSN":"504595173"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"9","SSN":"2388942964"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"10","SSN":"6212711780"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '["CUSTOMER_ID":"1","SSN":"8125440566"]':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+  Const4.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
   SrcKeysValsCombos.out.value:
     type: array
     items:
@@ -1428,13 +1570,6 @@ schemas:
     items:
       type: string
   PrimaryKeyMap.out.value:
-    type: object
-    properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  PrimaryKeyString.out.value:
     type: object
     properties:
       CUSTOMER_ID:
@@ -1455,238 +1590,254 @@ schemas:
         type: string
       SSN:
         type: string
-  FilterSRCRow.in.keys:
-    type: array
-    items:
-      type: string
-  FilterSRCRow.in.keysObj:
+  JavaScript1.in.map:
     type: object
     properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  FilterSRCRow.out.values:
-    type: array
-    items:
-      type: object
-      properties:
-        TAR_CUSTOMER_ID:
-          type: integer
-        TAR_FIRST_NAME:
-          type: string
-        TAR_MIDDLE_NAME: {
-          }
-        TAR_LAST_NAME:
-          type: string
-        TAR_EMAIL:
-          type: string
-        TAR_ALT_EMAIL: {
-          }
-        TAR_PHONE:
-          type: string
-        TAR_ALT_PHONE: {
-          }
-        TAR_SSN:
-          type: string
-        TAR_DATE_OF_BIRTH: {
-          }
-        TAR_ADDRESS_LINE1:
-          type: string
-        TAR_ADDRESS_LINE2: {
-          }
-        TAR_CITY:
-          type: string
-        TAR_STATE_PROVINCE: {
-          }
-        TAR_POSTAL_CODE:
-          type: string
-        TAR_COUNTRY:
-          type: string
-        TAR_GENDER:
-          type: string
-        TAR_MARITAL_STATUS:
-          type: string
-        TAR_NATIONAL_ID: {
-          }
-        TAR_PASSPORT_NO: {
-          }
-        TAR_SIGNUP_DATE:
-          type: string
-        TAR_LAST_LOGIN_TS: {
-          }
-        TAR_LAST_LOGIN_TZ: {
-          }
-        TAR_BALANCE:
-          type: number
-        TAR_CREDIT_LIMIT:
-          type: number
-        TAR_RISK_SCORE:
-          type: integer
-        TAR_LOYALTY_POINTS:
-          type: integer
-        TAR_IS_VIP:
-          type: string
-        TAR_PREFERRED_LANGUAGE:
-          type: string
-        TAR_TIMEZONE:
-          type: string
-        TAR_MARKETING_OPT_IN: {
-          }
-        TAR_COMM_CHANNEL: {
-          }
-        TAR_AVATAR_RAW: {
-          }
-        TAR_PROFILE_BLOB: {
-          }
-        TAR_NOTES: {
-          }
-        TAR_PREFERENCES_JSON: {
-          }
-        TAR_HOME_LAT: {
-          }
-        TAR_HOME_LON: {
-          }
-        TAR_FAVORITE_NUMBER: {
-          }
-        TAR_SMALL_FLAG: {
-          }
-        TAR_FLOAT_SCORE: {
-          }
-        TAR_DOUBLE_SCORE: {
-          }
-        TAR_HEIGHT_CM: {
-          }
-        TAR_WEIGHT_KG: {
-          }
-        TAR_CHILDREN_COUNT: {
-          }
-        TAR_CREATED_AT:
-          type: string
-        TAR_UPDATED_AT: {
-          }
-        TAR_VALID_FROM: {
-          }
-        TAR_VALID_TO: {
-          }
-        TAR_ROW_VERSION: {
-          }
-  FilterTARRow.in.keys:
-    type: array
-    items:
-      type: string
-  FilterTARRow.in.keysObj:
+      '{"CUSTOMER_ID":"2","SSN":"111"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"3","SSN":"948374937"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"4","SSN":"4591444199"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"5","SSN":"1301890237"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"6","SSN":"8018278983"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"7","SSN":"9197473043"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"8","SSN":"504595173"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"9","SSN":"2388942964"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"10","SSN":"6212711780"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"1","SSN":"8125440566"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+  JavaScript1.out.result:
     type: object
     properties:
-      CUSTOMER_ID:
+      SRC_CUSTOMER_ID:
         type: string
-      SSN:
+      SRC_SSN:
         type: string
-  FilterTARRow.out.values:
-    type: array
-    items:
-      type: object
-      properties:
-        TAR_CUSTOMER_ID:
-          type: integer
-        TAR_FIRST_NAME:
-          type: string
-        TAR_MIDDLE_NAME: {
-          }
-        TAR_LAST_NAME:
-          type: string
-        TAR_EMAIL:
-          type: string
-        TAR_ALT_EMAIL: {
-          }
-        TAR_PHONE:
-          type: string
-        TAR_ALT_PHONE: {
-          }
-        TAR_SSN:
-          type: string
-        TAR_DATE_OF_BIRTH: {
-          }
-        TAR_ADDRESS_LINE1:
-          type: string
-        TAR_ADDRESS_LINE2: {
-          }
-        TAR_CITY:
-          type: string
-        TAR_STATE_PROVINCE: {
-          }
-        TAR_POSTAL_CODE:
-          type: string
-        TAR_COUNTRY:
-          type: string
-        TAR_GENDER:
-          type: string
-        TAR_MARITAL_STATUS:
-          type: string
-        TAR_NATIONAL_ID: {
-          }
-        TAR_PASSPORT_NO: {
-          }
-        TAR_SIGNUP_DATE:
-          type: string
-        TAR_LAST_LOGIN_TS: {
-          }
-        TAR_LAST_LOGIN_TZ: {
-          }
-        TAR_BALANCE:
-          type: number
-        TAR_CREDIT_LIMIT:
-          type: number
-        TAR_RISK_SCORE:
-          type: integer
-        TAR_LOYALTY_POINTS:
-          type: integer
-        TAR_IS_VIP:
-          type: string
-        TAR_PREFERRED_LANGUAGE:
-          type: string
-        TAR_TIMEZONE:
-          type: string
-        TAR_MARKETING_OPT_IN: {
-          }
-        TAR_COMM_CHANNEL: {
-          }
-        TAR_AVATAR_RAW: {
-          }
-        TAR_PROFILE_BLOB: {
-          }
-        TAR_NOTES: {
-          }
-        TAR_PREFERENCES_JSON: {
-          }
-        TAR_HOME_LAT: {
-          }
-        TAR_HOME_LON: {
-          }
-        TAR_FAVORITE_NUMBER: {
-          }
-        TAR_SMALL_FLAG: {
-          }
-        TAR_FLOAT_SCORE: {
-          }
-        TAR_DOUBLE_SCORE: {
-          }
-        TAR_HEIGHT_CM: {
-          }
-        TAR_WEIGHT_KG: {
-          }
-        TAR_CHILDREN_COUNT: {
-          }
-        TAR_CREATED_AT:
-          type: string
-        TAR_UPDATED_AT: {
-          }
-        TAR_VALID_FROM: {
-          }
-        TAR_VALID_TO: {
-          }
-        TAR_ROW_VERSION: {
-          }
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
+  JavaScript2.in.map:
+    type: object
+    properties:
+      '{"CUSTOMER_ID":"2","SSN":"111"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"3","SSN":"948374937"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"4","SSN":"4591444199"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"5","SSN":"1301890237"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"6","SSN":"8018278983"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"7","SSN":"9197473043"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"8","SSN":"504595173"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"9","SSN":"2388942964"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"10","SSN":"6212711780"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+      '{"CUSTOMER_ID":"1","SSN":"8125440566"}':
+        type: object
+        properties:
+          SRC_CUSTOMER_ID:
+            type: string
+          SRC_SSN:
+            type: string
+          SRC_FIRST_NAME:
+            type: string
+          SRC_LAST_NAME:
+            type: string
+  JavaScript2.out.result:
+    type: object
+    properties:
+      SRC_CUSTOMER_ID:
+        type: string
+      SRC_SSN:
+        type: string
+      SRC_FIRST_NAME:
+        type: string
+      SRC_LAST_NAME:
+        type: string
   VerifyKeysExists.in.src_row:
     type: array
     items:

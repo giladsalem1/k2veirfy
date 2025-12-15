@@ -3,43 +3,33 @@ stages:
   Check record emoty:
     transactional: true
     actors:
-      SrcRecord=[]:
-        parent: Equals
-        in:
-          b:
-            const: [
-              ]
-            schema: '#ref'
-          a:
-            external: src_row
       SrcRecord=[{}]:
         parent: Equals
         in:
           b:
-            const:
-            - {
+            const: {
               }
             schema: '#ref'
           a:
             external: src_row
-      TarRecord=[]:
-        parent: Equals
+      IsNull1:
+        parent: IsNull
         in:
-          b:
-            const: [
-              ]
-            schema: '#ref'
-          a:
-            external: tar_row
+          value:
+            external: src_row
       TarRecord=[{}]:
         parent: Equals
         in:
           b:
-            const:
-            - {
+            const: {
               }
             schema: '#ref'
           a:
+            external: tar_row
+      IsNull2:
+        parent: IsNull
+        in:
+          value:
             external: tar_row
   Src record doesn't exist:
     transactional: true
@@ -49,10 +39,10 @@ stages:
         parent: Or
         condition: result
         in:
-          a:
-            link: SrcRecord=[]/result
           b:
             link: SrcRecord=[{}]/result
+          a:
+            link: IsNull1/result
       ReportDetailsMap1:
         parent: MapCreate
         in:
@@ -84,10 +74,10 @@ stages:
         parent: Or
         condition: result
         in:
-          a:
-            link: TarRecord=[]/result
           b:
             link: TarRecord=[{}]/result
+          a:
+            link: IsNull2/result
       ReportDetailsMap2:
         parent: MapCreate
         in:
@@ -275,15 +265,7 @@ stages:
             - ReportDetailsMap1/map
             - ReportDetailsMap2/map
 schemas:
-  SrcRecord=[].in.b:
-    type: array
-    items: {
-      }
   SrcRecord=[{}].in.b:
-    type: array
-    items: {
-      }
-  TarRecord=[].in.b:
     type: array
     items: {
       }

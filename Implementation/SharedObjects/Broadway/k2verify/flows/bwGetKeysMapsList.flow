@@ -57,14 +57,6 @@ stages:
             schema: string
           columns:
             schema: '#ref'
-      StringBuild1:
-        parent: StringBuild
-        in:
-          delimiter:
-            const: null
-            external: delim
-          input:
-            link: bwGetColsForSelectStmt1/columns
   Stage 1:
     actors:
       FlattenValues:
@@ -79,52 +71,6 @@ stages:
             schema: '#ref'
   Stage 7:
     actors:
-      JavaScript1:
-        parent: JavaScript
-        in:
-          script:
-            const:
-              userCode: |-
-                var values = dataStr.split(delimiter);
-                var keys = keysStr.split(delimiter);
-
-                var parts = [];
-                for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var val = (values[i] !== undefined && values[i] !== null) ? values[i] : "";
-                parts.push('"' + key + '":"' + val + '"');
-                }
-
-                '[' + parts.join(',') + ']';
-              script: |-
-                var values = dataStr.split(delimiter);
-                var keys = keysStr.split(delimiter);
-                var parts = [];
-
-                for (var i = 0; i < keys.length; i++) {
-                  var key = keys[i];
-                  var val = values[i] !== undefined && values[i] !== null ? values[i] : "";
-                  parts.push('"' + key + '":"' + val + '"');
-                }
-
-                '[' + parts.join(',') + ']';
-          keysStr:
-            external: customizedKey
-            schema: string
-            mandatory: false
-          delimiter:
-            external: delim
-            schema: string
-            mandatory: false
-          dataStr:
-            link:
-              path: FlattenValues/array
-              iterate: First
-            schema: '#ref'
-            mandatory: false
-        out:
-          result:
-            schema: string
       KeysValues:
         parent: Split
         in:
@@ -157,52 +103,6 @@ stages:
         out:
           array:
             schema: '#ref'
-      JavaScript2:
-        parent: JavaScript
-        in:
-          script:
-            const:
-              userCode: |-
-                var values = dataStr.split(delimiter);
-                var keys = keysStr.split(delimiter);
-
-                var parts = [];
-                for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var val = (values[i] !== undefined && values[i] !== null) ? values[i] : "";
-                parts.push('"' + key + '":"' + val + '"');
-                }
-
-                '[' + parts.join(',') + ']';
-              script: |-
-                var values = dataStr.split(delimiter);
-                var keys = keysStr.split(delimiter);
-                var parts = [];
-
-                for (var i = 0; i < keys.length; i++) {
-                  var key = keys[i];
-                  var val = values[i] !== undefined && values[i] !== null ? values[i] : "";
-                  parts.push('"' + key + '":"' + val + '"');
-                }
-
-                '[' + parts.join(',') + ']';
-          keysStr:
-            link: StringBuild1/string
-            schema: string
-            mandatory: false
-          delimiter:
-            external: delim
-            schema: string
-            mandatory: false
-          dataStr:
-            link:
-              path: FlattenValues/array
-              iterate: First
-            schema: '#ref'
-            mandatory: false
-        out:
-          result:
-            schema: string
       KeysValues1:
         parent: Split
         in:
@@ -238,17 +138,6 @@ stages:
         out:
           array:
             schema: '#ref'
-      CustomKeysArr:
-        parent: ArrayBuilder
-        resetOnFirstIteration: true
-        in:
-          input:
-            link:
-              path: JavaScript1/result
-              pos: 0
-        out:
-          array:
-            schema: '#ref'
       KeysMapsArr1:
         parent: ArrayBuilder
         resetOnFirstIteration: true
@@ -260,28 +149,8 @@ stages:
         out:
           array:
             schema: '#ref'
-      CustomKeysArr1:
-        parent: ArrayBuilder
-        resetOnFirstIteration: true
-        in:
-          input:
-            link:
-              path: JavaScript2/result
-              pos: 0
-        out:
-          array:
-            schema: '#ref'
   Stage 3:
     actors:
-      Const2:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: CustomKeysArr/array
-        out:
-          value:
-            external: SrcCustomKeysList
       Const3:
         parent: Const
         in:
@@ -300,15 +169,6 @@ stages:
         out:
           value:
             external: SrcKeysCombinations
-      Const5:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: CustomKeysArr1/array
-        out:
-          value:
-            external: TarCustomKeysList
       Const6:
         parent: Const
         in:
@@ -336,11 +196,6 @@ schemas:
     type: array
     items:
       type: integer
-  JavaScript1.in.dataStr:
-    type: object
-    properties:
-      org_key:
-        type: string
   ArrayToMap1.out.map:
     type: object
     properties:
@@ -352,11 +207,6 @@ schemas:
     type: array
     items:
       type: string
-  JavaScript2.in.dataStr:
-    type: object
-    properties:
-      org_key:
-        type: string
   ArrayToMap2.out.map:
     type: object
     properties:
@@ -368,15 +218,7 @@ schemas:
     type: array
     items:
       type: string
-  CustomKeysArr.out.array:
-    type: array
-    items:
-      type: string
   KeysMapsArr1.out.array:
-    type: array
-    items:
-      type: string
-  CustomKeysArr1.out.array:
     type: array
     items:
       type: string

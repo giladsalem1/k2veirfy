@@ -1,5 +1,10 @@
 [
     {
+        "name": "Admin",
+        "appId": "admin",
+        "hidden": false
+     },
+    {
         "name": "k2verify",
         "appId": "k2verify"
     }

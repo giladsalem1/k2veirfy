@@ -189,4 +189,62 @@ public class SharedLogic {
 		return getCustomProperties(customInterfaceName);
 	}
 
+       public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
+            List<Map<String, Object>> targetList,
+            List<Map<String, Object>> sourceList,
+            List<String> joinKeys, String env_prefix) throws Exception {
+
+        // Lookup map for source by composite key
+        Map<String, Map<String, Object>> sourceLookup = new HashMap<>();
+
+        // Build lookup for source: uses "SRC_" + key names
+        for (Map<String, Object> src : sourceList) {
+            StringBuilder keyBuilder = new StringBuilder();
+            for (int i = 0; i < joinKeys.size(); i++) {
+                String key = joinKeys.get(i);
+                Object value = src.get(env_prefix +"_" + key);
+                keyBuilder.append(String.valueOf(value));
+                if (i < joinKeys.size() - 1) {
+                    keyBuilder.append("_");
+                }
+            }
+            sourceLookup.put(keyBuilder.toString(), src);
+        }
+
+        // Result map: key is formatted like ["CUSTOMER_ID":"2","SSN":"3516458918"]
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+
+        for (Map<String, Object> tgt : targetList) {
+            // Composite key for lookup
+            StringBuilder lookupKey = new StringBuilder();
+            for (int i = 0; i < joinKeys.size(); i++) {
+                String key = joinKeys.get(i);
+                Object value = tgt.get(key);
+                lookupKey.append(String.valueOf(value));
+                if (i < joinKeys.size() - 1) {
+                    lookupKey.append("_");
+                }
+            }
+
+            Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
+            if (matched != null) {
+                // Build the pretty key: ["CUSTOMER_ID":"2","SSN":"3516458918"]
+                StringBuilder jsonKey = new StringBuilder("{");
+                for (int i = 0; i < joinKeys.size(); i++) {
+                    String k = joinKeys.get(i);
+                    Object value = tgt.get(k);
+                    jsonKey.append("\"")
+                           .append(k)
+                           .append("\":\"")
+                           .append(String.valueOf(value))
+                           .append("\"");
+                    if (i < joinKeys.size() - 1) jsonKey.append(",");
+                }
+                jsonKey.append("}");
+                result.put(jsonKey.toString(), matched);
+            }            
+        }
+        return result;
+    }
+
 }

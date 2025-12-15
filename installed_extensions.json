@@ -1,7 +1,7 @@
 [
     {
         "id": "k2view.k2verify",
-        "version": "0.0.6",
+        "version": "0.0.8",
         "artifacts": [
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/Broadway/system/deploy.flow",
@@ -24,8 +24,8 @@
                 "sha256": "8b2fc78b263c88fc057445192f01de271da1561f820b8a60fc726d0833eace0c"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/Mtable/mtK2VerifyConfig.csv",
-                "sha256": "9811d1865da4d2bf4c8991aad7c810894d7ed528f5a3d30b75f525d381307467"
+                "path": "/Implementation/LogicalUnits/K2Verify/Mtable/mtK2VerifyConfig.csv.new",
+                "sha256": "f9d036430c25ff5c35b24fe5f7bd9191737704a96cf41cfe06bf10e54b2895d1"
             },
             {
                 "path": "/Implementation/LogicalUnits/K2Verify/SecurityProfiles/SecurityProfiles.k2secProfiles.xml",
@@ -76,7 +76,7 @@
                 "sha256": "738a546753b50e06e6653e782338d1077a4f3b4a2ce2fc058fac27d613d2a3a0"
             },
             {
-                "path": "/Implementation/LogicalUnits/K2Verify/web/apps.json",
+                "path": "/Implementation/LogicalUnits/K2Verify/web/apps.json.new",
                 "sha256": "538a4dd8689d638f11f27ea051172c624650046dbfc546fc2344dd774aab0566"
             },
             {
@@ -341,7 +341,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwGetKeysMapsList.flow",
-                "sha256": "2b2fc518db7f9a16d471aada39b7a82da6444134c195a08ad7d691aa968d0898"
+                "sha256": "6be2d3f1d2dcab4d7a85be2a49859b84032f65ff90ccb3f2ef210bea6587a315"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwGetLUVariable.flow",
@@ -397,7 +397,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifyKeysExists.flow",
-                "sha256": "04fc6d6b700b6daedba69cce788c3944a0f015650f2a382670870bf305440b13"
+                "sha256": "c7e71fc01a3af8cf2e904fa970b32de9207f454bcefeffba8096f8418150c9af"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifyRecordData.flow",
@@ -405,7 +405,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/bwVerifySourceNTargetData.flow",
-                "sha256": "6824a34bc56b77f9acb22498049eb54a3a7b5decd0c5703f45d12c185a84e7f3"
+                "sha256": "1ea153ef0ef460eb0dd2f9496955d59ffed6869a079da40b27600db6f5222bf5"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/flows/validationSql.actor",
@@ -453,7 +453,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/K2Verify/SharedLogic.java",
-                "sha256": "3cd05d48874fa4458e4812a3ee76164719e36a1819606c49740df325f5689d1f"
+                "sha256": "7e7bd23d576402d22975c7df36a614bb2f1e31616075c46cd1b2338ef4b93284"
             },
             {
                 "path": "/lib/json-20240303.jar",
