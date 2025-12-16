@@ -19,4 +19,4 @@ CUSTOMER_TEST_100,d2d_oracle,CUSTOMER,,,CUSTOMER_TEST_100_TRG_IDENTICAL,d2d_orac
 CUSTOMER_TEST_10K,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,CUSTOMER_TEST_10K_TRG_IDENTICAL,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,CUSTOMER_ID,,PREFERENCES_JSON|PROFILE_BLOB,TRUE,,,,10,bwGetBucketRows
 customer_test_10k,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_test_10k_trg_identical,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_id,,preferences_json|profile_blob,TRUE,,,,10,bwGetBucketRows
 customer_test_100k,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_test_100k_trg_identical,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_id,,preferences_json|profile_blob,TRUE,,,,50,bwGetBucketRows
-customer_test_1m,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_test_1m_trg_identical,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_id,,preferences_json|profile_blob,TRUE,,,,50,bwGetBucketRows
+customer_test_1m,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_test_1m_trg_identical,K2VERIFY_OPERATIONAL_DB_managedPG,public,,,customer_id,,preferences_json|profile_blob,TRUE,,,,100,bwGetBucketRows
