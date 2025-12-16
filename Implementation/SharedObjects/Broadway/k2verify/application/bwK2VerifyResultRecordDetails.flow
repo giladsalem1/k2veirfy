@@ -171,7 +171,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: select count(1) from (${query})
+            const: select count(*) from (${query}) s;
           query:
             link: JavaScript1/result
             schema: string
