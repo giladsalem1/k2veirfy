@@ -104,14 +104,14 @@ public class SharedLogic {
                     columnResult.put("TARGET_SECURED", "false");
                 } else
                     columnResult.put("RESULT", "PASSED");
-                    columnResult.put("TARGET_SECURED", "true");
+                columnResult.put("TARGET_SECURED", "true");
             } else {
                 if (pii_columns_arr.contains(key.toUpperCase())) {
                     columnResult.put("RESULT", "PASSED");
                     columnResult.put("TARGET_SECURED", "true");
                 } else
                     columnResult.put("RESULT", "NOT PASSED");
-                    columnResult.put("TARGET_SECURED", "false");
+                columnResult.put("TARGET_SECURED", "false");
             }
             compareResult.put(key, columnResult);
         });
@@ -136,7 +136,7 @@ public class SharedLogic {
                     columnResult.put("TARGET_VALUE", "*");
                 } else
                     columnResult.put("RESULT", "PASSED");
-                    columnResult.put("TARGET_SECURED", "true");
+                columnResult.put("TARGET_SECURED", "true");
             } else {
                 if (pii_columns_arr.contains(key.toUpperCase())) {
                     columnResult.put("RESULT", "PASSED");
@@ -145,7 +145,7 @@ public class SharedLogic {
                     columnResult.put("TARGET_VALUE", targetMap.get(key));
                 } else
                     columnResult.put("RESULT", "NOT PASSED");
-                    columnResult.put("TARGET_SECURED", "false");
+                columnResult.put("TARGET_SECURED", "false");
             }
             compareResult.put(key, columnResult);
         });
@@ -158,7 +158,7 @@ public class SharedLogic {
         JSONObject jsonObject = new JSONObject();
         String[] cusKeyArr = customizedKey.split(DELIMITTER);
         for (String cusKey : cusKeyArr) {
-            Object cusKeyVal = rowMap.get("SRC_"+cusKey.toUpperCase());
+            Object cusKeyVal = rowMap.get("SRC_" + cusKey.toUpperCase());
             jsonObject.put(cusKey, cusKeyVal == null ? "" : cusKeyVal.toString());
         }
 
@@ -185,66 +185,79 @@ public class SharedLogic {
     }
 
     @out(name = "interfaceDetails", type = Map.class, desc = "")
-	public static Map<String, String> fnGetCustomInterfaceDetails(String customInterfaceName) throws Exception {
-		return getCustomProperties(customInterfaceName);
-	}
+    public static Map<String, String> fnGetCustomInterfaceDetails(String customInterfaceName) throws Exception {
+        return getCustomProperties(customInterfaceName);
+    }
 
-       public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
+    private static Object getIgnoreCase(Map<String, Object> map, String key) {
+        for (String k : map.keySet()) {
+            if (k.equalsIgnoreCase(key)) {
+                return map.get(k);
+            }
+        }
+        return null;
+    }
+
+    public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
-            List<String> joinKeys, String env_prefix) throws Exception {
+            List<String> joinKeys,
+            String env_prefix) {
 
-        // Lookup map for source by composite key
         Map<String, Map<String, Object>> sourceLookup = new HashMap<>();
 
-        // Build lookup for source: uses "SRC_" + key names
+        // Build lookup for source
         for (Map<String, Object> src : sourceList) {
             StringBuilder keyBuilder = new StringBuilder();
+
             for (int i = 0; i < joinKeys.size(); i++) {
-                String key = joinKeys.get(i);
-                Object value = src.get(env_prefix +"_" + key);
-                keyBuilder.append(String.valueOf(value));
-                if (i < joinKeys.size() - 1) {
+                String logicalKey = env_prefix + "_" + joinKeys.get(i);
+                Object value = getIgnoreCase(src, logicalKey);
+
+                keyBuilder.append(value == null ? "" : value.toString());
+                if (i < joinKeys.size() - 1)
                     keyBuilder.append("_");
-                }
             }
+
             sourceLookup.put(keyBuilder.toString(), src);
         }
 
-        // Result map: key is formatted like ["CUSTOMER_ID":"2","SSN":"3516458918"]
         Map<String, Map<String, Object>> result = new LinkedHashMap<>();
 
         for (Map<String, Object> tgt : targetList) {
-            // Composite key for lookup
             StringBuilder lookupKey = new StringBuilder();
+
             for (int i = 0; i < joinKeys.size(); i++) {
-                String key = joinKeys.get(i);
-                Object value = tgt.get(key);
-                lookupKey.append(String.valueOf(value));
-                if (i < joinKeys.size() - 1) {
+                Object value = getIgnoreCase(tgt, joinKeys.get(i));
+                lookupKey.append(value == null ? "" : value.toString());
+                if (i < joinKeys.size() - 1)
                     lookupKey.append("_");
-                }
             }
 
             Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
             if (matched != null) {
-                // Build the pretty key: ["CUSTOMER_ID":"2","SSN":"3516458918"]
+
+                // Build JSON-style key
                 StringBuilder jsonKey = new StringBuilder("{");
                 for (int i = 0; i < joinKeys.size(); i++) {
                     String k = joinKeys.get(i);
-                    Object value = tgt.get(k);
+                    Object value = getIgnoreCase(tgt, k);
+
                     jsonKey.append("\"")
-                           .append(k)
-                           .append("\":\"")
-                           .append(String.valueOf(value))
-                           .append("\"");
-                    if (i < joinKeys.size() - 1) jsonKey.append(",");
+                            .append(k)
+                            .append("\":\"")
+                            .append(value == null ? "" : value.toString())
+                            .append("\"");
+
+                    if (i < joinKeys.size() - 1)
+                        jsonKey.append(",");
                 }
                 jsonKey.append("}");
+
                 result.put(jsonKey.toString(), matched);
-            }            
+            }
         }
+
         return result;
     }
-
 }

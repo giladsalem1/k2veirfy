@@ -1022,7 +1022,7 @@ stages:
         condition: result
         in:
           b:
-            const: 1000
+            const: 0
             schema: integer
           a:
             link: MathDivMod/mod
