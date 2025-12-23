@@ -48,7 +48,11 @@ public class SharedLogic {
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
             String targetEnv, String pii_columns)
             throws Exception {
-        List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
+        //List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
+        List<String> pii_columns_arr = Arrays.stream(pii_columns.split(DELIMITTER))
+              .map(String::toUpperCase)
+              .collect(Collectors.toList());
+ 
 
         LUType luType = getLuType();
 
