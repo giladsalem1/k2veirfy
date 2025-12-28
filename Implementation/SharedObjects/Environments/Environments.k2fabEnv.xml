@@ -25,7 +25,7 @@
           <dbPasswordEncrypted>&amp;qnc7[V(y?kvx&#x3D;?S</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
-          <maxConnectionsNumber>60</maxConnectionsNumber>
+          <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
@@ -37,7 +37,7 @@
           <dbPasswordEncrypted>~encs2~WLGULAdiN5LnVNYI7kOxi84d7dsrs53P4B/5A9EUHps2F+y0CtGrPbJ76DJOfvO1</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
-          <maxConnectionsNumber>60</maxConnectionsNumber>
+          <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
