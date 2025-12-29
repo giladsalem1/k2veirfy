@@ -1076,7 +1076,7 @@ stages:
     transactional: true
   Close loop:
     last: 1
-    transactional: false
+    transactional: true
   Bucket verify end_time:
     transactional: false
     actors:
