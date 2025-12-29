@@ -231,6 +231,8 @@ stages:
             - TARGET_TABLE_NAME
             - CUSTOMIZED_KEY
             - COLUMN_NAME
+          batch:
+            const: true
           EXECUTION_ID:
             schema: string
           IID:
