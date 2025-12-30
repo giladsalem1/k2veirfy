@@ -1009,7 +1009,7 @@ stages:
         parent: MathDivMod
         in:
           b:
-            const: 50
+            const: 1000
             schema: integer
           a:
             link: '# ProcessedRecords/value'
