@@ -1014,7 +1014,7 @@ stages:
           a:
             link: '# ProcessedRecords/value'
   Write each 1000:
-    transactional: true
+    transactional: false
     dependsOn: '# processed records'
     actors:
       1000 processed:
