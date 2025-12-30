@@ -514,6 +514,13 @@ stages:
           size:
             const: null
             link: FETCH_SIZE/variableValue
+          rowsGeneratorDistribution:
+            const:
+              distribution: uniform
+              round: true
+              type: integer
+              minimum: 0
+              maximum: 10
           parent_rows:
             link: GetKeysMapsList/SrcKeysMapsList
         out:
@@ -835,12 +842,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
-              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
+              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           operational_schema:
@@ -930,12 +937,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
-              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
+              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           source_table_name:

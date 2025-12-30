@@ -1,22 +1,31 @@
 tags: k2verify
 stages:
-  Stage 1:
+  Stage 4:
     actors:
-      Const2:
-        parent: Const
-        in:
-          value:
-            const: null
-            external: env
-        out:
-          value:
-            schema: string
       Const4:
         parent: Const
         in:
           value:
             const: null
             external: transformationFunction
+        out:
+          value:
+            schema: string
+  Stage 1:
+    dependsOn: Stage 4
+    actors:
+      NotNull2:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: Const4/value
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: env
         out:
           value:
             schema: string
@@ -29,8 +38,53 @@ stages:
         out:
           value:
             schema: string
+      Const8:
+        parent: Const
+        in:
+          value:
+            const: true
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+    split: '--------------------'
+  Stage 16:
+    dependsOn: Stage 4
+    actors:
+      Const7:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: records
+        out:
+          value:
+            external: transformedRecords
+            schema: '#ref'
+      Const9:
+        parent: Const
+        in:
+          value:
+            const: false
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+  Stage 17: {
+    }
   Stage 6:
     actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link:
+            - Const8/value
+            - Const9/value
       Split1:
         parent: Split
         in:
@@ -251,6 +305,17 @@ stages:
             external: transformedRecords
             schema: '#ref'
 schemas:
+  Const7.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_FIRST_NAME:
+          type: string
+        SRC_CUSTOMER_ID:
+          type: string
+        SRC_SSN:
+          type: string
   JavaScript3.in.arr:
     type: array
     items:
