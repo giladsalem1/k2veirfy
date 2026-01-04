@@ -1,9 +1,9 @@
 tags: d2d,d2dv2,D2D,k2verify
 stages:
-  Stage 4:
+  Flow inputs:
     transactional: true
     actors:
-      Const3:
+      SrcRow:
         parent: Const
         in:
           value:
@@ -12,7 +12,7 @@ stages:
         out:
           value:
             schema: '#ref'
-      Const4:
+      TarRow:
         parent: Const
         in:
           value:
@@ -36,7 +36,7 @@ stages:
           script:
             const: value.keySet();
           value:
-            link: Const3/value
+            link: SrcRow/value
             schema: '#ref'
             mandatory: false
         out:
@@ -63,9 +63,9 @@ stages:
         in:
           maps:
             link:
-            - path: Const3/value
+            - path: SrcRow/value
               pos: 0
-            - path: Const4/value
+            - path: TarRow/value
               pos: 1
         out:
           map:
@@ -93,11 +93,6 @@ stages:
         in:
           functionName:
             const: fnVerifySourceNTarget
-          row:
-            link: SrcAndTarMapMerge/map
-            schema: '#ref'
-            mandatory: false
-            createdBy: functionName
           customizedKeyComparison:
             external: customized_key
             schema: string
@@ -126,6 +121,16 @@ stages:
           pii_columns:
             external: columns
             schema: string
+            mandatory: false
+            createdBy: functionName
+          sourceMap:
+            link: SrcRow/value
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          targetMap:
+            link: TarRow/value
+            schema: any
             mandatory: false
             createdBy: functionName
         out:
@@ -634,6 +639,8 @@ stages:
             - TARGET_TABLE_NAME
             - CUSTOMIZED_KEY
             - COLUMN_NAME
+          dialect:
+            const: postgres
           batch:
             const: true
           EXECUTION_ID:
@@ -672,7 +679,7 @@ stages:
             schema: string
             mandatory: false
 schemas:
-  Const3.out.value:
+  SrcRow.out.value:
     type: object
     properties:
       SRC_CUSTOMER_ID:
@@ -683,7 +690,7 @@ schemas:
         type: string
       SRC_LAST_NAME:
         type: string
-  Const4.out.value:
+  TarRow.out.value:
     type: object
     properties:
       TAR_CUSTOMER_ID:
@@ -729,25 +736,6 @@ schemas:
       target_LAST_NAME:
         type: string
       target_SSN:
-        type: string
-  LuFunction2.in.row:
-    type: object
-    properties:
-      SRC_FIRST_NAME:
-        type: string
-      SRC_LAST_NAME:
-        type: string
-      SRC_CUSTOMER_ID:
-        type: string
-      SRC_SSN:
-        type: string
-      TAR_FIRST_NAME:
-        type: string
-      TAR_LAST_NAME:
-        type: string
-      TAR_CUSTOMER_ID:
-        type: string
-      TAR_SSN:
         type: string
   LuFunction2.out.result:
     type: object
@@ -2266,398 +2254,7 @@ schemas:
   Const5.out.value:
     type: object
     properties:
-      CREATED_AT:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      CHILDREN_COUNT:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      MARITAL_STATUS:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      LOYALTY_POINTS:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      SIGNUP_DATE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      EMAIL:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      PREFERRED_LANGUAGE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      NATIONAL_ID:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      COUNTRY:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      COMM_CHANNEL:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      FAVORITE_NUMBER:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      ALT_EMAIL:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      LAST_LOGIN_TZ:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      UPDATED_AT:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      TIMEZONE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      HOME_LAT:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      IS_VIP:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
       CUSTOMER_ID:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      BALANCE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      CREDIT_LIMIT:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      SMALL_FLAG:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      PASSPORT_NO:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      STATE_PROVINCE:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      PHONE:
         type: object
         properties:
           SOURCE_VALUE:
@@ -2691,40 +2288,6 @@ schemas:
             type: string
           RESULT:
             type: string
-      RISK_SCORE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      ROW_VERSION:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
       FIRST_NAME:
         type: object
         properties:
@@ -2742,295 +2305,6 @@ schemas:
             type: string
           RESULT:
             type: string
-      MARKETING_OPT_IN:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      VALID_TO:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      NOTES:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      ADDRESS_LINE1:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      PREFERENCES_JSON:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      ADDRESS_LINE2:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      POSTAL_CODE:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      FLOAT_SCORE:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      AVATAR_RAW:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      GENDER:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      MIDDLE_NAME:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      VALID_FROM:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      DATE_OF_BIRTH:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      PROFILE_BLOB:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      HEIGHT_CM:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      LAST_LOGIN_TS:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      WEIGHT_KG:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
       SSN:
         type: object
         properties:
@@ -3046,74 +2320,6 @@ schemas:
             type: string
           SOURCE_COLUMN_ORIG_VALUE:
             type: string
-          RESULT:
-            type: string
-      ALT_PHONE:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      CITY:
-        type: object
-        properties:
-          SOURCE_VALUE:
-            type: string
-          TARGET_VALUE:
-            type: string
-          TARGET_COLUMN_ORIG_VALUE:
-            type: string
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE:
-            type: string
-          RESULT:
-            type: string
-      HOME_LON:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
-          RESULT:
-            type: string
-      DOUBLE_SCORE:
-        type: object
-        properties:
-          SOURCE_VALUE: {
-            }
-          TARGET_VALUE: {
-            }
-          TARGET_COLUMN_ORIG_VALUE: {
-            }
-          TARGET_SECURED:
-            type: string
-          COLUMN_NAME:
-            type: string
-          SOURCE_COLUMN_ORIG_VALUE: {
-            }
           RESULT:
             type: string
   Const7.out.value:

@@ -7,5 +7,10 @@
     {
         "name": "k2verify",
         "appId": "k2verify"
-    }
+    },
+    {
+      "name": "Statistics",
+      "appId": "status",
+      "hidden": false
+   }
 ]

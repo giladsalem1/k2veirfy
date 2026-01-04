@@ -1021,7 +1021,7 @@ stages:
           a:
             link: '# ProcessedRecords/value'
   Write each 1000:
-    transactional: false
+    transactional: true
     dependsOn: '# processed records'
     actors:
       1000 processed:
@@ -1078,6 +1078,13 @@ stages:
     else: true
     transactional: true
     dependsOn: '# processed records'
+  Stage 1:
+    transactional: false
+    dependsOn: Write each 1000
+    split: '--------------------'
+  Stage 3:
+    transactional: true
+    dependsOn: Stage 39
   Merge:
     last: 1
     transactional: true

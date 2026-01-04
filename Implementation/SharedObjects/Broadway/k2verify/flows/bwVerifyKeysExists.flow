@@ -67,6 +67,7 @@ stages:
             schema: '#ref'
     split: '--------------------'
   Tar record doesn't exist:
+    else: true
     transactional: true
     dependsOn: Check record emoty
     actors:

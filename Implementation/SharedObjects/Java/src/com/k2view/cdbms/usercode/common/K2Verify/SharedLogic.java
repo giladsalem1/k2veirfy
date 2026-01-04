@@ -44,11 +44,10 @@ public class SharedLogic {
     }
 
     @out(name = "result", type = Object.class, desc = "")
-    public static Object fnVerifySourceNTarget(Object row, String customizedKeyComparison,
+    public static Object fnVerifySourceNTarget(Map<String, Object> sourceMap, Map<String, Object> targetMap, String customizedKeyComparison,
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
             String targetEnv, String pii_columns)
             throws Exception {
-        //List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
         List<String> pii_columns_arr = Arrays.stream(pii_columns.split(DELIMITTER))
               .map(String::toUpperCase)
               .collect(Collectors.toList());
@@ -56,28 +55,9 @@ public class SharedLogic {
 
         LUType luType = getLuType();
 
-        Map<String, Object> sourceMap = new HashMap<>();
-        Map<String, Object> targetMap = new HashMap<>();
+
 
         StringBuilder stringBuilder = new StringBuilder();
-        LinkedHashMap<String, Object> ioSimpleRow = (LinkedHashMap) row;
-
-        for (Map.Entry<String, Object> entryRow : ioSimpleRow.entrySet()) {
-            String columnName;
-            Object columnValue = entryRow.getValue();
-            String customFunctionName = null;
-
-            if (entryRow.getKey().startsWith(sourceEnv)) {
-                columnName = entryRow.getKey().replaceFirst(sourceEnv + "_", "");
-                sourceMap.put(columnName + "_k2orig", columnValue != null ? columnValue.toString() : null);
-                sourceMap.put(columnName, columnValue == null ? null : columnValue.toString());
-            } else if (entryRow.getKey().startsWith(targetEnv)) {
-                columnName = entryRow.getKey().replaceFirst(targetEnv + "_", "");
-                targetMap.put(columnName + "_k2orig", columnValue != null ? columnValue.toString() : null);
-                targetMap.put(columnName, columnValue == null ? null : columnValue.toString());
-            }
-        }
-
         List<String> tctin = new ArrayList<>();
         for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
             tctin.add(column.toUpperCase());
@@ -87,53 +67,24 @@ public class SharedLogic {
         for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
             sctin.add(column.toUpperCase());
         }
-
-        Map<String, Map<String, Object>> compareResult = new HashMap<>();
+        
+        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
         sourceMap.forEach((key, value) -> {
             if (key.contains("_k2orig"))
                 return;
-
+            String origKey=key.replaceFirst("SRC_" , "");
+            Boolean piiCol = pii_columns_arr.contains(origKey);
             Map<String, Object> columnResult = new HashMap<>();
-            columnResult.put("COLUMN_NAME", key);
+            Object targetValue = targetMap.get("TAR_"+origKey);
+            columnResult.put("COLUMN_NAME",origKey);
             columnResult.put("SOURCE_VALUE", value);
-            columnResult.put("TARGET_VALUE", targetMap.get(key));
+            columnResult.put("TARGET_VALUE", targetValue);
             columnResult.put("SOURCE_COLUMN_ORIG_VALUE", sourceMap.get(key + "_k2orig"));
             columnResult.put("TARGET_COLUMN_ORIG_VALUE", targetMap.get(key + "_k2orig"));
-            Object targetValue = targetMap.get(key);
             if ((value == null && targetValue == null) || (value != null && value.equals(targetValue))
                     || (value != null && targetValue == null && tctin.contains(key.toUpperCase()))
                     || (value == null && targetValue != null && sctin.contains(key))) {
-                if (pii_columns_arr.contains(key.toUpperCase())) {
-                    columnResult.put("RESULT", "NOT PASSED");
-                    columnResult.put("TARGET_SECURED", "false");
-                } else
-                    columnResult.put("RESULT", "PASSED");
-                columnResult.put("TARGET_SECURED", "true");
-            } else {
-                if (pii_columns_arr.contains(key.toUpperCase())) {
-                    columnResult.put("RESULT", "PASSED");
-                    columnResult.put("TARGET_SECURED", "true");
-                } else
-                    columnResult.put("RESULT", "NOT PASSED");
-                columnResult.put("TARGET_SECURED", "false");
-            }
-            compareResult.put(key, columnResult);
-        });
-        targetMap.forEach((key, value) -> {
-            if (key.contains("_k2orig"))
-                return;
-
-            Map<String, Object> columnResult = new HashMap<>();
-            columnResult.put("COLUMN_NAME", key);
-            columnResult.put("SOURCE_VALUE", sourceMap.get(key));
-            columnResult.put("TARGET_VALUE", value);
-            columnResult.put("SOURCE_COLUMN_ORIG_VALUE", sourceMap.get(key + "_k2orig"));
-            columnResult.put("TARGET_COLUMN_ORIG_VALUE", targetMap.get(key + "_k2orig"));
-            Object srcValue = sourceMap.get(key);
-            if ((value == null && srcValue == null) || (value != null && value.equals(srcValue))
-                    || (value != null && srcValue == null && sctin.contains(key.toUpperCase()))
-                    || (value == null && srcValue != null && tctin.contains(key))) {
-                if (pii_columns_arr.contains(key.toUpperCase())) {
+                if (piiCol) {
                     columnResult.put("RESULT", "NOT PASSED");
                     columnResult.put("TARGET_SECURED", "false");
                     columnResult.put("SOURCE_VALUE", "*");
@@ -142,18 +93,18 @@ public class SharedLogic {
                     columnResult.put("RESULT", "PASSED");
                 columnResult.put("TARGET_SECURED", "true");
             } else {
-                if (pii_columns_arr.contains(key.toUpperCase())) {
+                if (piiCol) {
                     columnResult.put("RESULT", "PASSED");
                     columnResult.put("TARGET_SECURED", "true");
                     columnResult.put("SOURCE_VALUE", "*");
-                    columnResult.put("TARGET_VALUE", targetMap.get(key));
+                    columnResult.put("TARGET_VALUE", targetValue);
                 } else
                     columnResult.put("RESULT", "NOT PASSED");
                 columnResult.put("TARGET_SECURED", "false");
             }
-            compareResult.put(key, columnResult);
+            compareResult.add(columnResult);
         });
-
+      
         return compareResult;
     }
 
