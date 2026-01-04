@@ -538,7 +538,6 @@ stages:
             link: EqualsIgnoreCase2/result
       D2D Validation Results:
         parent: DbLoad
-        disabled: true
         in:
           interface:
             const: fabric
