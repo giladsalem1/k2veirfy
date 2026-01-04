@@ -33,7 +33,7 @@ stages:
               ),
               table_stats AS (
                 SELECT
-                  execution_id::bigint AS execution_id,
+                  execution_id,
                   COUNT(*) AS total_tables,
                   COUNT(*) FILTER (WHERE upper(match_result) <> 'PASSED') AS total_tables_failed
                 FROM ${@schema_name}.k2verify_table_summary
@@ -41,7 +41,7 @@ stages:
               ),
               record_stats AS (
                 SELECT
-                  execution_id::bigint AS execution_id,
+                  execution_id,
                   SUM(number_of_fields_match)    AS total_match_fields,
                   SUM(number_of_fields_mismatch) AS total_mismatch_fields
                 FROM ${@schema_name}.k2verify_record_summary
@@ -86,10 +86,10 @@ stages:
                AND tc.execution_id = te.execution_id
 
               LEFT JOIN table_stats ts
-                ON ts.execution_id = te.execution_id::bigint
+                ON ts.execution_id = te.execution_id
 
               LEFT JOIN record_stats rs
-                ON rs.execution_id = te.execution_id::bigint
+                ON rs.execution_id = te.execution_id
 
               WHERE te.task_id = ${task_id}
               ORDER BY te.execution_id DESC;

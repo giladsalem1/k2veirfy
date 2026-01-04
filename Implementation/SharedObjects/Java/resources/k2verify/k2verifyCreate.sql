@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS ${@schema};
 --DROP TABLE IF EXISTS ${@schema}.k2verify_field_summary;
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_field_summary (
-  EXECUTION_ID character varying(200), 
+  EXECUTION_ID bigint, 
   IID character varying(200), 
   SOURCE_TABLE_NAME character varying(200), 
   TARGET_TABLE_NAME character varying(200), 
@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS IID_FIELD_SUMMARY_IDX ON ${@schema}.k2verify_field_su
 --DROP TABLE IF EXISTS ${@schema}.k2verify_entity_summary;
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_entity_summary (
-  EXECUTION_ID character varying(200), 
+  EXECUTION_ID bigint, 
   IID character varying(200), 
   NUMBER_OF_FIELDS_MATCH integer, 
   NUMBER_OF_FIELDS_MISMATCH integer, 
@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS IID_ENTITY_SUMMARY_IDX ON ${@schema}.k2verify_entity_
 --DROP TABLE IF EXISTS ${@schema}.k2verify_record_summary;
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_record_summary (
-  EXECUTION_ID character varying(200), 
+  EXECUTION_ID bigint, 
   IID character varying(200), 
   SOURCE_TABLE_NAME character varying(200), 
   TARGET_TABLE_NAME character varying(200), 
@@ -73,7 +73,7 @@ CREATE INDEX IF NOT EXISTS IID_RECORD_SUMMARY_IDX ON ${@schema}.k2verify_record_
 --DROP TABLE IF EXISTS ${@schema}.k2verify_table_summary;
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_summary (
-  EXECUTION_ID text, 
+  EXECUTION_ID bigint, 
   IID text, 
   SOURCE_TABLE_NAME text, 
   TARGET_TABLE_NAME text, 

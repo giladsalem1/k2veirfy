@@ -116,7 +116,7 @@ stages:
                AND fs.source_table_name  = ts.source_table_name
                AND fs.target_table_name  = ts.target_table_name
               LEFT JOIN ${@schema}.task_execution_tables tet
-                ON tet.execution_id::text = ts.execution_id
+                ON tet.execution_id = ts.execution_id
                AND tet.table_name         = ts.source_table_name
               ORDER BY ts.source_table_name, ts.target_table_name;
           schema:
