@@ -29,13 +29,13 @@
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
-        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG" dbType="genericdb" active="false">
-          <dbHost>10.154.0.211</dbHost>
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG" dbType="genericdb" active="true">
+          <dbHost>10.126.161.14</dbHost>
           <dbPort>5432</dbPort>
           <dbScheme>postgres</dbScheme>
-          <dbUser>k2verify_prod_5_solutions</dbUser>
-          <dbPasswordEncrypted>~encs2~WLGULAdiN5LnVNYI7kOxi84d7dsrs53P4B/5A9EUHps2F+y0CtGrPbJ76DJOfvO1</dbPasswordEncrypted>
-          <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <dbUser>k2verify_prod_12_solutions</dbUser>
+          <dbPasswordEncrypted>~encs2~gLsPjWkdq1bTSZqpkznxSEs5CNfGOSgXjormq6cL+PmJWAdo1TPzfUctyTlOXY1pz6r5k1/lj0PGuw&#x3D;&#x3D;</dbPasswordEncrypted>
+          <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
