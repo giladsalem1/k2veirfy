@@ -5,7 +5,7 @@
     <Environment enabled="true" name="PROD">
       <Comments></Comments>
       <DbInterfacesList>
-        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="d2d_oracle" dbType="genericdb" active="true">
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="d2d_oracle" dbType="genericdb" active="false">
           <dbHost>34.89.246.193</dbHost>
           <dbPort>1525</dbPort>
           <dbScheme>ORCLCDB</dbScheme>
@@ -29,7 +29,7 @@
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
-        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG" dbType="genericdb" active="true">
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG" dbType="genericdb" active="false">
           <dbHost>10.154.0.211</dbHost>
           <dbPort>5432</dbPort>
           <dbScheme>postgres</dbScheme>
