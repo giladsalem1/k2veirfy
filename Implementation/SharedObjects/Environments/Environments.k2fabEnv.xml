@@ -18,12 +18,12 @@
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
         <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB" dbType="genericdb" active="true">
-          <dbHost>10.154.0.211</dbHost>
+          <dbHost>35.198.65.209</dbHost>
           <dbPort>5432</dbPort>
           <dbScheme>postgres</dbScheme>
-          <dbUser>k2verify_prod_5_solutions</dbUser>
-          <dbPasswordEncrypted>&amp;qnc7[V(y?kvx&#x3D;?S</dbPasswordEncrypted>
-          <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <dbUser>k2verify_prod_12_solutions</dbUser>
+          <dbPasswordEncrypted>~encs2~Qq62bbrVgvsP3LH70h3cq+JnQHrFzhxl5ooYIuDEO9Hj8b6Hjp+95td2qoCWrZ5E3bBXzyIULYkAug&#x3D;&#x3D;</dbPasswordEncrypted>
+          <connString>jdbc:postgresql://35.198.65.209:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
@@ -38,6 +38,18 @@
           <connString>jdbc:postgresql://10.154.0.211:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
+          <JdbcDriverName>PostgreSQL</JdbcDriverName>
+          <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
+        </DbInterface>
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB_managedPG_2" dbType="genericdb" active="true">
+          <dbHost>35.198.65.209</dbHost>
+          <dbPort>5432</dbPort>
+          <dbScheme>postgres</dbScheme>
+          <dbUser>k2verify_prod_12_solutions</dbUser>
+          <dbPasswordEncrypted>k2verify_prod_12_solutions</dbPasswordEncrypted>
+          <connString>jdbc:postgresql://35.198.65.209:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <minConnectionsNumber>0</minConnectionsNumber>
+          <maxConnectionsNumber>60</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
