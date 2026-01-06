@@ -49,6 +49,7 @@ stages:
             schema: boolean
     split: '--------------------'
   Stage 16:
+    else: true
     dependsOn: Stage 4
     actors:
       Const7:
