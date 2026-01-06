@@ -64,7 +64,7 @@
           <Comment></Comment>
         </Global>
         <Global name="K2VERIFY_KEYS_FETCH_SIZE" luName="">
-          <Value>3</Value>
+          <Value>1000</Value>
           <Comment></Comment>
         </Global>
         <Global name="K2VERIFY_KEYS_TABLE_NAME" luName="">
