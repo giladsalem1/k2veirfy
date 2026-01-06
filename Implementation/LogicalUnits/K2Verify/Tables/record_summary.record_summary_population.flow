@@ -163,6 +163,7 @@ stages:
             schema: boolean
       D2D LU Results:
         parent: DbLoad
+        disabled: true
         in:
           interface:
             const: fabric
