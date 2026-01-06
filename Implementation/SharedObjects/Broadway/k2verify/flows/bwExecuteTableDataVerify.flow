@@ -1729,7 +1729,6 @@
                         },
                         {
                             "name": "TableSummaryReport",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
