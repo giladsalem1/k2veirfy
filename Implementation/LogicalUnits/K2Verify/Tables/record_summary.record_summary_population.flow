@@ -218,6 +218,7 @@ stages:
             link: Row/value
       D2D Validation Results:
         parent: DbLoad
+        disabled: true
         in:
           interface:
             const: fabric
