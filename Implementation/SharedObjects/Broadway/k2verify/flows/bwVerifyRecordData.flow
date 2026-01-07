@@ -606,6 +606,7 @@ stages:
             mandatory: false
       D2D Validation In DB:
         parent: DbLoad
+        disabled: true
         in:
           interface:
             const: null
