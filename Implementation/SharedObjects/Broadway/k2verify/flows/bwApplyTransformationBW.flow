@@ -311,11 +311,13 @@ schemas:
     items:
       type: object
       properties:
-        SRC_FIRST_NAME:
-          type: string
         SRC_CUSTOMER_ID:
           type: string
         SRC_SSN:
+          type: string
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
           type: string
   JavaScript3.in.arr:
     type: array

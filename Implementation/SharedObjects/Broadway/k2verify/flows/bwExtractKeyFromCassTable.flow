@@ -184,6 +184,16 @@ stages:
               id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
+          custom_interface_name:
+            const: K2VERIFY_SRC_CASS_DETAILS
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          file_name:
+            const: k2verify_src_keys
+            schema: string
+            mandatory: false
+            createdBy: flowName
       bwLoadCassTableKeysToOPTable11:
         parent: InnerFlow
         in:
@@ -233,6 +243,16 @@ stages:
             schema: string
             editor:
               id: com.k2view.dbtable
+            mandatory: false
+            createdBy: flowName
+          custom_interface_name:
+            const: K2VERIFY_TAR_CASS_DETAILS
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          file_name:
+            const: k2verify_tar_keys
+            schema: string
             mandatory: false
             createdBy: flowName
   Stage 8: {

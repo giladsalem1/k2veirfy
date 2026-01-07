@@ -6,7 +6,7 @@ stages:
         parent: MTableLookup
         in:
           mtable:
-            const: mtK2VerifyConfig
+            const: k2verify_config
           Active:
             const: 'TRUE'
             schema: string

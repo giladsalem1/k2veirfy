@@ -15,7 +15,7 @@ stages:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_CONF_SEPARATOR
   Stage 2:

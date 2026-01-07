@@ -12,13 +12,13 @@ stages:
         out:
           value:
             schema: '#ref'
-  Stage 1:
+  Mtable params:
     actors:
       MTableLookup1:
         parent: MTableLookup
         in:
           mtable:
-            const: mtK2VerifyConfig
+            const: k2verify_config
           Source_Table_Name:
             link:
               path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
@@ -389,7 +389,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='K2Verify' name='${@buckets_method}'
+            const: list BF LU_NAME='k2verify' name='${@buckets_method}'
           buckets_method:
             link: Buckets Method/value
             schema: string

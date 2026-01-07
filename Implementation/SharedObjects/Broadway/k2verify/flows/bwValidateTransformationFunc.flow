@@ -15,7 +15,7 @@ stages:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_CONF_SEPARATOR
       TarTrn:
@@ -39,6 +39,17 @@ stages:
             link: SrcTrn/value
   'Split column / method ':
     actors:
+      NotEquals1:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: ''
+            schema: string
+          a:
+            link:
+              path: SplitSrcTrns/strings
+              iterate: Iterate
       SplitColumn/Method:
         parent: Split
         in:
@@ -48,6 +59,33 @@ stages:
             link:
               path: SplitSrcTrns/strings
               iterate: Iterate
+  Stage 1:
+    actors:
+      Length:
+        parent: JavaScript
+        in:
+          script:
+            const: arr.length
+          arr:
+            link: SplitColumn%2FMethod/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: integer
+  Src trn format:
+    actors:
+      =2:
+        parent: assertEquals
+        in:
+          expected:
+            const: 2
+            schema: integer
+          message:
+            const: The source transformation definition is incorrect. Please ensure
+              the format is "column_name:flow_name".
+          actual:
+            link: Length/result
   Src trn details:
     actors:
       TrnColumn:
@@ -152,7 +190,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='K2Verify' name='${@trn_func}'
+            const: list BF LU_NAME='k2verify' name='${@trn_func}'
           trn_func:
             link: TrnMethod/result
             schema: string
@@ -188,6 +226,17 @@ stages:
             link: TarTrn/value
   Split column / method:
     actors:
+      NotEquals2:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: ''
+            schema: string
+          a:
+            link:
+              path: SplitTarTrns/strings
+              iterate: Iterate
       SplitColumn/Method2:
         parent: Split
         in:
@@ -197,6 +246,28 @@ stages:
             link:
               path: SplitTarTrns/strings
               iterate: Iterate
+  Tar trn format:
+    actors:
+      Length1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr.length
+          arr:
+            link: SplitColumn%2FMethod2/strings
+            schema: '#ref'
+            mandatory: false
+      '= 2 ':
+        parent: assertEquals
+        in:
+          expected:
+            const: 2
+            schema: integer
+          message:
+            const: The target transformation definition is incorrect. Please ensure
+              the format is "column_name:flow_name".
+          actual:
+            link: Length1/result
   Tar trn details:
     actors:
       'TrnColumn ':
@@ -300,7 +371,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='K2Verify' name='${@trn_func}'
+            const: list BF LU_NAME='k2verify' name='${@trn_func}'
           trn_func:
             link: TrnMethod /result
             schema: any
@@ -325,6 +396,10 @@ stages:
           actual:
             link: ErrorHandler2/result
 schemas:
+  Length.in.arr:
+    type: array
+    items:
+      type: string
   TrnColumn.in.arr:
     type: array
     items:
@@ -360,6 +435,10 @@ schemas:
           type: boolean
         object_name:
           type: string
+  Length1.in.arr:
+    type: array
+    items:
+      type: string
   TrnColumn .in.arr:
     type: array
     items:

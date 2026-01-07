@@ -8,6 +8,6 @@
             "schema": {}
         }
     ],
-    "actorClass": "com.k2view.cdbms.usercode.common.K2Verify.GetLUName",
+    "actorClass": "com.k2view.cdbms.usercode.common.k2verify.GetLUName",
     "addOutput": true
 }

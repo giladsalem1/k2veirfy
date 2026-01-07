@@ -8,7 +8,7 @@ stages:
           functionName:
             const: fnGetCustomInterfaceDetails
           customInterfaceName:
-            const: K2Verify_Cassandra_Details
+            external: custom_interface_name
             schema: string
             mandatory: false
         out:
@@ -18,7 +18,7 @@ stages:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_CONF_SEPARATOR
       ReplaceDelimeter:
@@ -36,6 +36,16 @@ stages:
         in:
           key:
             const: K2VERIFY_CQLSH_BIN_DIR
+      StringFormat1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${file_name}.csv
+          file_name:
+            external: file_name
+            schema: any
+            mandatory: false
+            createdBy: format
   Stage 54:
     actors:
       Format Copy Cmd:
@@ -44,7 +54,7 @@ stages:
           format:
             const: ${dir}/cqlsh -u ${user} -p '${pwd}' --cqlshrc=. "${host}" ${port}
               ${data} --request-timeout=60000 -e "CONSISTENCY QUOROM; copy ${cass_keyspace}.${cass_table}
-              (${keys}) to '/opt/apps/fabric/workspace/d2d_file_keys.csv' with pagetimeout=12000
+              (${keys}) to '/opt/apps/fabric/workspace/${file_name}' with pagetimeout=12000
               AND HEADER = TRUE;"
           keys:
             link: ReplaceDelimeter/string
@@ -82,6 +92,11 @@ stages:
             createdBy: format
           cass_table:
             external: cass_table
+            schema: any
+            mandatory: false
+            createdBy: format
+          file_name:
+            link: StringFormat1/string
             schema: any
             mandatory: false
             createdBy: format
@@ -126,7 +141,7 @@ stages:
           interface:
             const: file:///opt/apps/fabric/workspace/
           path:
-            const: d2d_file_keys.csv
+            link: StringFormat1/string
   Stage 6:
     actors:
       CsvParser1:

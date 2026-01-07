@@ -24,21 +24,21 @@ stages:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_OPERATIONAL_INTERFACE
       LOAD_SCHEMA:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_OPERATIONAL_SCHEMA
       KEYS_TABLE_NAME:
         parent: GetLUVariable
         in:
           luName:
-            const: K2Verify
+            const: k2verify
           variableName:
             const: K2VERIFY_KEYS_TABLE_NAME
       Exclude Condition:
@@ -285,7 +285,7 @@ stages:
             const: Cassandra (Db)
             schema: string
           a:
-            external: a
+            external: interfaceType
       DbCommand4:
         parent: DbCommand
         in:

@@ -22,6 +22,14 @@ stages:
         out:
           value:
             schema: string
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            external: filters
+        out:
+          object:
+            schema: '#ref'
   Stage 2:
     actors:
       Split1:
@@ -47,71 +55,96 @@ stages:
                 // collect match_result values based on conditions
                 const matchResults = [];
 
-                // records_only_in_source
                 if (conditions.indexOf("records_only_in_source") >= 0) {
                   matchResults.push("source key not found in target");
                 }
-
-                // records_only_in_target
                 if (conditions.indexOf("records_only_in_target") >= 0) {
                   matchResults.push("target key not found in source");
                 }
-
-                // mismatched_records
                 if (conditions.indexOf("mismatched_records") >= 0) {
                   matchResults.push("not passed");
                 }
 
-                // build final query
-                let finalQuery;
+                // start finalQuery from base
+                let finalQuery = baseQuery;
 
+                // match_result filtering
                 if (matchResults.length > 0) {
-                  const inList = matchResults.map(v => `'${v}'`).join(", ");
-                  finalQuery = `${baseQuery}
-                  and lower(match_result) in (${inList})`;
-                } else {
-                  // no conditions selected -> just base query (or return empty result if you prefer)
-                  finalQuery = baseQuery;
+                  const inList = matchResults
+                    .map((v) => `'${String(v).replace(/'/g, "''").toLowerCase()}'`)
+                    .join(", ");
+
+                  finalQuery += `\n  and lower(match_result) in (${inList})`;
+                }
+
+                // ---- NEW: filters object -> LIKE clauses ----
+                const safeLike = (v) => String(v).trim().replace(/'/g, "''"); // escape single quotes
+
+                if (filters && typeof filters === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += `\n  and column_name like '%${safeLike(filters.column_name)}%'`;
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += `\n  and customized_key like '%${safeLike(filters.customized_key)}%'`;
+                  }
                 }
 
                 finalQuery;
               script: |-
+                function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
                 var queryParts = [];
                 var baseQuery = "select *\nfrom ${@schema_name}.k2verify_field_summary\nwhere execution_id = ${execution_id}\n  and source_table_name = ${source_table_name}"; // collect match_result values based on conditions
 
-                var matchResults = []; // records_only_in_source
+                var matchResults = [];
 
                 if (conditions.indexOf("records_only_in_source") >= 0) {
                   matchResults.push("source key not found in target");
-                } // records_only_in_target
-
+                }
 
                 if (conditions.indexOf("records_only_in_target") >= 0) {
                   matchResults.push("target key not found in source");
-                } // mismatched_records
-
+                }
 
                 if (conditions.indexOf("mismatched_records") >= 0) {
                   matchResults.push("not passed");
-                } // build final query
+                } // start finalQuery from base
 
 
-                var finalQuery;
+                var finalQuery = baseQuery; // match_result filtering
 
                 if (matchResults.length > 0) {
                   var inList = matchResults.map(function (v) {
-                    return "'" + v + "'";
+                    return "'" + String(v).replace(/'/g, "''").toLowerCase() + "'";
                   }).join(", ");
-                  finalQuery = baseQuery + "\n  and lower(match_result) in (" + inList + ")";
-                } else {
-                  // no conditions selected -> just base query (or return empty result if you prefer)
-                  finalQuery = baseQuery;
+                  finalQuery += "\n  and lower(match_result) in (" + inList + ")";
+                } // ---- NEW: filters object -> LIKE clauses ----
+
+
+                var safeLike = function safeLike(v) {
+                  return String(v).trim().replace(/'/g, "''");
+                }; // escape single quotes
+
+
+                if (filters && (typeof filters === "undefined" ? "undefined" : _typeof(filters)) === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += "\n  and column_name like '%" + safeLike(filters.column_name) + "%'";
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += "\n  and customized_key like '%" + safeLike(filters.customized_key) + "%'";
+                  }
                 }
 
                 finalQuery;
           conditions:
             link: Split1/strings
             schema: '#ref'
+            mandatory: false
+          filters:
+            link: JsonParser1/object
+            schema: any
             mandatory: false
         out:
           result:
@@ -171,7 +204,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: select count(*) from (${query}) s;
+            const: select count(1) from (${query})
           query:
             link: JavaScript1/result
             schema: string
@@ -254,6 +287,13 @@ stages:
             external: map
             schema: '#ref'
 schemas:
+  JsonParser1.out.object:
+    type: object
+    properties:
+      column_name:
+        type: string
+      customized_key:
+        type: string
   JavaScript1.in.conditions:
     type: array
     items:

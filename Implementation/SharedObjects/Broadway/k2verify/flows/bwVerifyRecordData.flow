@@ -606,7 +606,6 @@ stages:
             mandatory: false
       D2D Validation In DB:
         parent: DbLoad
-        disabled: true
         in:
           interface:
             const: null
@@ -639,8 +638,6 @@ stages:
             - TARGET_TABLE_NAME
             - CUSTOMIZED_KEY
             - COLUMN_NAME
-          dialect:
-            const: postgres
           batch:
             const: true
           EXECUTION_ID:

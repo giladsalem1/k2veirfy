@@ -74,10 +74,6 @@ stages:
             schema: '#ref'
             mandatory: false
             createdBy: flowName
-  Stage 4: {
-    }
-  Stage 6: {
-    }
 schemas:
   JsonParser1.out.object:
     type: object

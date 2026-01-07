@@ -8,7 +8,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 5",
+                    "name": "LU Name",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -393,7 +393,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 8",
+                    "name": "Validate MTable params",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -469,7 +469,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Const2",
+                            "name": "Props",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -511,7 +511,7 @@
                     "isLast": 1,
                     "actors": [
                         {
-                            "name": "DATableExecution",
+                            "name": "K2verifyTableExecution",
                             "actorType": {
                                 "parentType": "BroadwayJob",
                                 "inputs": [
@@ -633,7 +633,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 1",
+                    "name": "While",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -666,11 +666,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 2",
+                    "name": "While true",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Const1",
+                            "name": "Loop",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -690,7 +690,7 @@
                             }
                         },
                         {
-                            "name": "DbFetchFirstRow1",
+                            "name": "TableVerifyJobStatus",
                             "actorType": {
                                 "parentType": "DbFetchFirstRow",
                                 "inputs": [
@@ -700,7 +700,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "jobstatus name='K2Verify.bwExecuteTableDataVerify'"
+                                        "const": "jobstatus name='k2verify.bwExecuteTableDataVerify'"
                                     }
                                 ],
                                 "outputs": [
@@ -764,14 +764,14 @@
         {
             "stages": [
                 {
-                    "name": "Stage 3",
+                    "name": "Job still running",
                     "dependsOnList": [
-                        "Stage 2"
+                        "While true"
                     ],
                     "isLast": 1,
                     "actors": [
                         {
-                            "name": "NotNull1",
+                            "name": "NotNull",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "NotNull",
@@ -795,9 +795,9 @@
                     ]
                 },
                 {
-                    "name": "Stage 4",
+                    "name": "else",
                     "dependsOnList": [
-                        "Stage 2"
+                        "While true"
                     ],
                     "isLast": 1,
                     "hasElse": true,
@@ -817,7 +817,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 6",
+                    "name": "task end time",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -843,11 +843,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 7",
+                    "name": "Update task end time",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "DbCommand4",
+                            "name": "Update task end_time",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -972,7 +972,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand4",
+                "actor": "Update task end_time",
                 "name": "interface"
             }
         },
@@ -1022,7 +1022,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand4",
+                "actor": "Update task end_time",
                 "name": "schema"
             }
         },
@@ -1092,7 +1092,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "task_id"
             }
         },
@@ -1102,7 +1102,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "DbCommand4",
+                "actor": "Update task end_time",
                 "name": "task_id"
             }
         },
@@ -1132,7 +1132,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "execution_id"
             }
         },
@@ -1142,7 +1142,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbCommand4",
+                "actor": "Update task end_time",
                 "name": "execution_id"
             }
         },
@@ -1172,7 +1172,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "Const2",
+                "actor": "Props",
                 "name": "value"
             },
             "path": [
@@ -1185,7 +1185,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Source_Interface"
             },
             "path": [
@@ -1198,7 +1198,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Target_Interface"
             },
             "path": [
@@ -1211,7 +1211,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Source_Schema"
             },
             "path": [
@@ -1224,7 +1224,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Target_Schema"
             },
             "path": [
@@ -1237,7 +1237,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "maxWorkers"
             },
             "path": [
@@ -1250,7 +1250,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "log_pass"
             },
             "path": [
@@ -1263,7 +1263,7 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "compare_only_pii"
             },
             "path": [
@@ -1272,11 +1272,11 @@
         },
         {
             "leftPort": {
-                "actor": "Const2",
+                "actor": "Props",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Target_Table_Name"
             },
             "iterate": "Iterate",
@@ -1286,11 +1286,11 @@
         },
         {
             "leftPort": {
-                "actor": "Const2",
+                "actor": "Props",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DATableExecution",
+                "actor": "K2verifyTableExecution",
                 "name": "Source_Table_Name"
             },
             "iterate": "Iterate",
@@ -1304,18 +1304,18 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Const1",
+                "actor": "Loop",
                 "name": "value"
             },
             "iterate": "Iterate"
         },
         {
             "leftPort": {
-                "actor": "DbFetchFirstRow1",
+                "actor": "TableVerifyJobStatus",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "NotNull1",
+                "actor": "NotNull",
                 "name": "value"
             },
             "iterate": "First",
@@ -1339,7 +1339,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbCommand4",
+                "actor": "Update task end_time",
                 "name": "end_time"
             }
         },

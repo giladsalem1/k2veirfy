@@ -87,7 +87,7 @@
                 {
                     "name": "Comparison config",
                     "dependsOnList": [],
-                    "remark": "Tables comparison custom configurations are stored in mtK2VerifyConfig mtable. This actor retrieves those configurations from the mtable.",
+                    "remark": "Tables comparison custom configurations are stored in k2verify_config mtable. This actor retrieves those configurations from the mtable.",
                     "actors": [
                         {
                             "name": "MTableLookup",
@@ -96,7 +96,7 @@
                                 "inputs": [
                                     {
                                         "name": "mtable",
-                                        "const": "mtK2VerifyConfig"
+                                        "const": "k2verify_config"
                                     },
                                     {
                                         "name": "Source_Table_Name",
@@ -791,7 +791,7 @@
                                         "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
                                     },
                                     {
-                                        "const": "K2Verify",
+                                        "const": "k2verify",
                                         "name": "lut",
                                         "schema": {
                                             "type": "string"
@@ -1729,7 +1729,6 @@
                         },
                         {
                             "name": "TableSummaryReport",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [

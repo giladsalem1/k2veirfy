@@ -514,13 +514,6 @@ stages:
           size:
             const: null
             link: FETCH_SIZE/variableValue
-          rowsGeneratorDistribution:
-            const:
-              distribution: uniform
-              round: true
-              type: integer
-              minimum: 0
-              maximum: 10
           parent_rows:
             link: GetKeysMapsList/SrcKeysMapsList
         out:
@@ -602,10 +595,10 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-  Stage 2:
+  Extract Row:
     transactional: true
     actors:
-      FilterSrcRow:
+      SrcRecordsMap:
         parent: LuFunction
         in:
           functionName:
@@ -633,7 +626,7 @@ stages:
         out:
           result:
             schema: '#ref'
-      FilterTarRow:
+      TarRecordsMap:
         parent: LuFunction
         in:
           functionName:
@@ -664,7 +657,7 @@ stages:
   Keys arrays and maps:
     transactional: true
     actors:
-      Const4:
+      KeysArr:
         parent: Const
         in:
           value:
@@ -712,7 +705,7 @@ stages:
           value:
             const: null
             link:
-              path: Const4/value
+              path: KeysArr/value
               iterate: Iterate
         out:
           value:
@@ -739,10 +732,10 @@ stages:
         out:
           value:
             schema: '#ref'
-  Record for key:
+  Stringify key:
     transactional: true
     actors:
-      ToString1:
+      ToString:
         parent: ToString
         in:
           value:
@@ -750,33 +743,33 @@ stages:
   Deep copy record:
     transactional: true
     actors:
-      JavaScript1:
+      FilterSrcRow:
         parent: JavaScript
         in:
           script:
             const: map.get(key)
           map:
-            link: FilterSrcRow/result
+            link: SrcRecordsMap/result
             schema: '#ref'
             mandatory: false
           key:
-            link: ToString1/string
+            link: ToString/string
             schema: string
             mandatory: false
         out:
           result:
             schema: '#ref'
-      JavaScript2:
+      FilterTarRow:
         parent: JavaScript
         in:
           script:
             const: map.get(key)
           map:
-            link: FilterTarRow/result
+            link: TarRecordsMap/result
             schema: '#ref'
             mandatory: false
           key:
-            link: ToString1/string
+            link: ToString/string
             schema: string
             mandatory: false
         out:
@@ -810,17 +803,17 @@ stages:
             mandatory: false
             createdBy: flowName
           src_row:
-            link: JavaScript1/result
+            link: FilterSrcRow/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
-            link: JavaScript2/result
+            link: FilterTarRow/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           customized_key:
-            link: ToString1/string
+            link: ToString/string
             schema: string
             mandatory: false
             createdBy: flowName
@@ -842,12 +835,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
+              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
-              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           operational_schema:
@@ -884,6 +877,7 @@ stages:
             schema: boolean
   Record exists->verify data:
     transactional: true
+    dependsOn: Verify record exists
     actors:
       RecordExists:
         parent: Equals
@@ -937,12 +931,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
+              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
-              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           source_table_name:
@@ -985,12 +979,12 @@ stages:
             mandatory: false
             createdBy: flowName
           src_row:
-            link: JavaScript1/result
+            link: FilterSrcRow/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
           tar_row:
-            link: JavaScript2/result
+            link: FilterTarRow/result
             schema: '#ref'
             mandatory: false
             createdBy: flowName
@@ -1000,10 +994,15 @@ stages:
             mandatory: false
             createdBy: flowName
           customized_key_values:
-            link: ToString1/string
+            link: ToString/string
             schema: string
             mandatory: false
             createdBy: flowName
+    split: '--------------------'
+  Stage 1:
+    else: true
+    transactional: true
+    dependsOn: Verify record exists
   '# processed records':
     transactional: true
     actors:
@@ -1021,7 +1020,7 @@ stages:
           a:
             link: '# ProcessedRecords/value'
   Write each 1000:
-    transactional: true
+    transactional: false
     dependsOn: '# processed records'
     actors:
       1000 processed:
@@ -1078,13 +1077,6 @@ stages:
     else: true
     transactional: true
     dependsOn: '# processed records'
-  Stage 1:
-    transactional: false
-    dependsOn: Write each 1000
-    split: '--------------------'
-  Stage 3:
-    transactional: true
-    dependsOn: Stage 39
   Merge:
     last: 1
     transactional: true
@@ -1288,7 +1280,7 @@ schemas:
           type: string
         SRC_SSN:
           type: string
-  FilterSrcRow.in.targetList:
+  SrcRecordsMap.in.targetList:
     type: array
     items:
       type: object
@@ -1297,7 +1289,7 @@ schemas:
           type: string
         SSN:
           type: string
-  FilterSrcRow.in.sourceList:
+  SrcRecordsMap.in.sourceList:
     type: array
     items:
       type: object
@@ -1310,11 +1302,11 @@ schemas:
           type: string
         SRC_LAST_NAME:
           type: string
-  FilterSrcRow.in.joinKeys:
+  SrcRecordsMap.in.joinKeys:
     type: array
     items:
       type: string
-  FilterSrcRow.out.result:
+  SrcRecordsMap.out.result:
     type: object
     properties:
       '["CUSTOMER_ID":"2","SSN":"111"]':
@@ -1427,7 +1419,7 @@ schemas:
             type: string
           SRC_LAST_NAME:
             type: string
-  FilterTarRow.in.targetList:
+  TarRecordsMap.in.targetList:
     type: array
     items:
       type: object
@@ -1436,7 +1428,7 @@ schemas:
           type: string
         SSN:
           type: string
-  FilterTarRow.in.sourceList:
+  TarRecordsMap.in.sourceList:
     type: array
     items:
       type: object
@@ -1449,11 +1441,11 @@ schemas:
           type: string
         SRC_LAST_NAME:
           type: string
-  FilterTarRow.in.joinKeys:
+  TarRecordsMap.in.joinKeys:
     type: array
     items:
       type: string
-  FilterTarRow.out.result:
+  TarRecordsMap.out.result:
     type: object
     properties:
       '["CUSTOMER_ID":"2","SSN":"111"]':
@@ -1566,7 +1558,7 @@ schemas:
             type: string
           SRC_LAST_NAME:
             type: string
-  Const4.out.value:
+  KeysArr.out.value:
     type: array
     items:
       type: object
@@ -1604,7 +1596,7 @@ schemas:
         type: string
       SSN:
         type: string
-  JavaScript1.in.map:
+  FilterSrcRow.in.map:
     type: object
     properties:
       '{"CUSTOMER_ID":"2","SSN":"111"}':
@@ -1717,7 +1709,7 @@ schemas:
             type: string
           SRC_LAST_NAME:
             type: string
-  JavaScript1.out.result:
+  FilterSrcRow.out.result:
     type: object
     properties:
       SRC_CUSTOMER_ID:
@@ -1728,7 +1720,7 @@ schemas:
         type: string
       SRC_LAST_NAME:
         type: string
-  JavaScript2.in.map:
+  FilterTarRow.in.map:
     type: object
     properties:
       '{"CUSTOMER_ID":"2","SSN":"111"}':
@@ -1841,7 +1833,7 @@ schemas:
             type: string
           SRC_LAST_NAME:
             type: string
-  JavaScript2.out.result:
+  FilterTarRow.out.result:
     type: object
     properties:
       SRC_CUSTOMER_ID:
