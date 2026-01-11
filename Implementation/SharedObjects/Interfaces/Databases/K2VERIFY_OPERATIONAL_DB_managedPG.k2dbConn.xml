@@ -2,12 +2,12 @@
 <DBConn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="DBConnGenericAdoJdbc" name="K2VERIFY_OPERATIONAL_DB_managedPG" type="genericdb" version="8.3.1">
     <JdbcDriverName>PostgreSQL</JdbcDriverName>
     <Active>true</Active>
-    <DataSource>35.198.65.209</DataSource>
+    <DataSource>10.126.161.14</DataSource>
     <PortNum>5432</PortNum>
     <DataBase>postgres</DataBase>
     <UserId>k2verify_prod_12_solutions</UserId>
     <Password>k2verify_prod_12_solutions</Password>
-    <ConnectionStringServerSide>jdbc:postgresql://35.198.65.209:5432/postgres?stringtype=unspecified</ConnectionStringServerSide>
+    <ConnectionStringServerSide>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype=unspecified</ConnectionStringServerSide>
     <MinConnectionsNumber>0</MinConnectionsNumber>
     <MaxConnectionsNumber>60</MaxConnectionsNumber>
     <UseSelectAsteriskInAutoCreatedQueries>true</UseSelectAsteriskInAutoCreatedQueries>

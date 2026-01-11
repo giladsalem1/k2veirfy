@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<DBConn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="DBConnGenericAdoJdbc" name="K2VERIFY_OPERATIONAL_DB" type="genericdb" version="8.2.0">
+<DBConn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="DBConnGenericAdoJdbc" name="K2VERIFY_OPERATIONAL_DB" type="genericdb" version="8.3.1">
     <JdbcDriverName>PostgreSQL</JdbcDriverName>
     <Active>true</Active>
-    <DataSource>postgres-service</DataSource>
+    <DataSource>10.126.161.14</DataSource>
     <PortNum>5432</PortNum>
     <DataBase>postgres</DataBase>
-    <UserId>postgres</UserId>
-    <Password>~encs2~26CpvhT3uoVRCwMJOHemzdhJqM8Pih9UaQja+xXIshJQXQ9ct62PFg==</Password>
-    <ConnectionStringServerSide>jdbc:postgresql://postgres-service:5432/postgres?stringtype=unspecified</ConnectionStringServerSide>
+    <UserId>k2verify_prod_12_solutions</UserId>
+    <Password>k2verify_prod_12_solutions</Password>
+    <ConnectionStringServerSide>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype=unspecified</ConnectionStringServerSide>
     <MinConnectionsNumber>0</MinConnectionsNumber>
     <MaxConnectionsNumber>60</MaxConnectionsNumber>
     <UseSelectAsteriskInAutoCreatedQueries>true</UseSelectAsteriskInAutoCreatedQueries>
@@ -16,6 +16,6 @@
     <CommandList></CommandList>
     <ConnectionProperties></ConnectionProperties>
     <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
-    <SchemaFilter></SchemaFilter>
     <Certificate></Certificate>
+    <SchemaFilter></SchemaFilter>
 </DBConn>
