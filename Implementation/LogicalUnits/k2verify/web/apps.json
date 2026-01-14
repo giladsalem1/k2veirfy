@@ -2,5 +2,9 @@
     {
         "name": "Verify",
         "appId": "k2verify"
+    },
+    {
+        "name": "Admin",
+        "appId": "admin"
     }
 ]
