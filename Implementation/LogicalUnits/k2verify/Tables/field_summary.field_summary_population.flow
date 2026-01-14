@@ -431,10 +431,10 @@ stages:
             - TARGET_TABLE_NAME
             - CUSTOMIZED_KEY
             - COLUMN_NAME
-            - SOURCE_COLUMN_VALUE
-            - TARGET_COLUMN_VALUE
             - MATCH_RESULT
             - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
           file_path:
             link: fileName/string
 schemas:
