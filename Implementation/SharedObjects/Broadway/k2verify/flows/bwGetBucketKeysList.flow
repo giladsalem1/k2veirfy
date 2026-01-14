@@ -194,7 +194,7 @@ stages:
             mandatory: false
           interfaceType:
             external: interfaceType
-            schema: any
+            schema: string
             mandatory: false
         out:
           bucketRows:
@@ -239,7 +239,7 @@ stages:
             mandatory: false
           interfaceType:
             external: interfaceType
-            schema: any
+            schema: string
             mandatory: false
         out:
           bucketRows:
@@ -249,6 +249,7 @@ stages:
     actors:
       Mapper1:
         parent: Mapper
+        disabled: true
         in:
           script:
             const: |
@@ -266,6 +267,7 @@ stages:
             schema: '#ref'
       Mapper2:
         parent: Mapper
+        disabled: true
         in:
           script:
             const: |-
@@ -280,6 +282,24 @@ stages:
             link: TAR BuketRows/bucketRows
         out:
           values:
+            schema: '#ref'
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnMergeSrcTrgKeys
+          rs1:
+            link: SRC BuketRows/bucketRows
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          rs2:
+            link: TAR BuketRows/bucketRows
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
             schema: '#ref'
   Stage 29:
     actors:
@@ -337,7 +357,7 @@ stages:
         parent: DeepCopy
         in:
           value:
-            link: JavaScript2/result
+            link: LuFunction1/result
         out:
           value:
             external: keys_list
@@ -356,7 +376,7 @@ schemas:
     items:
       type: object
       properties:
-        CUSTOMER_ID|SSN:
+        customer_id:
           type: string
   TAR BuketRows.out.bucketRows:
     type: array
@@ -370,6 +390,24 @@ schemas:
     items:
       type: string
   Mapper2.out.values:
+    type: array
+    items:
+      type: string
+  LuFunction1.in.rs1:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: string
+  LuFunction1.in.rs2:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: string
+  LuFunction1.out.result:
     type: array
     items:
       type: string

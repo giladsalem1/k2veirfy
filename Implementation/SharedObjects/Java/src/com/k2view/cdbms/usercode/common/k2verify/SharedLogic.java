@@ -232,4 +232,70 @@ public class SharedLogic {
 
         return result;
     }
+
+
+    
+    @out(name = "result", type = Object.class, desc = "")
+    public static Set<String>  fnMergeSrcTrgKeys(
+           List<Map<String, Object>> rs1,
+           List<Map<String, Object>> rs2) {
+
+        final String DELIMITER = "|";
+
+        // 1) Collect all key names (deterministic ordering)
+        SortedSet<String> keyNames = new TreeSet<>();
+        if (rs1 != null) {
+            for (Map<String, Object> row : rs1) {
+                if (row != null) {
+                    keyNames.addAll(row.keySet());
+                }
+            }
+        }
+
+        if (rs2 != null) {
+            for (Map<String, Object> row : rs2) {
+                if (row != null) {
+                    keyNames.addAll(row.keySet());
+                }
+            }
+        }
+
+        if (keyNames.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        List<String> orderedKeys = new ArrayList<>(keyNames);
+
+        // 2) Build composite keys and dedupe
+        Set<String> result = new LinkedHashSet<>();
+
+        for (List<Map<String, Object>> rs : new List[]{ rs1, rs2 }) {
+            if (rs == null) continue;
+
+            for (Map<String, Object> row : rs) {
+                if (row == null) continue;
+
+                StringBuilder sb = new StringBuilder();
+                boolean valid = true;
+
+                for (int i = 0; i < orderedKeys.size(); i++) {
+                    String key = orderedKeys.get(i);
+                    Object val = row.get(key);
+
+                    if (val == null) {
+                        valid = false; // strict mode: missing key → skip row
+                        break;
+                    }
+
+                    if (i > 0) sb.append(DELIMITER);
+                    sb.append(val.toString());
+                }
+
+                if (valid) {
+                    result.add(sb.toString());
+                }
+            }
+        }
+        return result;
+    }
 }
