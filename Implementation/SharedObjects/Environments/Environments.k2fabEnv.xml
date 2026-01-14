@@ -1,22 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <FabEnvironmentsManager xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Name>Environments</Name>
   <EnvironmentsList>
     <Environment enabled="true" name="PROD">
       <Comments></Comments>
       <DbInterfacesList>
-        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="d2d_oracle" dbType="genericdb" active="false">
-          <dbHost>34.89.246.193</dbHost>
-          <dbPort>1525</dbPort>
-          <dbScheme>ORCLCDB</dbScheme>
-          <dbUser>customer</dbUser>
-          <dbPasswordEncrypted>~encs2~zXD58qibASVt5r1dgSCpgoObsfbhHyOoi0+np/UxgIYpTUlgGujEHvUaSw&#x3D;&#x3D;</dbPasswordEncrypted>
-          <connString>jdbc:oracle:thin:@34.89.246.193:1525/ORCLCDB</connString>
-          <minConnectionsNumber>0</minConnectionsNumber>
-          <maxConnectionsNumber>60</maxConnectionsNumber>
-          <JdbcDriverName>Oracle</JdbcDriverName>
-          <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
-        </DbInterface>
         <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="K2VERIFY_OPERATIONAL_DB" dbType="genericdb" active="true">
           <dbHost>10.126.161.14</dbHost>
           <dbPort>5432</dbPort>
@@ -53,6 +41,18 @@
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="local_pg" dbType="genericdb" active="true">
+          <dbHost></dbHost>
+          <dbPort>5432</dbPort>
+          <dbScheme>postgres</dbScheme>
+          <dbUser></dbUser>
+          <dbPasswordEncrypted></dbPasswordEncrypted>
+          <connString>jdbc:postgresql://postgres-service:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <minConnectionsNumber>0</minConnectionsNumber>
+          <maxConnectionsNumber>60</maxConnectionsNumber>
+          <JdbcDriverName>PostgreSQL</JdbcDriverName>
+          <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
+        </DbInterface>
       </DbInterfacesList>
       <GlobalsList>
         <Global name="K2VERIFY_CONF_SEPARATOR" luName="">
@@ -73,11 +73,19 @@
         </Global>
         <Global name="K2VERIFY_OPERATIONAL_INTERFACE" luName="">
           <Value>K2VERIFY_OPERATIONAL_DB</Value>
-          <Comment>Location where to store the K2Verify result tables. To store  in Fabric&#x27;s Common table, use fabric</Comment>
+          <Comment>Location where to store the k2verify result tables. To store  in Fabric&#x27;s Common table, use fabric</Comment>
         </Global>
         <Global name="K2VERIFY_OPERATIONAL_SCHEMA" luName="">
           <Value>k2verify</Value>
           <Comment>Name of the schema where the result tables are stored. When stored in fabric Common tables, use the schema name specified in the Common table properties</Comment>
+        </Global>
+        <Global name="K2VERIFY_RESULT_FILES_PATH" luName="k2verify">
+          <Value>/opt/apps/fabric/workspace/result_files</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="K2VERIFY_RESULT_FILES_PATH" luName="k2_ws">
+          <Value>/opt/apps/fabric/workspace/result_files</Value>
+          <Comment></Comment>
         </Global>
       </GlobalsList>
       <GenericInterfacesList>
@@ -106,6 +114,28 @@
             </Property>
             <Property name="testConnectionState">
               <Value>ok</Value>
+            </Property>
+          </Properties>
+        </GenericInterface>
+        <GenericInterface type="CUSTOM" enabled="true" version="">
+          <Name>K2VERIFY_SRC_CASS_DETAILS</Name>
+          <Properties>
+            <Property name="Port">
+              <Value>0</Value>
+            </Property>
+            <Property name="Data">
+              <Value>/opt/apps/fabric/workspace</Value>
+            </Property>
+          </Properties>
+        </GenericInterface>
+        <GenericInterface type="CUSTOM" enabled="true" version="">
+          <Name>K2VERIFY_TAR_CASS_DETAILS</Name>
+          <Properties>
+            <Property name="Port">
+              <Value>0</Value>
+            </Property>
+            <Property name="Data">
+              <Value>/opt/apps/fabric/workspace</Value>
             </Property>
           </Properties>
         </GenericInterface>
