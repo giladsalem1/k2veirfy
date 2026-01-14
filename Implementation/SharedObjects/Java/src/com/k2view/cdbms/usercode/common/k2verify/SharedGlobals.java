@@ -28,7 +28,7 @@ public class SharedGlobals {
 	public static String K2VERIFY_CQLSH_BIN_DIR = "/opt/apps/fabric/workspace/apache-cassandra-4.1.3/bin";
 	@category("K2VERIFY")		
 	public static String K2VERIFY_KEYS_TABLE_NAME = "keys_table";
-
-
+	@category("K2VERIFY")		
+	public static String K2VERIFY_RESULT_FILES_PATH = "/opt/apps/fabric/workspace/result_files";
 }
 

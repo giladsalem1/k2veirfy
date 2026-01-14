@@ -277,6 +277,24 @@
         {
             "stages": [
                 {
+                    "name": "Stage 2",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "ToString1",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
                     "name": "Fetch task props",
                     "dependsOnList": [],
                     "actors": [
@@ -318,6 +336,35 @@
                                         }
                                     }
                                 ]
+                            }
+                        },
+                        {
+                            "name": "StringFormat1",
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": "CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_field_summary_${execution_id} (\r\n  EXECUTION_ID bigint,\r\n  IID character varying(200),\r\n  SOURCE_TABLE_NAME character varying(200),\r\n  TARGET_TABLE_NAME character varying(200),\r\n  CUSTOMIZED_KEY character varying(1000),\r\n  COLUMN_NAME character varying(200),\r\n  MATCH_RESULT character varying(50),\r\n  TARGET_VALUE_SECURED character varying(50),\r\n  SOURCE_COLUMN_VALUE character varying(1000),\r\n  TARGET_COLUMN_VALUE character varying(1000),\r\n  SOURCE_COLUMN_VALUE_TRANS character varying(1000),\r\n  TARGET_COLUMN_VALUE_TRANS character varying(1000),\r\n  BW_TRANSFORMATION_FLOW boolean,\r\n  NULL_COMPARE boolean,\r\n  LOOKUP boolean,\r\n  DEFAULT_VALUE boolean)"
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
                             }
                         }
                     ]
@@ -384,6 +431,23 @@
                                         }
                                     }
                                 ]
+                            }
+                        },
+                        {
+                            "name": "DbCommand1",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
                             }
                         }
                     ]
@@ -786,7 +850,7 @@
                                 "inputs": [
                                     {
                                         "name": "millis",
-                                        "const": 10000
+                                        "const": 5000
                                     }
                                 ],
                                 "outputs": []
@@ -807,6 +871,92 @@
                             "actorType": {
                                 "parentType": "LoopStop",
                                 "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 1",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "DbCommand3",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "ALTER TABLE ${@k2verify_schema}.k2verify_field_summary_${@execution_id} ADD CONSTRAINT k2verify_field_summary_${@execution_id}_pkey PRIMARY KEY (EXECUTION_ID, IID, SOURCE_TABLE_NAME, TARGET_TABLE_NAME, CUSTOMIZED_KEY, COLUMN_NAME);"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 3",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "DbCommand2",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "CREATE INDEX IF NOT EXISTS IID_FIELD_SUMMARY_${@execution_id}_IDX ON ${@k2verify_schema}.k2verify_field_summary_${@execution_id} (iid);"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
                                 "outputs": []
                             }
                         }
@@ -988,6 +1138,36 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand3",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand2",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -1034,6 +1214,36 @@
             "rightPort": {
                 "actor": "FetchUser",
                 "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "StringFormat1",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand3",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "DbCommand2",
+                "name": "k2verify_schema"
             }
         },
         {
@@ -1148,12 +1358,62 @@
         },
         {
             "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "ToString1",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "DbCommand3",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "StringFormat1",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "DbCommand2",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "FetchTaskProps",
                 "name": "result"
             },
             "rightPort": {
                 "actor": "JsonParser1",
                 "name": "stream"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "StringFormat1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "sql"
             }
         },
         {

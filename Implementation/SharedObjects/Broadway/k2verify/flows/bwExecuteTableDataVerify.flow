@@ -1556,6 +1556,7 @@
                     "actors": [
                         {
                             "name": "TableSummaryRows",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1646,6 +1647,7 @@
                     "actors": [
                         {
                             "name": "Is Matched",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "JavaScript",
                                 "inputs": [
@@ -1695,6 +1697,7 @@
                         {
                             "name": "CheckReportCondition",
                             "condition": "insert",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -1729,6 +1732,7 @@
                         },
                         {
                             "name": "TableSummaryReport",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [

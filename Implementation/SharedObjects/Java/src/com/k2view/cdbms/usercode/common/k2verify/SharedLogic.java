@@ -20,6 +20,9 @@ import org.json.JSONObject;
 
 import static com.k2view.cdbms.shared.user.UserCode.*;
 import java.math.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.*;
 import com.k2view.cdbms.shared.user.UserCode;
 import com.k2view.cdbms.sync.*;
@@ -34,6 +37,14 @@ import static com.k2view.cdbms.shared.user.ProductFunctions.*;
 import static com.k2view.cdbms.shared.utils.UserCodeDescribe.FunctionType.*;
 import static com.k2view.cdbms.usercode.common.SharedGlobals.*;
 
+import org.postgresql.PGConnection;
+import org.postgresql.copy.CopyManager;
+
+import java.io.FileReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
 @SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class SharedLogic {
 
@@ -44,9 +55,9 @@ public class SharedLogic {
     }
 
     @out(name = "result", type = Object.class, desc = "")
-    public static Object fnVerifySourceNTarget(Map<String, Object> sourceMap, Map<String, Object> targetMap, String customizedKeyComparison,
+    public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap, Map<String, Object> targetMap, String customizedKeyComparison,
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
-            String targetEnv, String pii_columns)
+            String targetEnv, String pii_columns, String execution_id, String source_table_name, String target_table_name, String customized_key_values)
             throws Exception {
         //List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
         List<String> pii_columns_arr = Arrays.stream(pii_columns.split(DELIMITTER))
@@ -77,35 +88,40 @@ public class SharedLogic {
             Boolean piiCol = pii_columns_arr.contains(origKey);
             Map<String, Object> columnResult = new HashMap<>();
             Object targetValue = targetMap.get("TAR_"+origKey);
-            columnResult.put("COLUMN_NAME",origKey);
-            columnResult.put("SOURCE_VALUE", value);
-            columnResult.put("TARGET_VALUE", targetValue);
+           columnResult.put("EXECUTION_ID", execution_id);
+            columnResult.put("IID", 0);
+            columnResult.put("SOURCE_TABLE_NAME", source_table_name);
+            columnResult.put("TARGET_TABLE_NAME", target_table_name);
+            columnResult.put("CUSTOMIZED_KEY", customized_key_values);
             columnResult.put("SOURCE_COLUMN_ORIG_VALUE", sourceMap.get(key + "_k2orig"));
             columnResult.put("TARGET_COLUMN_ORIG_VALUE", targetMap.get(key + "_k2orig"));
+            columnResult.put("COLUMN_NAME",origKey);
+            columnResult.put("SOURCE_COLUMN_VALUE", value);
+            columnResult.put("TARGET_COLUMN_VALUE", targetValue);
+ 
             if ((value == null && targetValue == null) || (value != null && value.equals(targetValue))
                     || (value != null && targetValue == null && tctin.contains(key.toUpperCase()))
                     || (value == null && targetValue != null && sctin.contains(key))) {
                 if (piiCol) {
-                    columnResult.put("RESULT", "NOT PASSED");
-                    columnResult.put("TARGET_SECURED", "false");
-                    columnResult.put("SOURCE_VALUE", "*");
-                    columnResult.put("TARGET_VALUE", "*");
+                    columnResult.put("MATCH_RESULT", "NOT PASSED");
+                    columnResult.put("TARGET_VALUE_SECURED", "false");
+                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
+                    columnResult.put("TARGET_COLUMN_VALUE", "*");
                 } else
-                    columnResult.put("RESULT", "PASSED");
-                columnResult.put("TARGET_SECURED", "true");
+                    columnResult.put("MATCH_RESULT", "PASSED");
+                columnResult.put("TARGET_VALUE_SECURED", "true");
             } else {
                 if (piiCol) {
-                    columnResult.put("RESULT", "PASSED");
-                    columnResult.put("TARGET_SECURED", "true");
-                    columnResult.put("SOURCE_VALUE", "*");
-                    columnResult.put("TARGET_VALUE", targetValue);
+                    columnResult.put("MATCH_RESULT", "PASSED");
+                    columnResult.put("TARGET_VALUE_SECURED", "true");
+                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
+                    columnResult.put("TARGET_COLUMN_VALUE", targetValue);
                 } else
-                    columnResult.put("RESULT", "NOT PASSED");
-                columnResult.put("TARGET_SECURED", "false");
+                    columnResult.put("MATCH_RESULT", "NOT PASSED");
+                columnResult.put("TARGET_VALUE_SECURED", "false");
             }
             compareResult.add(columnResult);
         });
-      
         return compareResult;
     }
 

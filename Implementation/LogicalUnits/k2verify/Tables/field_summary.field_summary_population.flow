@@ -64,6 +64,21 @@ stages:
         in:
           key:
             const: K2VERIFY_EXEC_ID
+      RESULTS DIR:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+      RESULTS INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_OPERATIONAL_INTERFACE
+      RESULTS SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_OPERATIONAL_SCHEMA
   Bucket number:
     actors:
       SplitIID:
@@ -151,6 +166,36 @@ stages:
         out:
           value:
             schema: '#ref'
+      tableName:
+        parent: StringFormat
+        in:
+          format:
+            const: k2verify_field_summary_${execution_id}
+          execution_id:
+            link: EXEC ID/result
+            schema: string
+            mandatory: false
+            createdBy: format
+      fileName:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/field_result_${execution_id}_${bucket_id}.csv
+          bucket_id:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          dir:
+            link: RESULTS DIR/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          execution_id:
+            link: EXEC ID/result
+            schema: string
+            mandatory: false
+            createdBy: format
   Get PII Columns:
     transactional: false
     actors:
@@ -319,13 +364,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          table:
-            external: table
-            schema: string
-            editor:
-              id: com.k2view.dbtable
-            mandatory: false
-            createdBy: flowName
           source_columns_to_Ignore_null:
             link: Row Info/value/source_columns_to_Ignore_null
             schema: any
@@ -368,11 +406,37 @@ stages:
             createdBy: flowName
           interfaceType:
             link: K2VERIFY_INTERFACE_SRC_TYPE/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
-  Post Load: {
-    }
+  Post Load:
+    actors:
+      pgCopy1:
+        parent: pgCopy
+        in:
+          interface:
+            const: null
+            link: RESULTS INTERFACE/result
+          schema:
+            const: null
+            link: RESULTS SCHEMA/result
+          table:
+            const: null
+            link: tableName/string
+          fields:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+          file_path:
+            link: fileName/string
 schemas:
   PopulationArgs.out.parent_rows:
     type: array

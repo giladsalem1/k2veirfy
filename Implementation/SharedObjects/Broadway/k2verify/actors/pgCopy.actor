@@ -1,0 +1,55 @@
+{
+    "type": "pgCopy",
+    "badge": "pg",
+    "inputs": [
+        {
+            "name": "interface",
+            "const": "",
+            "schema": {},
+            "editor": {
+                "id": "com.k2view.interface",
+                "interfaceType": [
+                    "database"
+                ]
+            },
+            "mandatory": false
+        },
+        {
+            "name": "schema",
+            "const": "",
+            "schema": {},
+            "editor": {
+                "id": "com.k2view.dbtable"
+            },
+            "mandatory": false
+        },
+        {
+            "name": "table",
+            "const": "",
+            "schema": {},
+            "editor": {
+                "id": "com.k2view.dbtable"
+            },
+            "mandatory": false
+        },
+        {
+            "name": "fields",
+            "const": "",
+            "schema": {
+                "type": "array",
+                "items": {}
+            },
+            "mandatory": false
+        },
+        {
+            "name": "file_path",
+            "schema": {},
+            "mandatory": false
+        }
+    ],
+    "outputs": [],
+    "tags": [
+        "k2verify"
+    ],
+    "actorClass": "com.k2view.cdbms.usercode.common.k2verify.pgCopy"
+}

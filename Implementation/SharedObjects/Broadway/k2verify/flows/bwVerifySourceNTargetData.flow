@@ -788,20 +788,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          schema:
-            external: schema
-            schema: string
-            editor:
-              id: com.k2view.dbtable
-            mandatory: false
-            createdBy: flowName
-          table:
-            external: table
-            schema: string
-            editor:
-              id: com.k2view.dbtable
-            mandatory: false
-            createdBy: flowName
           src_row:
             link: FilterSrcRow/result
             schema: '#ref'
@@ -824,32 +810,6 @@ stages:
             schema: '#ref'
             mandatory: false
             createdBy: flowName
-          source_column_value:
-            link:
-              path: PrimaryKeySrcValue/value
-              iterate: First
-            schema: '#ref'
-            mandatory: false
-            createdBy: flowName
-          operational_interface:
-            link: RESULT_INTERFACE/variableValue
-            schema: string
-            editor:
-              id: com.k2view.interface
-              interfaceType:
-              - database
-              - CassandraLoader
-              interfaces:
-              - fabric
-            mandatory: false
-            createdBy: flowName
-          operational_schema:
-            link: LOAD_SCHEMA/variableValue
-            schema: string
-            editor:
-              id: com.k2view.dbtable
-            mandatory: false
-            createdBy: flowName
           source_table_name:
             link: SRC DB Table/value
             schema: string
@@ -865,11 +825,9 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          field_summary_table_name:
-            link: GetSummaryTables/field_summary
+          bucket_id:
+            link: IID/value
             schema: string
-            editor:
-              id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
         out:
@@ -911,20 +869,6 @@ stages:
           execution_id:
             external: execution_id
             schema: string
-            mandatory: false
-            createdBy: flowName
-          schema:
-            external: schema
-            schema: string
-            editor:
-              id: com.k2view.dbtable
-            mandatory: false
-            createdBy: flowName
-          table:
-            external: table
-            schema: string
-            editor:
-              id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
           operational_interface:
@@ -969,13 +913,6 @@ stages:
           log_pass:
             link: K2VERIFY_LOG_PASS/result
             schema: string
-            mandatory: false
-            createdBy: flowName
-          field_summary_table_name:
-            link: GetSummaryTables/field_summary
-            schema: string
-            editor:
-              id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
           src_row:
@@ -1871,10 +1808,6 @@ schemas:
         TAR_SSN:
           type: string
   VerifyKeysExists.in.target_column_value:
-    type: array
-    items: {
-      }
-  VerifyKeysExists.in.source_column_value:
     type: array
     items: {
       }

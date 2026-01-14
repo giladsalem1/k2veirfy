@@ -1,5 +1,5 @@
 name,pattern,score
-"ACCOUNT_NAME","(?i)(.*ACCOUNT_NA.*|.*ACCT_NA.*|.*PAYPAL[_-]?ID.*)",1.0
+"ACCOUNT_NAME",(?i)(.*ACCOUNT_NA.*|.*ACCT_NA.*|.*PAYPAL[_-]?ID.*),1.0
 "ACCOUNT_NUMBER","(?i).*ACCOUNT_NU.*|(?i).*ACCT_NU.*|(?i)ACCOUNT",1.0
 "ADDRESS","(?i)ADDRESS.*|(?i)ADR[_0-1]|.*(?i)ADDR.*",1.0
 "AFFILIATE_ID","(?i)AFF.*ID",0.95
@@ -16,7 +16,7 @@ name,pattern,score
 "COUNTRY","(?i)COUNTRY",1.0
 "COUNTRY","(?i)CN",0.3
 "COUNTY","(?i)COUNTY",1.0
-"CREDIT_CARD","(?i)CREDIT_CARD.*|(?i)PAYMENT[METHOD]?|(?i)PAYMENT[_]METHOD|(?i)PYMT|(?i)PYMNT",0.9
+"CREDIT_CARD",(?i)CREDIT_CARD.*|(?i)PAYMENT[METHOD]?|(?i)PAYMENT[_]METHOD|(?i)PYMT|(?i)PYMNT,0.9
 "CREDIT_CARD","(?i)CC",0.4
 "CREDIT_SCORE","(?i)CREDIT_?SCORE",1.0
 "DATE_OF_BIRTH","(?i)DOB|(?i)B[_]?DATE|(?i)BIRTHD[ATE]?|(?i)BIRTHDAY",0.9
@@ -29,7 +29,6 @@ name,pattern,score
 "FINGERPRINTS","(?i)FINGER.*",1.0
 "FIRST_NAME","(?i)FIRST[_]?NAME|(?i)NAME[_]?FIRST",1.0
 "FIRST_NAME","(?i)FIRST[_]?N|(?i)N[_]?FIRST|(?i)F[_]?NAME|(?i)NAME[_]?F|(?i)N[_]?F|(?i)F[_]?N",0.8
-"FIRST_NAME","(?i).*FIRST_?NAME.*",0.75
 "FQDN","(?i)FQDN",1.0
 "FULL_NAME","(?i)FULL_?NAME",1.0
 "GENDER","(?i)GENDER",1.0
@@ -43,7 +42,6 @@ name,pattern,score
 "LANGUAGE","(?i).*LANG.*|(?i).*LANGUAGE.*",1.0
 "LAST_NAME","(?i)LAST[_]?NAME|(?i)NAME[_]?LAST",1.0
 "LAST_NAME","(?i)LAST[_]?N|(?i)N[_]?LAST|(?i)L[_]?NAME|(?i)NAME[_]?L|(?i)N[_]?L|(?i)L[_]?N|(?i)L.*NAME",0.8
-"LAST_NAME","(?i).*LAST_?NAME.*",0.75
 "LATITUDE","(?i)LATITUDE|(?i)LAT|(?i)PHI",0.9
 "LICENSE_KEY","(?i)PROD.*KEY|(?i)LICENSE",0.95
 "LINE","(?i)LINE.*",1.0
@@ -52,10 +50,9 @@ name,pattern,score
 "MAC_ADDRESS","(?i).*MAC[_]?ADDR.*",1.0
 "MIDDLE_NAME","(?i)MIDDLE_NAME|(?i)NAME_MIDDLE",1.0
 "MIDDLE_NAME","(?i)MIDDLE[_]?N|(?i)N[_]?MIDDLE|(?i)M[_]?NAME|(?i)NAME[_]?M|(?i)N[_]?M|(?i)M[_]?N|(?i)M.*NAME",0.8
-"MIDDLE_NAME","(?i).*MIDDLE_?NAME.*",0.75
 "NAME","(?i)CUST.*PARTY|(?i)CUST.*NAME|(?i)TECH.*NAME|(?i)CONT.*NAME",0.85
-"NAME","(?i).*_NAME_?.*",0.7
-"NAME","(?i).*NAME.*",0.65
+"NAME","(?i).*_NAME_?.*",0.8
+"NAME","(?i).*NAME.*",0.75
 "NATIONAL_ID","(?i).*NATIONAL[_]?(ID|NUM.*)",0.9
 "NOTES",".*((?<=^)|(?<=[_-]))(?i)NOTE[S]?((?=$)|(?=[_-](?!(?i)(ID|DATE)))).*",0.9
 "OCCUPATION","(?i)OCCUPATION|(?i)JOB[_]?TITLE",1.0
@@ -64,7 +61,7 @@ name,pattern,score
 "PASSPORT","(?i).*PASSPORT.*",1.0
 "PASSWORD","(?i)PASSWORD|(?i)PASSWD|(?i)SECRET",1.0
 "PAYMENT_CODE","(?i)CC[_]?CODE|(?i)CVV|(?i)CVC.*|(?i)CID|(?i)PAY.*[_]?CODE",1.0
-"PHOTOGRAPHS","(?i)(.*PHOTO.*|.*PICTURE.*)",1.0
+"PHOTOGRAPHS",(?i)(.*PHOTO.*|.*PICTURE.*),1.0
 "PIN","(?i)\b[_]?PIN[_]?[N]?\b",1.0
 "PIN","(?i).*[_]?PIN[_]?[N]?.*",0.2
 "POSTAL_CODE","(?i)ZIP.*|(?i).*[_]?POSTAL[_].*",0.9
@@ -79,9 +76,9 @@ name,pattern,score
 "SIP_ADDRESS","(?i).*SIP[_]?ADDR.*",1.0
 "SOCIAL_MEDIA","(?i).*SOCIAL.*",0.8
 "SOCIAL_SECURITY_NUMBER","(?i)(SSN|SOCIAL[_ ]?SECURITY[_ ]?N.*)",0.95
+"STATE_ID","(?i).*STATE[_]?(ID|NUM.*)",0.8
 "STATE","(?i)STATE.*",0.9
 "STATEMENT","(?i)(STATEMENT.*|INVOICE[_]?IMAGE)",0.8
-"STATE_ID","(?i).*STATE[_]?(ID|NUM.*)",0.8
 "STREET",".*(?i)STREET.*",1.0
 "TAX_ID","(?i).*TAX[_]?ID.*|(?i).*TAX[_]?N.*|(?i).*TAXPAYER[_]?ID.*|(?i).*TAXPAYER[_]?N.*",1.0
 "TAX_ID","(?i).*TAX.?ID.*",0.9

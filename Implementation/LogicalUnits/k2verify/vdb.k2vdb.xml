@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <VirtualDB xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="">
   <Name>vdb</Name>
   <RootView>root</RootView>
@@ -34,7 +34,7 @@
     </TableProperties>
 	 <TableProperties name="record_summary">
       <Populations>
-        <Population name="record_summary_population.flow" order="901" disabled="false" populationType="Flow" />
+        <Population name="record_summary_population.flow" order="901" disabled="true" populationType="Flow" />
       </Populations>
     </TableProperties>
 	 <TableProperties name="root">

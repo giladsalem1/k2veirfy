@@ -1,0 +1,2 @@
+pk_schema,pk_table,pk_columns,fk_schema,fk_table,fk_columns,note
+CUSTOMER,CUSTOMERS,CUSTOMER_ID,CUSTOMER,EVENTS,EVENT_ID,testtest

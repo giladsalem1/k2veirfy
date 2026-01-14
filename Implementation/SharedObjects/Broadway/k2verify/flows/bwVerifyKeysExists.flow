@@ -62,6 +62,22 @@ stages:
             const: Target Key Not Found In Source
             schema: string
             mandatory: false
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+            mandatory: false
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+            mandatory: false
+          COLUMN_NAME:
+            external: key_columns
+            schema: string
+            mandatory: false
+          IID:
+            const: '0'
+            schema: string
+            mandatory: false
         out:
           map:
             schema: '#ref'
@@ -78,7 +94,7 @@ stages:
             link: TarRecord=[{}]/result
           a:
             link: IsNull2/result
-      ReportDetailsMap2:
+      ReportDetailsMap11:
         parent: MapCreate
         in:
           EXECUTION_ID:
@@ -89,12 +105,28 @@ stages:
             external: customized_key
             schema: string
             mandatory: false
-          SOURCE_COLUMN_VALUE:
-            external: source_column_value
+          TARGET_COLUMN_VALUE:
+            external: target_column_value
             schema: '#ref'
             mandatory: false
           MATCH_RESULT:
             const: Source Key Not Found In Target
+            schema: string
+            mandatory: false
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+            mandatory: false
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+            mandatory: false
+          COLUMN_NAME:
+            external: key_columns
+            schema: string
+            mandatory: false
+          IID:
+            const: '0'
             schema: string
             mandatory: false
         out:
@@ -130,86 +162,40 @@ stages:
             schema: boolean
           a:
             link: Or1/result
-      UpdateMissingInLUDB:
-        parent: DbLoad
+      Result Files Dir:
+        parent: FabricSetRead
         in:
-          interface:
-            const: fabric
-          schema:
-            const: null
-            external: schema
-          table:
-            const: null
-            external: table
-          fields:
-            const:
-            - EXECUTION_ID
-            - IID
-            - SOURCE_TABLE_NAME
-            - TARGET_TABLE_NAME
-            - CUSTOMIZED_KEY
-            - COLUMN_NAME
-            - MATCH_RESULT
-            - TARGET_VALUE_SECURED
-            - SOURCE_COLUMN_VALUE
-            - TARGET_COLUMN_VALUE
-            - SOURCE_COLUMN_VALUE_TRANS
-            - TARGET_COLUMN_VALUE_TRANS
-          keys:
-            const:
-            - EXECUTION_ID
-            - IID
-            - SOURCE_TABLE_NAME
-            - TARGET_TABLE_NAME
-            - CUSTOMIZED_KEY
-            - COLUMN_NAME
-          EXECUTION_ID:
-            schema: string
-          IID:
-            const: '0'
-            schema: string
-          SOURCE_TABLE_NAME:
-            external: source_table_name
-            schema: string
-          TARGET_TABLE_NAME:
-            external: target_table_name
-            schema: string
-          CUSTOMIZED_KEY:
-            schema: string
-          COLUMN_NAME:
-            external: key_columns
-            schema: string
-          MATCH_RESULT:
-            schema: string
-          SOURCE_COLUMN_VALUE:
-            schema: string
-          TARGET_COLUMN_VALUE:
-            schema: string
-          SOURCE_COLUMN_VALUE_TRANS:
-            schema: string
-          TARGET_COLUMN_VALUE_TRANS:
-            schema: string
-          TARGET_VALUE_SECURED:
-            const: 'true'
+          key:
+            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+      Format File Name:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/field_result_${execution_id}_${bucket_id}.csv
+          bucket_id:
+            external: bucket_id
             schema: string
             mandatory: false
-          params:
-            link:
-            - ReportDetailsMap1/map
-            - ReportDetailsMap2/map
-      UpdateMissingInDB:
-        parent: DbLoad
+            createdBy: format
+          dir:
+            link: Result Files Dir/result
+            schema: any
+            mandatory: false
+            createdBy: format
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: format
+  Format Csv:
+    transactional: true
+    actors:
+      CsvBuilder1:
+        parent: CsvBuilder
         in:
-          interface:
-            const: null
-            external: operational_interface
-          schema:
-            const: null
-            external: operational_schema
-          table:
-            const: null
-            external: field_summary_table_name
-          fields:
+          header:
+            const: false
+          columns:
             const:
             - EXECUTION_ID
             - IID
@@ -221,51 +207,24 @@ stages:
             - TARGET_VALUE_SECURED
             - SOURCE_COLUMN_VALUE
             - TARGET_COLUMN_VALUE
-            - SOURCE_COLUMN_VALUE_TRANS
-            - TARGET_COLUMN_VALUE_TRANS
-          keys:
-            const:
-            - EXECUTION_ID
-            - IID
-            - SOURCE_TABLE_NAME
-            - TARGET_TABLE_NAME
-            - CUSTOMIZED_KEY
-            - COLUMN_NAME
-          batch:
+          maps:
+            link:
+            - ReportDetailsMap1/map
+            - ReportDetailsMap11/map
+  Write to file:
+    transactional: true
+    actors:
+      FileWrite1:
+        parent: FileWrite
+        in:
+          interface:
+            const: file://
+          append:
             const: true
-          EXECUTION_ID:
-            schema: string
-          IID:
-            const: '0'
-            schema: string
-          SOURCE_TABLE_NAME:
-            external: source_table_name
-            schema: string
-          TARGET_TABLE_NAME:
-            external: target_table_name
-            schema: string
-          CUSTOMIZED_KEY:
-            schema: string
-          COLUMN_NAME:
-            external: key_columns
-            schema: string
-          MATCH_RESULT:
-            schema: string
-          SOURCE_COLUMN_VALUE:
-            schema: string
-          TARGET_COLUMN_VALUE:
-            schema: string
-          SOURCE_COLUMN_VALUE_TRANS:
-            schema: string
-          TARGET_COLUMN_VALUE_TRANS:
-            schema: string
-          TARGET_VALUE_SECURED:
-            schema: string
-            mandatory: false
-          params:
-            link:
-            - ReportDetailsMap1/map
-            - ReportDetailsMap2/map
+          path:
+            link: Format File Name/string
+          stream:
+            link: CsvBuilder1/csv
 schemas:
   SrcRecord=[{}].in.b:
     type: array
@@ -290,16 +249,18 @@ schemas:
         type: string
       MATCH_RESULT:
         type: string
-  ReportDetailsMap2.in.SOURCE_COLUMN_VALUE:
+  ReportDetailsMap11.in.TARGET_COLUMN_VALUE:
     type: array
     items: {
       }
-  ReportDetailsMap2.out.map:
+  ReportDetailsMap11.out.map:
     type: object
     properties:
-      EXECUTION_ID: {
-        }
+      EXECUTION_ID:
+        type: string
       CUSTOMIZED_KEY: {
         }
-      SOURCE_COLUMN_VALUE: {
-        }
+      TARGET_COLUMN_VALUE:
+        type: string
+      MATCH_RESULT:
+        type: string
