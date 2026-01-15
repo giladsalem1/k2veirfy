@@ -198,6 +198,8 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution
     start_time         timestamp without time zone,
     started_by         text,
     end_time           timestamp without time zone,
+    time_until_pk          timestamp without time zone,
+    time_after_pk          timestamp without time zone,
     time_until_index          timestamp without time zone,
     time_after_index          timestamp without time zone,
     CONSTRAINT task_execution_pk PRIMARY KEY (execution_id, task_id),

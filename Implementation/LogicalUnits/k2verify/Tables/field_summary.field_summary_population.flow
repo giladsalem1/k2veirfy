@@ -100,6 +100,18 @@ stages:
         out:
           result:
             schema: string
+      ToNumber1:
+        parent: ToNumber
+        height: 329
+        in:
+          value:
+            link: TASK ID/result
+      ToNumber2:
+        parent: ToNumber
+        height: 84
+        in:
+          value:
+            link: EXEC ID/result
   Fetch table verify config:
     actors:
       MTableLookup1:
@@ -409,6 +421,57 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+  Stage 4:
+    actors:
+      Now:
+        parent: Now
+      START_TIME:
+        parent: ToString
+        in:
+          value:
+            link: Now/date
+  Stage 2:
+    actors:
+      'Update #Processed':
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULTS INTERFACE/result
+          sql:
+            const: update ${@schema}.task_execution_buckets set time_until_copy =
+              ${time_until_copy} where task_id=${task_id} and execution_id=${execution_id}
+              and table_name=${table_name} and bucket_id=${bucket_id}
+          schema:
+            link: RESULTS SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: ToNumber1/number
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ToNumber2/number
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC TABLE/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          time_until_copy:
+            link: START_TIME/string
+            schema: any
+            mandatory: false
+            createdBy: sql
   Post Load:
     actors:
       pgCopy1:
@@ -439,6 +502,57 @@ stages:
             const: false
           file_path:
             link: fileName/string
+  Stage 5:
+    actors:
+      Now1:
+        parent: Now
+      START_TIME1:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 3:
+    actors:
+      'Update #Processed1':
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULTS INTERFACE/result
+          sql:
+            const: update ${@schema}.task_execution_buckets set time_after_copy =
+              ${time_after_copy} where task_id=${task_id} and execution_id=${execution_id}
+              and table_name=${table_name} and bucket_id=${bucket_id}
+          schema:
+            link: RESULTS SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: ToNumber1/number
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ToNumber2/number
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC TABLE/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          time_after_copy:
+            link: START_TIME1/string
+            schema: any
+            mandatory: false
+            createdBy: sql
   Stage 1:
     actors:
       rm1:
@@ -448,6 +562,12 @@ stages:
             const: file://
           path:
             link: fileName/string
+  Stage 6: {
+    }
+  Stage 7: {
+    }
+  Stage 8: {
+    }
 schemas:
   PopulationArgs.out.parent_rows:
     type: array

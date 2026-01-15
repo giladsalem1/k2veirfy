@@ -881,6 +881,104 @@
         {
             "stages": [
                 {
+                    "name": "Stage 4",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Now2",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME1",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 5",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Update task end_time1",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set time_until_pk='${@time_until_pk}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "time_until_pk",
+                                        "schema": {},
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
                     "name": "Stage 1",
                     "dependsOnList": [],
                     "actors": [
@@ -915,6 +1013,192 @@
                                     }
                                 ],
                                 "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Now3",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME11",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 7",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Update task end_time11",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set time_after_pk='${@time_after_pk}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "time_after_pk",
+                                        "schema": {},
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 8",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Now4",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME111",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 9",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Update task end_time12",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set time_until_index='${@time_until_index}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "time_until_index",
+                                        "schema": {},
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
@@ -958,6 +1242,95 @@
                                     }
                                 ],
                                 "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Now5",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME1111",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 10",
+                    "dependsOnList": [],
+                    "isTransactional": false,
+                    "actors": [
+                        {
+                            "name": "Update task end_time111",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set time_after_index='${@time_after_index}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "time_after_index",
+                                        "schema": {},
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
@@ -1358,6 +1731,46 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time1",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time11",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time111",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time12",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -1458,6 +1871,56 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time1",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time11",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time111",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update task end_time12",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "Now",
                 "name": "date"
             },
@@ -1538,6 +2001,46 @@
         },
         {
             "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Update task end_time1",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Update task end_time11",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Update task end_time111",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Update task end_time12",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "FetchUser",
                 "name": "result"
             },
@@ -1574,6 +2077,46 @@
             "rightPort": {
                 "actor": "ToString1",
                 "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Update task end_time1",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Update task end_time11",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Update task end_time111",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Update task end_time12",
+                "name": "execution_id"
             }
         },
         {
@@ -1812,6 +2355,86 @@
             "path": [
                 "Name"
             ]
+        },
+        {
+            "leftPort": {
+                "actor": "Now2",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME1",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Update task end_time1",
+                "name": "time_until_pk"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now3",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME11",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME11",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Update task end_time11",
+                "name": "time_after_pk"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now4",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME111",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME111",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Update task end_time12",
+                "name": "time_until_index"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now5",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME1111",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME1111",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Update task end_time111",
+                "name": "time_after_index"
+            }
         },
         {
             "leftPort": {
