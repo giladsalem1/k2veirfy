@@ -23,7 +23,7 @@ stages:
             external: dbInterface
           sql:
             const: |-
-              select customized_key,column_name,match_result,source_column_value,target_column_value from ${@schema_name}.k2verify_field_summary
+              select customized_key,column_name,match_result,source_column_value,target_column_value from ${@schema_name}.k2verify_field_summary_${@execution_id}
               where execution_id = ${execution_id} and source_table_name = ${source_table_name} and lower(match_result)='not passed'
           schema_name:
             external: schema_name

@@ -724,9 +724,7 @@
                                     },
                                     {
                                         "name": "maxWorkers",
-                                        "schema": {
-                                            "type": "string"
-                                        },
+                                        "schema": {},
                                         "createdBy": "format",
                                         "mandatory": false
                                     }
@@ -739,14 +737,7 @@
                             "actorType": {
                                 "parentType": "IfElse",
                                 "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
+                                "outputs": []
                             }
                         },
                         {
@@ -797,7 +788,7 @@
                                 "inputs": [
                                     {
                                         "name": "format",
-                                        "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true'  ${maxWorkers};"
+                                        "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
                                     },
                                     {
                                         "const": "k2verify",
@@ -1556,304 +1547,6 @@
                     "actors": []
                 }
             ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Table summary ",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "TableSummaryRows",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "SELECT\n  execution_id,\n  iid,\n  source_table_name,\n  target_table_name,\n  SUM(\"MATCH\")    AS number_of_records_match,\n  SUM(mismatch)   AS number_of_records_mismatch,\n  SUM(nofois)     AS number_of_records_only_in_source,\n  SUM(nofoit)     AS number_of_records_only_in_target,\n  SUM(nofuit)     AS number_of_records_unsecured_in_target\nFROM (\n  SELECT\n    r.execution_id,\n    r.iid,\n    r.source_table_name,\n    r.target_table_name,\n    CASE WHEN r.number_of_fields_mismatch > 0 THEN 1 ELSE 0 END AS mismatch,\n    CASE WHEN r.number_of_fields_mismatch = 0\n              AND r.number_of_fields_only_in_target = 0\n              AND r.number_of_fields_only_in_source = 0\n         THEN 1 ELSE 0 END AS \"MATCH\",\n    CASE WHEN r.number_of_fields_only_in_target > 0 THEN 1 ELSE 0 END AS nofoit,\n    CASE WHEN r.number_of_fields_only_in_source > 0 THEN 1 ELSE 0 END AS nofois,\n    CASE WHEN r.number_of_fields_unsecured_in_target > 0 THEN 1 ELSE 0 END AS nofuit\n  FROM ${@result_schema}.k2verify_record_summary r\n  GROUP BY\n    r.execution_id,\n    r.iid,\n    r.source_table_name,\n    r.target_table_name,\n    r.customized_key,\n    -- include the CASE expressions in GROUP BY for Postgres\n    CASE WHEN r.number_of_fields_mismatch > 0 THEN 1 ELSE 0 END,\n    CASE WHEN r.number_of_fields_mismatch = 0\n              AND r.number_of_fields_only_in_target = 0\n              AND r.number_of_fields_only_in_source = 0\n         THEN 1 ELSE 0 END,\n    CASE WHEN r.number_of_fields_only_in_target > 0 THEN 1 ELSE 0 END,\n    CASE WHEN r.number_of_fields_only_in_source > 0 THEN 1 ELSE 0 END,\n    CASE WHEN r.number_of_fields_unsecured_in_target > 0 THEN 1 ELSE 0 END\n) t\nwhere execution_id=${@execution_id} and source_table_name='${@source_table_name}'\nGROUP BY\n  execution_id, iid, source_table_name, target_table_name;\n"
-                                    },
-                                    {
-                                        "name": "execution_id",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "result_schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "source_table_name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "execution_id": {
-                                                        "type": "string"
-                                                    },
-                                                    "iid": {
-                                                        "type": "string"
-                                                    },
-                                                    "source_table_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "target_table_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "number_of_records_match": {
-                                                        "type": "integer"
-                                                    },
-                                                    "number_of_records_mismatch": {
-                                                        "type": "integer"
-                                                    },
-                                                    "number_of_records_only_in_source": {
-                                                        "type": "integer"
-                                                    },
-                                                    "number_of_records_only_in_target": {
-                                                        "type": "integer"
-                                                    },
-                                                    "number_of_records_unsecured_in_target": {
-                                                        "type": "integer"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Table results",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "Is Matched",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "var rs;\nif( mismatch == 0 && source == 0 && target == 0){\n    rs = 'PASSED';\n}else{\n    rs = 'NOT PASSED';\n}"
-                                    },
-                                    {
-                                        "name": "mismatch",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    {
-                                        "name": "source",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    {
-                                        "name": "target",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Load table summary report",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "CheckReportCondition",
-                            "condition": "insert",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "InnerFlow",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwCheckReportCondition"
-                                    },
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "insert",
-                                        "schema": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "TableSummaryReport",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "DbLoad",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": "K2VERIFY_OPERATIONAL_DB"
-                                    },
-                                    {
-                                        "name": "schema",
-                                        "const": "k2verify"
-                                    },
-                                    {
-                                        "name": "table",
-                                        "const": "k2verify_table_summary"
-                                    },
-                                    {
-                                        "name": "fields",
-                                        "const": [
-                                            "execution_id",
-                                            "iid",
-                                            "source_table_name",
-                                            "target_table_name",
-                                            "number_of_records_match",
-                                            "number_of_records_mismatch",
-                                            "number_of_records_only_in_source",
-                                            "number_of_records_only_in_target",
-                                            "number_of_records_unsecured_in_target",
-                                            "match_result"
-                                        ]
-                                    },
-                                    {
-                                        "name": "keys",
-                                        "const": [
-                                            "execution_id",
-                                            "iid",
-                                            "source_table_name",
-                                            "target_table_name"
-                                        ]
-                                    },
-                                    {
-                                        "name": "dialect",
-                                        "const": "postgres"
-                                    },
-                                    {
-                                        "name": "execution_id",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "iid",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "source_table_name",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "target_table_name",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "number_of_records_match",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "number_of_records_mismatch",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "number_of_records_only_in_source",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "number_of_records_only_in_target",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "number_of_records_unsecured_in_target",
-                                        "schema": {},
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "match_result",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
         }
     ],
     "connections": [
@@ -1875,16 +1568,6 @@
             "rightPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "luName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "LUName",
-                "name": "lu_name"
-            },
-            "rightPort": {
-                "actor": "CheckReportCondition",
-                "name": "schema"
             }
         },
         {
@@ -2009,16 +1692,6 @@
         },
         {
             "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -2065,16 +1738,6 @@
             "rightPort": {
                 "actor": "VerifyFailed",
                 "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "result_schema"
             }
         },
         {
@@ -2495,76 +2158,6 @@
         },
         {
             "leftPort": {
-                "actor": "TableSummaryRows",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TableSummaryReport",
-                "name": "params"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "TableSummaryRows",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "Is Matched",
-                "name": "mismatch"
-            },
-            "path": [
-                "number_of_records_mismatch"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "TableSummaryRows",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "Is Matched",
-                "name": "source"
-            },
-            "path": [
-                "number_of_records_only_in_source"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "TableSummaryRows",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "Is Matched",
-                "name": "target"
-            },
-            "path": [
-                "number_of_records_only_in_target"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "Is Matched",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "CheckReportCondition",
-                "name": "result"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Is Matched",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TableSummaryReport",
-                "name": "match_result"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "flowArgs",
                 "name": "Source_Table_Name"
             },
@@ -2831,26 +2424,6 @@
             "rightPort": {
                 "actor": "VerifyCompleted",
                 "name": "table_name"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "execution_id"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Source_Table_Name"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "source_table_name"
             }
         }
     ]

@@ -180,7 +180,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: ${dir}/field_result_${execution_id}_${bucket_id}.csv
+            const: ${dir}/verify_fields_results_${execution_id}_${bucket_id}.csv
           bucket_id:
             link: IID/result
             schema: string
@@ -435,7 +435,18 @@ stages:
             - TARGET_VALUE_SECURED
             - SOURCE_COLUMN_VALUE
             - TARGET_COLUMN_VALUE
+          header:
+            const: false
           file_path:
+            link: fileName/string
+  Stage 1:
+    actors:
+      rm1:
+        parent: rm
+        in:
+          interface:
+            const: file://
+          path:
             link: fileName/string
 schemas:
   PopulationArgs.out.parent_rows:

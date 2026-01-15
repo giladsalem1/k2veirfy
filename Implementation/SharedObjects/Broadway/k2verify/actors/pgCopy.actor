@@ -3,8 +3,8 @@
     "badge": "pg",
     "inputs": [
         {
-            "name": "interface",
             "const": "",
+            "name": "interface",
             "schema": {},
             "editor": {
                 "id": "com.k2view.interface",
@@ -15,8 +15,8 @@
             "mandatory": false
         },
         {
+            "const": "",
             "name": "schema",
-            "const": "",
             "schema": {},
             "editor": {
                 "id": "com.k2view.dbtable"
@@ -24,8 +24,8 @@
             "mandatory": false
         },
         {
+            "const": "",
             "name": "table",
-            "const": "",
             "schema": {},
             "editor": {
                 "id": "com.k2view.dbtable"
@@ -33,8 +33,8 @@
             "mandatory": false
         },
         {
-            "name": "fields",
             "const": "",
+            "name": "fields",
             "schema": {
                 "type": "array",
                 "items": {}
@@ -44,6 +44,14 @@
         {
             "name": "file_path",
             "schema": {},
+            "mandatory": false
+        },
+        {
+            "name": "header",
+            "const": true,
+            "schema": {
+                "type": "boolean"
+            },
             "mandatory": false
         }
     ],

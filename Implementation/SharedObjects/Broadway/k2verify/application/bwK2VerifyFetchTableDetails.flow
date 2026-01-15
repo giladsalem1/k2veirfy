@@ -28,8 +28,8 @@ stages:
             default: true
           sql:
             const: select distinct source_table_name,target_table_name,column_name,execution_id
-              from ${@schema_name}.k2verify_field_summary where execution_id = ${execution_id}
-              order by source_table_name
+              from ${@schema_name}.k2verify_field_summary_${@execution_id} where execution_id
+              = ${execution_id} order by source_table_name
           schema_name:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
             schema: string

@@ -171,7 +171,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: ${dir}/field_result_${execution_id}_${bucket_id}.csv
+            const: ${dir}/verify_fields_results_${execution_id}_${bucket_id}.csv
           bucket_id:
             external: bucket_id
             schema: string

@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_record_summary (
   )
 );
 
-CREATE INDEX IF NOT EXISTS IID_RECORD_SUMMARY_IDX ON ${@schema}.k2verify_record_summary (iid);
+CREATE INDEX IF NOT EXISTS IID_RECORD_SUMMARY_IDX ON ${@schema}.k2verify_record_summary (execution_id, source_table_name, target_table_name);
 
 --DROP TABLE IF EXISTS ${@schema}.k2verify_table_summary;
 
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_summary (
   )
 );
 
-CREATE INDEX IF NOT EXISTS IID_TABLE_SUMMARY_IDX ON ${@schema}.k2verify_table_summary (iid);
+CREATE INDEX IF NOT EXISTS IID_TABLE_SUMMARY_IDX ON ${@schema}.k2verify_table_summary (execution_id, source_table_name);
 
 --DROP VIEW IF EXISTS ${@schema}.k2verify_execution_summary;
 
@@ -198,6 +198,8 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution
     start_time         timestamp without time zone,
     started_by         text,
     end_time           timestamp without time zone,
+    time_until_index          timestamp without time zone,
+    time_after_index          timestamp without time zone,
     CONSTRAINT task_execution_pk PRIMARY KEY (execution_id, task_id),
     CONSTRAINT task_execution_id_ux UNIQUE (execution_id),
     CONSTRAINT task_execution_task_fk FOREIGN KEY (task_id)
@@ -250,6 +252,8 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_buckets
     start_time        timestamp without time zone,
     end_time          timestamp without time zone,
     error_info        text,
+    time_until_copy          timestamp without time zone,
+    time_after_copy          timestamp without time zone,
     CONSTRAINT task_execution_buckets_pk
         PRIMARY KEY (task_id, execution_id, table_name, bucket_id),
 

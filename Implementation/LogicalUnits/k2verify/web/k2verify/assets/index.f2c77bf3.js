@@ -36169,7 +36169,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.43507442.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.6d6ef64c.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -38913,6 +38913,36 @@ function K2VerifyReportPdfButton({
     const basic = cd2.match(/filename\s*=\s*("?)([^";]+)\1/i);
     return (basic == null ? void 0 : basic[2]) ? basic[2].trim() : "";
   };
+  const normalizeBroadwayRows = (data2) => {
+    var _a2, _b2;
+    if (Array.isArray(data2)) {
+      if (data2.length >= 2 && typeof ((_a2 = data2[0]) == null ? void 0 : _a2.map) === "number" && Array.isArray((_b2 = data2[1]) == null ? void 0 : _b2.map)) {
+        return data2[1].map;
+      }
+      if (data2.every((x2) => x2 && typeof x2 === "object" && !Array.isArray(x2))) {
+        return data2;
+      }
+      return [];
+    }
+    if (data2 && Array.isArray(data2.rows))
+      return data2.rows;
+    return [];
+  };
+  const csvEscape = (v2) => {
+    const s2 = String(v2 != null ? v2 : "");
+    if (/[",\n\r]/.test(s2))
+      return `"${s2.replace(/"/g, '""')}"`;
+    return s2;
+  };
+  const rowsToCsv = (rows) => {
+    const headers = ["Data Platform", "Schema", "Table", "PII Column"];
+    const keys = ["interface_name", "schema_name", "table_name", "pii_column"];
+    const lines = [
+      headers.join(","),
+      ...rows.map((r2) => keys.map((k3) => csvEscape(r2 == null ? void 0 : r2[k3])).join(","))
+    ];
+    return "\uFEFF" + lines.join("\r\n");
+  };
   const fetchZipFromWs = react.exports.useCallback(async () => {
     var _a2;
     const nodeId = "localhost";
@@ -38939,6 +38969,16 @@ function K2VerifyReportPdfButton({
       blob,
       fileName
     };
+  }, [effectiveExecutionId]);
+  const fetchPiiRowsFromBroadway = react.exports.useCallback(async () => {
+    const command = `broadway k2verify.bwDownloadColumnLevelPIIData execution_id='${String(effectiveExecutionId)}' RESULT_STRUCTURE=CURSOR`;
+    const res = await fetch(`/api/fabric-command?command=${encodeURIComponent(command)}`, {
+      method: "GET"
+    });
+    if (!res.ok)
+      throw new Error(`PII download failed (HTTP ${res.status})`);
+    const data2 = await res.json();
+    return normalizeBroadwayRows(data2);
   }, [effectiveExecutionId]);
   const buildPdfBlob = () => {
     if (!(tableSummaryData == null ? void 0 : tableSummaryData.length)) {
@@ -39225,29 +39265,34 @@ function K2VerifyReportPdfButton({
       autoTable(doc, tableOpts(tableStartYPage1, page1CardH));
       return doc.lastAutoTable.finalY + 10;
     };
+    const pageWidth2 = doc.internal.pageSize.getWidth();
+    const pageHeight2 = doc.internal.pageSize.getHeight();
+    const drawFooter = () => {
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i2 = 1; i2 <= totalPages; i2++) {
+        doc.setPage(i2);
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        const footerY = pageHeight2 - 10;
+        doc.text(`Generated on ${new Date().toLocaleString()}`, M2, footerY);
+        if (logoImage22) {
+          const logoW = 18;
+          const logoH = 5;
+          const logoX = (pageWidth2 - logoW) / 2;
+          const logoY = pageHeight2 - 10;
+          doc.addImage(logoImage22, "PNG", logoX, logoY, logoW, logoH);
+        }
+        doc.text(`Page ${i2} of ${totalPages}`, pageWidth2 - M2, footerY, {
+          align: "right"
+        });
+      }
+    };
     drawPageBackground();
     drawHeader();
     let y2 = 35;
     y2 = renderExecutionSummaryTiles(y2);
     y2 = renderTableLevelSummary(y2);
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i2 = 1; i2 <= totalPages; i2++) {
-      doc.setPage(i2);
-      doc.setFontSize(8);
-      doc.setTextColor(...COLORS.subtle);
-      const footerY = pageHeight - 10;
-      doc.text(`Generated on ${new Date().toLocaleString()}`, M2, footerY);
-      if (logoImage22) {
-        const logoW = 18;
-        const logoH = 5;
-        const logoX = (pageWidth - logoW) / 2;
-        const logoY = pageHeight - 10;
-        doc.addImage(logoImage22, "PNG", logoX, logoY, logoW, logoH);
-      }
-      doc.text(`Page ${i2} of ${totalPages}`, pageWidth - M2, footerY, {
-        align: "right"
-      });
-    }
+    drawFooter();
     return doc.output("blob");
   };
   const handleDownloadReport = async () => {
@@ -39262,10 +39307,25 @@ function K2VerifyReportPdfButton({
       perf.start("PDF Generation + Download");
       const pdfBlob = buildPdfBlob();
       if (pdfBlob) {
-        const pdfFileName = `${base2}_Report.pdf`;
-        downloadBlob(pdfBlob, pdfFileName);
+        downloadBlob(pdfBlob, `${base2}_Report.pdf`);
       }
       perf.end("PDF Generation + Download");
+      perf.start("PII CSV (Broadway) Generation + Download");
+      const piiRows = await fetchPiiRowsFromBroadway();
+      if (piiRows == null ? void 0 : piiRows.length) {
+        const csvText = rowsToCsv(piiRows);
+        const csvBlob = new Blob([csvText], {
+          type: "text/csv;charset=utf-8"
+        });
+        downloadBlob(csvBlob, `${base2}_PII_Columns.csv`);
+      } else {
+        const csvText = rowsToCsv([]);
+        const csvBlob = new Blob([csvText], {
+          type: "text/csv;charset=utf-8"
+        });
+        downloadBlob(csvBlob, `${base2}_PII_Columns.csv`);
+      }
+      perf.end("PII CSV (Broadway) Generation + Download");
       perf.start("ZIP Download (WS)");
       const {
         blob: zipBlob,

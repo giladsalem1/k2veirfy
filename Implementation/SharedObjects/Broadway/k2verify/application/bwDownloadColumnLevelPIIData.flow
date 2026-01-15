@@ -1,0 +1,242 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      execution_id:
+        parent: ToString
+        in:
+          value:
+            external: execution_id
+  Stage 2:
+    actors:
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: select distinct source_table_name from ${@schema_name}.k2verify_table_summary
+              where execution_id =${execution_id}
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: execution_id/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      MTableLookup1:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: k2verify_config
+          Source_Table_Name:
+            link:
+              path: DbCommand2/result/source_table_name
+              iterate: Iterate
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+          pii:
+            schema: string
+  Stage 8:
+    actors:
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: '|'
+          string:
+            link:
+              path: MTableLookup1/result/Pii_Columns
+              iterate: First
+      interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Interface
+              iterate: First
+      schema name:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Schema
+              iterate: First
+        out:
+          value:
+            schema: string
+      table name:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: MTableLookup1/result/Source_Table_Name
+              iterate: First
+        out:
+          value:
+            schema: string
+  Stage 10:
+    actors:
+      JavaScript3:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              var res ={
+                  "interface_name":interface_name,
+                  "table_name":table_name,
+                  "schema_name":schema_name,
+                  "pii_column":pii_column
+              }
+              res
+          table_name:
+            link: table name/value
+            schema: '#ref'
+            mandatory: false
+          schema_name:
+            link: schema name/value
+            schema: '#ref'
+            mandatory: false
+          pii_column:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          interface_name:
+            link: interface/value
+            schema: any
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 11:
+    last: 1
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: JavaScript3/result
+        out:
+          array:
+            external: array
+            schema: '#ref'
+  Stage 4:
+    last: 1
+  Stage 9: {
+    }
+  Stage 5: {
+    }
+  Stage 7: {
+    }
+  Stage 6: {
+    }
+schemas:
+  DbCommand2.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        source_table_name:
+          type: string
+  MTableLookup1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        Source_Table_Name:
+          type: string
+        Source_Interface:
+          type: string
+        Source_Schema:
+          type: string
+        Source_Transformation_Function_Name: {
+          }
+        source_columns_to_Ignore_null: {
+          }
+        Target_Table_Name:
+          type: string
+        Target_Interface:
+          type: string
+        Target_Schema:
+          type: string
+        Target_Transformation_Function_Name: {
+          }
+        target_columns_to_Ignore_null: {
+          }
+        Customized_Key_Comparison:
+          type: string
+        Pii_Columns:
+          type: string
+        Excluded_Columns_Names: {
+          }
+        Active:
+          type: string
+        Mode: {
+          }
+        Excluded_Rows_Sql: {
+          }
+        Column_Mapping: {
+          }
+        Buckets:
+          type: string
+        Buckets_Method:
+          type: string
+  JavaScript3.in.table_name:
+    type: array
+    items:
+      type: string
+  JavaScript3.in.schema_name:
+    type: array
+    items:
+      type: string
+  JavaScript3.out.result:
+    type: object
+    properties:
+      table_name:
+        type: string
+      schema_name:
+        type: string
+      pii_column:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        table_name:
+          type: string
+        schema_name:
+          type: string
+        pii_column:
+          type: string

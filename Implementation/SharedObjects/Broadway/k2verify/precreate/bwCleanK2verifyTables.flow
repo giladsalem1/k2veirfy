@@ -34,3 +34,5 @@ stages:
               iterate: Iterate
             schema: string
             mandatory: false
+  Stage 1:
+    transactional: true

@@ -1,4 +1,4 @@
-import { c as commonjsGlobal, _ as _typeof$1 } from "./index.64a9310d.js";
+import { c as commonjsGlobal, _ as _typeof$1 } from "./index.f2c77bf3.js";
 var es_promise = {};
 var es_promise_constructor = {};
 "use strict";

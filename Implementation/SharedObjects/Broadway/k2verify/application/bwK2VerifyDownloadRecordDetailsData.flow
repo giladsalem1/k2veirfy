@@ -56,53 +56,68 @@ stages:
           value:
             schema: string
   Stage 3:
+    last: 1
     actors:
-      DbCommand1:
-        parent: DbCommand
+      InnerFlowAsync1:
+        parent: InnerFlowAsync
         in:
+          flowName:
+            const: bwK2VerifyDownloadRecordDetailsDataInner
+          threadCount:
+            const: 8
+          saveResults:
+            const: false
+          table_name:
+            link: table name/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
           interface:
-            const: null
-            link: K2VERIFY_OPERATIONAL_INTERFACE/result
-          sql:
-            const: |-
-              select customized_key,column_name,match_result,source_column_value,target_column_value from ${@schema_name}.k2verify_field_summary
-              where execution_id = ${execution_id} and source_table_name = ${source_table_name} and lower(match_result)='not passed'
+            external: interface
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+            mandatory: false
+            createdBy: flowName
           schema_name:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: flowName
           execution_id:
-            external: execution_id
+            link: execution_id/string
             schema: string
             mandatory: false
-            createdBy: sql
-          source_table_name:
-            link: table name/value
+            createdBy: flowName
+          dbInterface:
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
             schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
             mandatory: false
-            createdBy: sql
         out:
-          result:
+          results:
             schema: '#ref'
   Stage 5:
-    last: 1
     actors:
-      MapBuild1:
-        parent: MapBuild
+      InnerFlowJoin1:
+        parent: InnerFlowJoin
         in:
-          duplicateKeys:
-            const: all
-          key:
-            link: table name/value
-          value:
-            link:
-              path: DbCommand1/result
-              iterate: Iterate
-        out:
-          map:
-            external: map
-            schema: '#ref'
+          remaining:
+            link: InnerFlowAsync1/remaining
+  Stage 4: {
+    }
   Stage 6: {
     }
   Stage 7: {
@@ -115,96 +130,7 @@ schemas:
       properties:
         source_table_name:
           type: string
-  DbCommand1.out.result:
+  InnerFlowAsync1.out.results:
     type: array
-    items:
-      type: object
-      properties:
-        column_name:
-          type: string
-        total_failed:
-          type: integer
-  MapBuild1.out.map:
-    type: object
-    properties:
-      CUSTOMER_1:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_2:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_3:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_4:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_5:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_6:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_7:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_8:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-      CUSTOMER_SRC:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
+    items: {
+      }

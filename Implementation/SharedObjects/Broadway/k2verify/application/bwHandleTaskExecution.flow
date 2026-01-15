@@ -967,7 +967,177 @@
         {
             "stages": [
                 {
-                    "name": "task end time",
+                    "name": "Stage 6",
+                    "dependsOnList": [],
+                    "isTransactional": false,
+                    "actors": [
+                        {
+                            "name": "Record Table Rows",
+                            "isDisabled": true,
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name,\n    target_table_name,\n    customized_key;"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "result_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "execution_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "iid": {
+                                                        "type": "string"
+                                                    },
+                                                    "source_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "target_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "customized_key": {
+                                                        "type": "string"
+                                                    },
+                                                    "number_of_fields_mismatch": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_match": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_only_in_target": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_only_in_source": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_unsecured_in_target": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Update task end time",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "TableSummaryRows",
+                            "isDisabled": true,
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name,"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "result_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "execution_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "iid": {
+                                                        "type": "string"
+                                                    },
+                                                    "source_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "target_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "number_of_records_match": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_records_mismatch": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_records_only_in_source": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_records_only_in_target": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_records_unsecured_in_target": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 11",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -993,7 +1163,7 @@
         {
             "stages": [
                 {
-                    "name": "Update task end time",
+                    "name": "Stage 12",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -1168,6 +1338,26 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Record Table Rows",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -1244,6 +1434,26 @@
             "rightPort": {
                 "actor": "DbCommand2",
                 "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Record Table Rows",
+                "name": "result_schema"
             }
         },
         {
@@ -1393,6 +1603,26 @@
             },
             "rightPort": {
                 "actor": "DbCommand2",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Record Table Rows",
                 "name": "execution_id"
             }
         },
