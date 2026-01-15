@@ -562,12 +562,6 @@ stages:
             const: file://
           path:
             link: fileName/string
-  Stage 6: {
-    }
-  Stage 7: {
-    }
-  Stage 8: {
-    }
 schemas:
   PopulationArgs.out.parent_rows:
     type: array
