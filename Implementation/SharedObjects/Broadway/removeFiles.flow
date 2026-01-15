@@ -1,0 +1,68 @@
+stages:
+  Stage 4:
+    actors:
+      RESULTS DIR:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+  Stage 1:
+    actors:
+      ls1:
+        parent: ls
+        in:
+          interface:
+            const: file://
+          path:
+            link: RESULTS DIR/result
+        out:
+          result:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      fileName:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/${fileName}
+          dir:
+            link: RESULTS DIR/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          fileName:
+            link:
+              path: ls1/result/name
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: format
+  Stage 3:
+    actors:
+      rm1:
+        parent: rm
+        in:
+          interface:
+            const: file://
+          path:
+            link: fileName/string
+schemas:
+  ls1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+        createTime:
+          type: integer
+        lastModifiedTime:
+          type: integer
+        lastAccessTime:
+          type: integer
+        directory:
+          type: boolean
+        fullPath:
+          type: string
