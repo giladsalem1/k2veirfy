@@ -557,6 +557,7 @@ stages:
     actors:
       rm1:
         parent: rm
+        disabled: true
         in:
           interface:
             const: file://

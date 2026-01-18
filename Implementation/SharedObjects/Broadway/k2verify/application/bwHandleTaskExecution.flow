@@ -949,7 +949,9 @@
                                     },
                                     {
                                         "name": "time_until_pk",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "sql",
                                         "mandatory": false
                                     }
@@ -1080,7 +1082,9 @@
                                     },
                                     {
                                         "name": "time_after_pk",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "sql",
                                         "mandatory": false
                                     }
@@ -1178,7 +1182,9 @@
                                     },
                                     {
                                         "name": "time_until_index",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "sql",
                                         "mandatory": false
                                     }
@@ -1310,7 +1316,9 @@
                                     },
                                     {
                                         "name": "time_after_index",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "sql",
                                         "mandatory": false
                                     }
@@ -1346,6 +1354,7 @@
                     "actors": [
                         {
                             "name": "Record Table Rows",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1355,7 +1364,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name,\n    target_table_name,\n    customized_key;"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key;"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1431,6 +1440,7 @@
                     "actors": [
                         {
                             "name": "TableSummaryRows",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1440,7 +1450,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name,"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name"
                                     },
                                     {
                                         "name": "execution_id",
