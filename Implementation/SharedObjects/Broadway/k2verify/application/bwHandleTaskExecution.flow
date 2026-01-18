@@ -1346,7 +1346,6 @@
                     "actors": [
                         {
                             "name": "Record Table Rows",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1432,7 +1431,6 @@
                     "actors": [
                         {
                             "name": "TableSummaryRows",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
