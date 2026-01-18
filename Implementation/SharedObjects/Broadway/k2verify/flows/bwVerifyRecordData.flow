@@ -460,7 +460,6 @@ stages:
             link: ToBool/bool
       Filter1:
         parent: Filter
-        disabled: true
         in:
           script:
             const: value.MATCH_RESULT=="NOT PASSED"
@@ -489,7 +488,6 @@ stages:
     actors:
       CsvBuilder1:
         parent: CsvBuilder
-        disabled: true
         in:
           header:
             const: false
@@ -514,7 +512,6 @@ stages:
     actors:
       FileWrite1:
         parent: FileWrite
-        disabled: true
         in:
           interface:
             const: file://
