@@ -1354,7 +1354,6 @@
                     "actors": [
                         {
                             "name": "Record Table Rows",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1427,6 +1426,94 @@
                                     }
                                 ]
                             }
+                        },
+                        {
+                            "name": "Now6",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "END_TIME11111",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 13",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Update time_after_record_summary",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set time_after_record_summary='${@time_after_record_summary}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "time_after_record_summary",
+                                        "schema": {},
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
@@ -1440,7 +1527,6 @@
                     "actors": [
                         {
                             "name": "TableSummaryRows",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1450,7 +1536,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    source_table_name"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1779,6 +1865,16 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update time_after_record_summary",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -1929,6 +2025,16 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "Update time_after_record_summary",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "Now",
                 "name": "date"
             },
@@ -2049,6 +2155,16 @@
         },
         {
             "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Update time_after_record_summary",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "FetchUser",
                 "name": "result"
             },
@@ -2124,6 +2240,16 @@
             },
             "rightPort": {
                 "actor": "Update task end_time12",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Update time_after_record_summary",
                 "name": "execution_id"
             }
         },
@@ -2442,6 +2568,26 @@
             "rightPort": {
                 "actor": "Update task end_time111",
                 "name": "time_after_index"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now6",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "END_TIME11111",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "END_TIME11111",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "Update time_after_record_summary",
+                "name": "time_after_record_summary"
             }
         },
         {
