@@ -476,6 +476,7 @@ stages:
     actors:
       pgCopy1:
         parent: pgCopy
+        disabled: true
         in:
           interface:
             const: null

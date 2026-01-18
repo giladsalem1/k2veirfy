@@ -512,6 +512,7 @@ stages:
     actors:
       FileWrite1:
         parent: FileWrite
+        disabled: true
         in:
           interface:
             const: file://
