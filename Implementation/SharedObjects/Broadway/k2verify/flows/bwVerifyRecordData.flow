@@ -460,6 +460,7 @@ stages:
             link: ToBool/bool
       Filter1:
         parent: Filter
+        disabled: true
         in:
           script:
             const: value.MATCH_RESULT=="NOT PASSED"
