@@ -84,17 +84,34 @@ stages:
             schema: boolean
             mandatory: false
             createdBy: flowName
-      Verify Dir:
-        parent: FabricSetRead
+      FabricSet1:
+        parent: FabricSet
         in:
           key:
-            const: k2verify.K2VERIFY_RESULT_FILES_PATH
-  Create verify dir:
-    actors:
-      Create dir:
-        parent: md
+            const: cluster_distribute_affinity
+          value:
+            const: ALL
+      DbCommand1:
+        parent: DbCommand
         in:
           interface:
-            const: file://
-          path:
-            link: Verify Dir/result
+            const: fabric
+          sql:
+            const: broadway k2verify.bwCreateVerifyDir
+        out:
+          result:
+            schema: '#ref'
+  Create verify dir: {
+    }
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        Node:
+          type: string
+        Status:
+          type: string
+        Value:
+          type: string

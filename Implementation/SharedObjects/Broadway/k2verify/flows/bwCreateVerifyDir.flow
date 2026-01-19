@@ -1,0 +1,18 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Verify Dir:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+  Stage 2:
+    actors:
+      Create dir:
+        parent: md
+        in:
+          interface:
+            const: file://
+          path:
+            link: Verify Dir/result
