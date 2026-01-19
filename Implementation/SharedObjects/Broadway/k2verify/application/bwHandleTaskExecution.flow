@@ -985,6 +985,34 @@
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "ErrorHandler1",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.lang.Exception",
+                                                "conditions": {
+                                                    "message": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "",
+                                                    "number_of_retries": "",
+                                                    "retry_interval": ""
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "DbCommand3",
                             "actorType": {
                                 "parentType": "DbCommand",
