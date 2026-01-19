@@ -29,6 +29,8 @@ public class SharedGlobals {
 	@category("K2VERIFY")		
 	public static String K2VERIFY_KEYS_TABLE_NAME = "keys_table";
 	@category("K2VERIFY")		
-	public static String K2VERIFY_RESULT_FILES_PATH = "/opt/apps/fabric/workspace/result_files";
+	public static String K2VERIFY_RESULT_FILES_PATH = "/opt/apps/fabric/workspace/verify";
+
+
 }
 

@@ -1,5 +1,5 @@
 {
-  "k2verifyHome.title": "k2verify Tasks",
+  "k2verifyHome.title": "Verify Tasks",
   "k2verifyHome.newTask": "New Task",
 
   "k2verifyHome.toasts.loadFailed": "Failed to load tasks",
@@ -15,7 +15,7 @@
   "popup.ok": "OK",
   "popup.expand": "Show details",
   "popup.collapse": "Hide details",
-  "k2verifyExecution.title": "k2verify Execution Details",
+  "k2verifyExecution.title": "Verify Execution Details",
   "k2verifyExecution.taskIdLabel": "Task ID",
   "k2verifyExecution.executionIdLabel": "Execution ID",
 
@@ -53,11 +53,11 @@
   "k2verifyHistory.title": "Task History",
   "k2verifyHistory.missingTaskId": "Missing task id in the URL.",
   "k2verifyHistory.goBack": "Go Back",
-  "k2verifyHistory.summaryTitle": "k2verify Task Execution Summary for Task Id:",
+  "k2verifyHistory.summaryTitle": "Verify Task Execution Summary for Task Id:",
   "k2verifyHistory.toasts.loadFailed": "Failed to load task execution history",
   "k2verifyTaskCreation.toasts.mtableFailed": "Failed to bring the mtable data",
   "k2verifyTaskCreation.toasts.executionFailed": "Execution failed",
-  "k2verifyHistoryDetailed.title": "k2verify Execution Details -",
+  "k2verifyHistoryDetailed.title": "Verify Execution Details -",
   "k2verifyHistoryDetailed.taskIdLabel": "Task ID:",
   "k2verifyHistoryDetailed.executionIdLabel": "Execution ID:",
 
@@ -74,9 +74,9 @@
   "k2verifyHistoryDetailed.toasts.loadHistoryFailed": "Failed to load task execution history",
   "k2verifyHistoryDetailed.toasts.loadBucketFailed": "Failed to load bucket details",
   "k2verifyHistoryDetailed.toasts.noTableName": "No table_name found for this row",
-  "k2verifyTaskResults.title": "k2verify Task Execution Results",
+  "k2verifyTaskResults.title": "Verify Task Execution Results",
   "k2verifyTaskResults.toasts.loadFailed": "Failed to load task execution history",
-    "k2verifyTaskOptions.title": "Create k2verify Task",
+    "k2verifyTaskOptions.title": "Create Verify Task",
   
     "k2verifyTaskOptions.taskTitleLabel": "Task title",
     "k2verifyTaskOptions.taskTitlePlaceholder": "e.g., Customer Table Assurance",

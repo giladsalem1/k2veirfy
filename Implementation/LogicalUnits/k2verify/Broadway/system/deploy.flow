@@ -63,7 +63,6 @@ stages:
       First Deploy:
         parent: Equals
         condition: result
-        disabled: true
         in:
           b:
             const: true
@@ -85,3 +84,17 @@ stages:
             schema: boolean
             mandatory: false
             createdBy: flowName
+      Verify Dir:
+        parent: FabricSetRead
+        in:
+          key:
+            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+  Create verify dir:
+    actors:
+      Create dir:
+        parent: md
+        in:
+          interface:
+            const: file://
+          path:
+            link: Verify Dir/result
