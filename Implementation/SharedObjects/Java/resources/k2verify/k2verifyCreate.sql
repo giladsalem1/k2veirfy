@@ -202,6 +202,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution
     time_after_pk          timestamp without time zone,
     time_until_index          timestamp without time zone,
     time_after_index          timestamp without time zone,
+    time_after_record_summary timestamp without time zone,
     CONSTRAINT task_execution_pk PRIMARY KEY (execution_id, task_id),
     CONSTRAINT task_execution_id_ux UNIQUE (execution_id),
     CONSTRAINT task_execution_task_fk FOREIGN KEY (task_id)
