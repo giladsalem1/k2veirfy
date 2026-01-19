@@ -463,7 +463,7 @@
     },
     {
         "id": "k2view.k2verify",
-        "version": "0.0.13",
+        "version": "0.0.14",
         "artifacts": [
             {
                 "path": "/Implementation/LogicalUnits/k2verify/Broadway/system/deploy.flow",
@@ -503,7 +503,7 @@
             },
             {
                 "path": "/Implementation/LogicalUnits/k2verify/Tables/field_summary.field_summary_population.flow",
-                "sha256": "1771237f912b7b5ac6973e3e2d3440c05b2b51fbcd0689f10331d9e7b282d4c0"
+                "sha256": "3c092af3582d862d82b1a6555537574793fa1d80efa1004931f16ec2320316b5"
             },
             {
                 "path": "/Implementation/LogicalUnits/k2verify/Tables/field_summary.k2table.xml",
@@ -695,7 +695,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwHandleTaskExecution.flow",
-                "sha256": "25866673d93ecfa9e6ce9cba8808b6fab99c8d53732f1a1a51ec7e51a554e284"
+                "sha256": "9ec4faa31636cae74b34c863af4ca72c7c64ae3d5ac77ecfea492f2ea9cf7e26"
             },
             {
                 "path": "/Implementation/SharedObjects/Broadway/k2verify/application/bwK2VerifyBucketDetails.flow",
@@ -915,7 +915,7 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Java/resources/k2verify/k2verifyCreate.sql",
-                "sha256": "7754dd247772830d55ba5d2f30b1adff5c17e718ad878921b538a54af9e5b57f"
+                "sha256": "0ec504da2e304b22b491ced37f00839d4cd0766033da8131feff1265149bbd17"
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/k2verify/GetLUName.java",
@@ -923,11 +923,11 @@
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/k2verify/SharedGlobals.java",
-                "sha256": "e2979bef1f1741d712bfbd190ca4541ba9acc8ea2ae2c87fa8501b5c4c3efbdc"
+                "sha256": "60d4909cc90756bf86169c578824f5037c87bc03a8eadec13b38872713f12f31"
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/k2verify/SharedLogic.java",
-                "sha256": "a7f81f669d569205f6bbc09b3e1313b4d7bc3309f1508803c2b58999b01f8731"
+                "sha256": "1886741d30e7737bc0fbde65e51b2f76de92df0c290101d6839093db18e6dab0"
             },
             {
                 "path": "/Implementation/SharedObjects/Java/src/com/k2view/cdbms/usercode/common/k2verify/pgCopy.java",
@@ -941,7 +941,6 @@
                 "path": "/lib/postgresql-42.7.4.jar",
                 "sha256": "188976721ead8e8627eb6d8389d500dccc0c9bebd885268a3047180274a6031e"
             }
-        ],
-        "uninstalled": true
+        ]
     }
 ]
