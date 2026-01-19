@@ -80,11 +80,15 @@
           <Comment>Name of the schema where the result tables are stored. When stored in fabric Common tables, use the schema name specified in the Common table properties</Comment>
         </Global>
         <Global name="K2VERIFY_RESULT_FILES_PATH" luName="k2verify">
-          <Value>/opt/apps/fabric/workspace/result_files</Value>
+          <Value>/opt/apps/fabric/workspace/verify</Value>
           <Comment></Comment>
         </Global>
         <Global name="K2VERIFY_RESULT_FILES_PATH" luName="k2_ws">
-          <Value>/opt/apps/fabric/workspace/result_files</Value>
+          <Value>/opt/apps/fabric/workspace/verify</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="K2VERIFY_RESULT_FILES_PATH" luName="k2_ref">
+          <Value>/opt/apps/fabric/workspace/verify</Value>
           <Comment></Comment>
         </Global>
       </GlobalsList>
