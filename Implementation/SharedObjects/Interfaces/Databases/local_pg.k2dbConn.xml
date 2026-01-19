@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <DBConn xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="DBConnGenericAdoJdbc" name="local_pg" type="genericdb" version="8.3.1">
     <JdbcDriverName>PostgreSQL</JdbcDriverName>
-    <Active>true</Active>
+    <Active>false</Active>
     <DataSource>postgres-service</DataSource>
     <PortNum>5432</PortNum>
     <DataBase>postgres</DataBase>

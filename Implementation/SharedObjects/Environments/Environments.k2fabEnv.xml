@@ -41,13 +41,13 @@
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
-        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="local_pg" dbType="genericdb" active="true">
+        <DbInterface xsi:type="DBSourceGenericDb" k2StudioObjectName="local_pg" dbType="genericdb" active="false">
           <dbHost></dbHost>
           <dbPort>5432</dbPort>
           <dbScheme>postgres</dbScheme>
           <dbUser></dbUser>
           <dbPasswordEncrypted></dbPasswordEncrypted>
-          <connString>jdbc:postgresql://postgres-service:5432/postgres?stringtype&#x3D;unspecified</connString>
+          <connString>jdbc:postgresql://:5432/postgres?stringtype&#x3D;unspecified</connString>
           <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>60</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
