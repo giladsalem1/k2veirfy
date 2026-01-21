@@ -436,6 +436,7 @@ stages:
             mandatory: false
             createdBy: format
           execution_id:
+            external: execution_id
             schema: any
             mandatory: false
             createdBy: format
