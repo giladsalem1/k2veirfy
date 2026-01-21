@@ -166,7 +166,7 @@ stages:
         parent: FabricSetRead
         in:
           key:
-            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+            const: verify.K2VERIFY_RESULT_FILES_PATH
       Format File Name:
         parent: StringFormat
         in:

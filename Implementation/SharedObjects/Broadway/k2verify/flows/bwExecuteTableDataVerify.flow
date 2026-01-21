@@ -618,18 +618,9 @@
         {
             "stages": [
                 {
-                    "name": "Interface Type",
-                    "dependsOnList": [],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
                     "name": "Cassandra interface",
                     "dependsOnList": [
-                        "Interface Type"
+                        "Set table verify globals"
                     ],
                     "actors": [
                         {
@@ -691,7 +682,7 @@
                 {
                     "name": "Else",
                     "dependsOnList": [
-                        "Interface Type"
+                        "Set table verify globals"
                     ],
                     "hasElse": true,
                     "actors": []
@@ -791,7 +782,7 @@
                                         "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
                                     },
                                     {
-                                        "const": "k2verify",
+                                        "const": "verify",
                                         "name": "lut",
                                         "schema": {
                                             "type": "string"

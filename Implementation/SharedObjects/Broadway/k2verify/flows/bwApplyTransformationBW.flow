@@ -148,6 +148,13 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+  Stage 18:
+    actors:
+      Uppercase1:
+        parent: Uppercase
+        in:
+          string:
+            link: StringFormat1/string
   Stage 7:
     last: 1
     actors:
@@ -157,7 +164,7 @@ stages:
           value:
             link: JavaScript2/result
           key:
-            link: StringFormat1/string
+            link: Uppercase1/string
         out:
           map:
             schema: '#ref'

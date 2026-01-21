@@ -144,11 +144,11 @@ stages:
             mandatory: false
           filters:
             link: JsonParser1/object
-            schema: '#ref'
+            schema: any
             mandatory: false
           exec_id:
             external: execution_id
-            schema: string
+            schema: any
             mandatory: false
         out:
           result:
@@ -208,7 +208,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: select count(1) from (${query}) s
+            const: select count(1) from (${query}) s;
           query:
             link: JavaScript1/result
             schema: string
@@ -302,10 +302,6 @@ schemas:
     type: array
     items:
       type: string
-  JavaScript1.in.filters:
-    type: object
-    properties: {
-      }
   DbCommand1.out.result:
     type: array
     items:

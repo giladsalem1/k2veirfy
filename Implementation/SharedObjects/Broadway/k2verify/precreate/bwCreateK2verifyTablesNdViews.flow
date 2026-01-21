@@ -3,24 +3,20 @@ tags: d2d,precreate,D2D,k2verify
 stages:
   Start:
     actors:
-      Interface:
-        parent: Const
+      K2VERIFY_INTERFACE:
+        parent: GetLUVariable
         in:
-          value:
-            const: K2VERIFY_OPERATIONAL_DB
-            schema: string
-        out:
-          value:
-            schema: string
-      Schema:
-        parent: Const
+          luName:
+            const: verify
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_SCHEMA:
+        parent: GetLUVariable
         in:
-          value:
-            const: k2verify
-            schema: string
-        out:
-          value:
-            schema: string
+          luName:
+            const: verify
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
       CreateTables:
         parent: ToBool
         in:
@@ -43,7 +39,7 @@ stages:
           script:
             const: system != 'fabric' && create == true
           system:
-            link: Interface/value
+            link: K2VERIFY_INTERFACE/variableValue
             schema: string
             mandatory: false
           create:
@@ -96,12 +92,12 @@ stages:
         in:
           interface:
             const: null
-            link: Interface/value
+            link: K2VERIFY_INTERFACE/variableValue
           sql:
             const: null
             link: Get Sql Resource File To Create D2D Tables/result
           schema:
-            link: Schema/value
+            link: K2VERIFY_SCHEMA/variableValue
             schema: string
             mandatory: false
     split: '--------------------'
@@ -115,7 +111,7 @@ stages:
           flowName:
             const: bwCleanK2verifyTables
           interface:
-            link: Interface/value
+            link: K2VERIFY_INTERFACE/variableValue
             schema: string
             editor:
               id: com.k2view.interface
@@ -126,7 +122,7 @@ stages:
               - fabric
             mandatory: false
           schema:
-            link: Schema/value
+            link: K2VERIFY_SCHEMA/variableValue
             schema: string
             mandatory: false
           sql:

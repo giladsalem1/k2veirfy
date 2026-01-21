@@ -269,17 +269,7 @@
                                     }
                                 ]
                             }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 2",
-                    "dependsOnList": [],
-                    "actors": [
+                        },
                         {
                             "name": "ToString1",
                             "actorType": {
@@ -570,7 +560,7 @@
         {
             "stages": [
                 {
-                    "name": "Execute tables DA",
+                    "name": "Execute tables verify",
                     "dependsOnList": [],
                     "isLast": 1,
                     "actors": [
@@ -764,7 +754,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "jobstatus name='k2verify.bwExecuteTableDataVerify'"
+                                        "const": "jobstatus name='verify.bwExecuteTableDataVerify'"
                                     }
                                 ],
                                 "outputs": [
@@ -881,11 +871,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 4",
+                    "name": "Time Before PK Creation",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Now2",
+                            "name": "TimeBeforePK",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -893,7 +883,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME1",
+                            "name": "TimeBeforePKStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -907,11 +897,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 5",
+                    "name": "Update time before PK creation",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Update task end_time1",
+                            "name": "UpTimeBeforePKCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -981,39 +971,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 1",
+                    "name": "Create PK",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "ErrorHandler1",
-                            "onError": "result",
-                            "actorType": {
-                                "parentType": "ErrorHandler",
-                                "inputs": [
-                                    {
-                                        "name": "config",
-                                        "const": [
-                                            {
-                                                "exceptionKey": "java.lang.Exception",
-                                                "conditions": {
-                                                    "message": ""
-                                                },
-                                                "actions": {
-                                                    "suppress": true,
-                                                    "log": true,
-                                                    "flowName": "",
-                                                    "number_of_retries": "",
-                                                    "retry_interval": ""
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "DbCommand3",
+                            "name": "FieldSumPK",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1044,9 +1006,19 @@
                                 ],
                                 "outputs": []
                             }
-                        },
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Time after PK creation",
+                    "dependsOnList": [],
+                    "actors": [
                         {
-                            "name": "Now3",
+                            "name": "TimeAfterPK",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1054,7 +1026,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME11",
+                            "name": "TimeAfterPKStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -1068,11 +1040,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 7",
+                    "name": "Update time after PK creation",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Update task end_time11",
+                            "name": "UpTimeAfterPKCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1142,11 +1114,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 8",
+                    "name": "Time before index creation",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Now4",
+                            "name": "TimeBeforeIDX",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1154,7 +1126,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME111",
+                            "name": "TimeBeforeIDXStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -1168,11 +1140,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 9",
+                    "name": "Update time before index creation",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Update task end_time12",
+                            "name": "UpTimeBeforeIDXCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1242,11 +1214,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 3",
+                    "name": "Create index",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "DbCommand2",
+                            "name": "FieldSumIDX",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1277,9 +1249,20 @@
                                 ],
                                 "outputs": []
                             }
-                        },
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Time after index creation",
+                    "dependsOnList": [],
+                    "isTransactional": false,
+                    "actors": [
                         {
-                            "name": "Now5",
+                            "name": "TimeAfterIDX",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1287,7 +1270,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME1111",
+                            "name": "TimeAfterIDXStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -1301,12 +1284,12 @@
         {
             "stages": [
                 {
-                    "name": "Stage 10",
+                    "name": "Update time after index creation",
                     "dependsOnList": [],
                     "isTransactional": false,
                     "actors": [
                         {
-                            "name": "Update task end_time111",
+                            "name": "UpTimeAfterIDXCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1376,40 +1359,12 @@
         {
             "stages": [
                 {
-                    "name": "Stage 6",
+                    "name": "Record table summary",
                     "dependsOnList": [],
                     "isTransactional": false,
                     "actors": [
                         {
-                            "name": "ErrorHandler2",
-                            "onError": "result",
-                            "actorType": {
-                                "parentType": "ErrorHandler",
-                                "inputs": [
-                                    {
-                                        "name": "config",
-                                        "const": [
-                                            {
-                                                "exceptionKey": "java.lang.Exception",
-                                                "conditions": {
-                                                    "message": ""
-                                                },
-                                                "actions": {
-                                                    "suppress": true,
-                                                    "log": true,
-                                                    "flowName": "",
-                                                    "number_of_retries": "",
-                                                    "retry_interval": ""
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "Record Table Rows",
+                            "name": "RecordSummary",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1419,7 +1374,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key;"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key;"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1482,9 +1437,19 @@
                                     }
                                 ]
                             }
-                        },
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Time after record summary",
+                    "dependsOnList": [],
+                    "actors": [
                         {
-                            "name": "Now6",
+                            "name": "TimeAfterRecSumStr",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1506,11 +1471,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 13",
+                    "name": "Update time after record sumary",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Update time_after_record_summary",
+                            "name": "UpTimAfterRecSum",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1578,37 +1543,9 @@
         {
             "stages": [
                 {
-                    "name": "Update task end time",
+                    "name": "Table Summary",
                     "dependsOnList": [],
                     "actors": [
-                        {
-                            "name": "ErrorHandler3",
-                            "onError": "result",
-                            "actorType": {
-                                "parentType": "ErrorHandler",
-                                "inputs": [
-                                    {
-                                        "name": "config",
-                                        "const": [
-                                            {
-                                                "exceptionKey": "java.lang.Exception",
-                                                "conditions": {
-                                                    "message": ""
-                                                },
-                                                "actions": {
-                                                    "suppress": true,
-                                                    "log": true,
-                                                    "flowName": "",
-                                                    "number_of_retries": "",
-                                                    "retry_interval": ""
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
                         {
                             "name": "TableSummaryRows",
                             "actorType": {
@@ -1620,7 +1557,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0) AS number_of_records_mismatch,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0) AS number_of_records_only_in_source,\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0) AS number_of_records_only_in_target,\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0) AS number_of_records_unsecured_in_target\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target,\n    match_result\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0)\n        AS number_of_records_mismatch,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0)\n        AS number_of_records_only_in_source,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0)\n        AS number_of_records_only_in_target,\n\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0)\n        AS number_of_records_unsecured_in_target,\n\n    CASE\n        WHEN\n            MAX(number_of_fields_mismatch) > 0\n            OR MAX(number_of_fields_only_in_source) > 0\n            OR MAX(number_of_fields_only_in_target) > 0\n        THEN 'NOT_PASSED'\n        ELSE 'PASSED'\n    END AS match_result\n\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name;\n"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1688,11 +1625,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 11",
+                    "name": "Time after table summary",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Now1",
+                            "name": "TimeAfterTableSum",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1700,7 +1637,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME",
+                            "name": "TimeAfterTableSumStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -1714,11 +1651,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 12",
+                    "name": "Update task end time",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Update task end_time",
+                            "name": "UpTaskEndTime",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1843,7 +1780,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time",
+                "actor": "UpTaskEndTime",
                 "name": "interface"
             }
         },
@@ -1873,7 +1810,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand3",
+                "actor": "FieldSumPK",
                 "name": "interface"
             }
         },
@@ -1883,7 +1820,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand2",
+                "actor": "FieldSumIDX",
                 "name": "interface"
             }
         },
@@ -1893,7 +1830,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Record Table Rows",
+                "actor": "RecordSummary",
                 "name": "interface"
             }
         },
@@ -1913,7 +1850,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time1",
+                "actor": "UpTimeBeforePKCreation",
                 "name": "interface"
             }
         },
@@ -1923,7 +1860,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time11",
+                "actor": "UpTimeAfterPKCreation",
                 "name": "interface"
             }
         },
@@ -1933,7 +1870,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time111",
+                "actor": "UpTimeAfterIDXCreation",
                 "name": "interface"
             }
         },
@@ -1943,7 +1880,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time12",
+                "actor": "UpTimeBeforeIDXCreation",
                 "name": "interface"
             }
         },
@@ -1953,7 +1890,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update time_after_record_summary",
+                "actor": "UpTimAfterRecSum",
                 "name": "interface"
             }
         },
@@ -1993,7 +1930,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time",
+                "actor": "UpTaskEndTime",
                 "name": "schema"
             }
         },
@@ -2023,7 +1960,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand3",
+                "actor": "FieldSumPK",
                 "name": "k2verify_schema"
             }
         },
@@ -2033,7 +1970,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand2",
+                "actor": "FieldSumIDX",
                 "name": "k2verify_schema"
             }
         },
@@ -2053,7 +1990,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Record Table Rows",
+                "actor": "RecordSummary",
                 "name": "result_schema"
             }
         },
@@ -2063,7 +2000,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time1",
+                "actor": "UpTimeBeforePKCreation",
                 "name": "schema"
             }
         },
@@ -2073,7 +2010,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time11",
+                "actor": "UpTimeAfterPKCreation",
                 "name": "schema"
             }
         },
@@ -2083,7 +2020,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time111",
+                "actor": "UpTimeAfterIDXCreation",
                 "name": "schema"
             }
         },
@@ -2103,7 +2040,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update task end_time12",
+                "actor": "UpTimeBeforeIDXCreation",
                 "name": "schema"
             }
         },
@@ -2113,7 +2050,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "Update time_after_record_summary",
+                "actor": "UpTimAfterRecSum",
                 "name": "schema"
             }
         },
@@ -2183,7 +2120,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update task end_time",
+                "actor": "UpTaskEndTime",
                 "name": "task_id"
             }
         },
@@ -2203,7 +2140,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update task end_time1",
+                "actor": "UpTimeBeforePKCreation",
                 "name": "task_id"
             }
         },
@@ -2213,7 +2150,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update task end_time11",
+                "actor": "UpTimeAfterPKCreation",
                 "name": "task_id"
             }
         },
@@ -2223,7 +2160,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update task end_time111",
+                "actor": "UpTimeAfterIDXCreation",
                 "name": "task_id"
             }
         },
@@ -2233,7 +2170,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update task end_time12",
+                "actor": "UpTimeBeforeIDXCreation",
                 "name": "task_id"
             }
         },
@@ -2243,7 +2180,7 @@
                 "name": "number"
             },
             "rightPort": {
-                "actor": "Update time_after_record_summary",
+                "actor": "UpTimAfterRecSum",
                 "name": "task_id"
             }
         },
@@ -2273,7 +2210,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update task end_time",
+                "actor": "UpTaskEndTime",
                 "name": "execution_id"
             }
         },
@@ -2293,7 +2230,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update task end_time1",
+                "actor": "UpTimeBeforePKCreation",
                 "name": "execution_id"
             }
         },
@@ -2303,7 +2240,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update task end_time11",
+                "actor": "UpTimeAfterPKCreation",
                 "name": "execution_id"
             }
         },
@@ -2313,7 +2250,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update task end_time111",
+                "actor": "UpTimeAfterIDXCreation",
                 "name": "execution_id"
             }
         },
@@ -2323,7 +2260,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update task end_time12",
+                "actor": "UpTimeBeforeIDXCreation",
                 "name": "execution_id"
             }
         },
@@ -2333,7 +2270,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Update time_after_record_summary",
+                "actor": "UpTimAfterRecSum",
                 "name": "execution_id"
             }
         },
@@ -2343,7 +2280,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbCommand3",
+                "actor": "FieldSumPK",
                 "name": "execution_id"
             }
         },
@@ -2363,7 +2300,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbCommand2",
+                "actor": "FieldSumIDX",
                 "name": "execution_id"
             }
         },
@@ -2383,7 +2320,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Record Table Rows",
+                "actor": "RecordSummary",
                 "name": "execution_id"
             }
         },
@@ -2576,87 +2513,87 @@
         },
         {
             "leftPort": {
-                "actor": "Now2",
+                "actor": "TimeBeforePK",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME1",
+                "actor": "TimeBeforePKStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME1",
+                "actor": "TimeBeforePKStr",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update task end_time1",
+                "actor": "UpTimeBeforePKCreation",
                 "name": "time_until_pk"
             }
         },
         {
             "leftPort": {
-                "actor": "Now3",
+                "actor": "TimeAfterPK",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME11",
+                "actor": "TimeAfterPKStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME11",
+                "actor": "TimeAfterPKStr",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update task end_time11",
+                "actor": "UpTimeAfterPKCreation",
                 "name": "time_after_pk"
             }
         },
         {
             "leftPort": {
-                "actor": "Now4",
+                "actor": "TimeBeforeIDX",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME111",
+                "actor": "TimeBeforeIDXStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME111",
+                "actor": "TimeBeforeIDXStr",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update task end_time12",
+                "actor": "UpTimeBeforeIDXCreation",
                 "name": "time_until_index"
             }
         },
         {
             "leftPort": {
-                "actor": "Now5",
+                "actor": "TimeAfterIDX",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME1111",
+                "actor": "TimeAfterIDXStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME1111",
+                "actor": "TimeAfterIDXStr",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update task end_time111",
+                "actor": "UpTimeAfterIDXCreation",
                 "name": "time_after_index"
             }
         },
         {
             "leftPort": {
-                "actor": "Now6",
+                "actor": "TimeAfterRecSumStr",
                 "name": "date"
             },
             "rightPort": {
@@ -2670,27 +2607,27 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update time_after_record_summary",
+                "actor": "UpTimAfterRecSum",
                 "name": "time_after_record_summary"
             }
         },
         {
             "leftPort": {
-                "actor": "Now1",
+                "actor": "TimeAfterTableSum",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME",
+                "actor": "TimeAfterTableSumStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME",
+                "actor": "TimeAfterTableSumStr",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "Update task end_time",
+                "actor": "UpTaskEndTime",
                 "name": "end_time"
             }
         },

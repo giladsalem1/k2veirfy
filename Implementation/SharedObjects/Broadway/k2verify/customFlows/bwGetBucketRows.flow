@@ -24,21 +24,21 @@ stages:
         parent: GetLUVariable
         in:
           luName:
-            const: k2verify
+            const: verify
           variableName:
             const: K2VERIFY_OPERATIONAL_INTERFACE
       LOAD_SCHEMA:
         parent: GetLUVariable
         in:
           luName:
-            const: k2verify
+            const: verify
           variableName:
             const: K2VERIFY_OPERATIONAL_SCHEMA
       KEYS_TABLE_NAME:
         parent: GetLUVariable
         in:
           luName:
-            const: k2verify
+            const: verify
           variableName:
             const: K2VERIFY_KEYS_TABLE_NAME
       Exclude Condition:

@@ -389,7 +389,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='k2verify' name='${@buckets_method}'
+            const: list BF LU_NAME='verify' name='${@buckets_method}'
           buckets_method:
             link: Buckets Method/value
             schema: string

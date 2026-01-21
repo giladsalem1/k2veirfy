@@ -16,7 +16,6 @@ import com.k2view.cdbms.lut.*;
 import com.k2view.cdbms.shared.utils.UserCodeDescribe.*;
 import com.k2view.fabric.common.ClusterUtil;
 import com.k2view.fabric.common.io.basic.IoSimpleRow;
-import org.json.JSONObject;
 
 import static com.k2view.cdbms.shared.user.UserCode.*;
 import java.math.*;
@@ -123,18 +122,6 @@ public class SharedLogic {
             compareResult.add(columnResult);
         });
         return compareResult;
-    }
-
-    @out(name = "customizedKey", type = String.class, desc = "")
-    public static String fnGetCustomizedKey(Map<String, Object> rowMap, String customizedKey) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        String[] cusKeyArr = customizedKey.split(DELIMITTER);
-        for (String cusKey : cusKeyArr) {
-            Object cusKeyVal = rowMap.get("SRC_" + cusKey.toUpperCase());
-            jsonObject.put(cusKey, cusKeyVal == null ? "" : cusKeyVal.toString());
-        }
-
-        return "[" + jsonObject.toString().substring(1, jsonObject.toString().length() - 1) + "]";
     }
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)

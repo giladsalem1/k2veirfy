@@ -97,7 +97,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: broadway k2verify.bwCreateVerifyDir
+            const: broadway verify.bwCreateVerifyDir
         out:
           result:
             schema: '#ref'

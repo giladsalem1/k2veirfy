@@ -2,15 +2,6 @@ tags: k2verify
 stages:
   Stage 8:
     actors:
-      Path:
-        parent: Const
-        in:
-          value:
-            const: /opt/apps/fabric/workspace/project/project-resources/
-            schema: string
-        out:
-          value:
-            schema: string
       Const2:
         parent: Const
         in:
@@ -29,6 +20,13 @@ stages:
         out:
           value:
             schema: string
+      FabricSetRead1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_RESULT_FILES_PATH
+  Stage 15:
+    actors:
       File Name:
         parent: JavaScript
         in:
@@ -41,6 +39,15 @@ stages:
         out:
           result:
             schema: string
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: path+"/"
+          path:
+            link: FabricSetRead1/result
+            schema: any
+            mandatory: false
   Stage 7:
     actors:
       JavaScript5:
@@ -49,7 +56,7 @@ stages:
           script:
             const: '"file://"+path'
           path:
-            link: Path/value
+            link: JavaScript1/result
             schema: string
             mandatory: false
         out:
@@ -108,7 +115,7 @@ stages:
             schema: string
             mandatory: false
           path:
-            link: Path/value
+            link: JavaScript1/result
             schema: string
             mandatory: false
           file_name:
@@ -169,7 +176,7 @@ stages:
             const: bwK2VerifyDownloadRecordDetailsData
           execution_id:
             external: execution_id
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           interface:
@@ -207,7 +214,7 @@ stages:
             const: ''
           elements:
             link:
-            - path: Path/value
+            - path: JavaScript1/result
               pos: 0
             - path: File Name/result
               pos: 1

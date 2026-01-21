@@ -190,7 +190,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='k2verify' name='${@trn_func}'
+            const: list BF LU_NAME='verify' name='${@trn_func}'
           trn_func:
             link: TrnMethod/result
             schema: string
@@ -371,7 +371,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: list BF LU_NAME='k2verify' name='${@trn_func}'
+            const: list BF LU_NAME='verify' name='${@trn_func}'
           trn_func:
             link: TrnMethod /result
             schema: any

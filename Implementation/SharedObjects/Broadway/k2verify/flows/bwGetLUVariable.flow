@@ -1,197 +1,61 @@
-{
-    "description": "Read LU Global Key Value\n\nInputs\nluName: lu name\nvariableName: global key",
-    "tags": [
-        "d2d"
-    ],
-    "levels": [
-        {
-            "stages": [
-                {
-                    "name": "Input",
-                    "dependsOnList": [],
-                    "isLast": 0,
-                    "actors": [
-                        {
-                            "name": "LU Type",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "remark": "lu name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "Variable Name",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "remark": "global key",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Prepare",
-                    "dependsOnList": [],
-                    "isLast": 0,
-                    "actors": [
-                        {
-                            "name": "Create The Session Variable Name",
-                            "actorType": {
-                                "parentType": "Concat",
-                                "inputs": [
-                                    {
-                                        "name": "delimiter",
-                                        "const": "."
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Execute",
-                    "dependsOnList": [],
-                    "isLast": 0,
-                    "actors": [
-                        {
-                            "name": "Get Variable Value",
-                            "actorType": {
-                                "parentType": "DbFetchField",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": "fabric"
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "set ${@key}"
-                                    },
-                                    {
-                                        "name": "key",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "remark": "global value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "connections": [
-        {
-            "leftPort": {
-                "actor": "LU Type",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Create The Session Variable Name",
-                "name": "elements"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "Variable Name",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Create The Session Variable Name",
-                "name": "elements"
-            },
-            "arrayPosition": 1
-        },
-        {
-            "leftPort": {
-                "actor": "Create The Session Variable Name",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "Get Variable Value",
-                "name": "key"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "luName"
-            },
-            "rightPort": {
-                "actor": "LU Type",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "variableName"
-            },
-            "rightPort": {
-                "actor": "Variable Name",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Get Variable Value",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "variableValue"
-            }
-        }
-    ]
-}
+description: |-
+  Read LU Global Key Value
+
+  Inputs
+  luName: lu name
+  variableName: global key
+tags: d2d,k2verify
+stages:
+  Input:
+    actors:
+      LU Type:
+        parent: Const
+        in:
+          value:
+            const: verify
+            schema: string
+            remark: lu name
+        out:
+          value:
+            schema: string
+      Variable Name:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: variableName
+            schema: string
+            remark: global key
+        out:
+          value:
+            schema: string
+  Prepare:
+    actors:
+      Create The Session Variable Name:
+        parent: Concat
+        in:
+          delimiter:
+            const: .
+          elements:
+            link:
+            - path: LU Type/value
+              pos: 0
+            - path: Variable Name/value
+              pos: 1
+  Execute:
+    actors:
+      Get Variable Value:
+        parent: DbFetchField
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set ${@key}
+          key:
+            link: Create The Session Variable Name/string
+            schema: string
+        out:
+          result:
+            external: variableValue
+            schema: string
+            remark: global value

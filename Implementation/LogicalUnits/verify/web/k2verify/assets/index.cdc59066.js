@@ -14110,7 +14110,7 @@ function DeleteConfirmModal({
 function useActiveTasksPolling(intervalMs = 3e3) {
   const [activeTasks, setActiveTasks] = react.exports.useState([]);
   const { fetchData: fetchActiveTasks } = useFetchData(
-    "/api/fabric-command?command=broadway%20k2verify.bwK2VerifyRunningTasks%20RESULT_STRUCTURE=CURSOR"
+    "/api/fabric-command?command=broadway%20verify.bwK2VerifyRunningTasks%20RESULT_STRUCTURE=CURSOR"
   );
   react.exports.useEffect(() => {
     let isMounted = true;
@@ -17937,7 +17937,7 @@ function K2VerifyHomePage() {
     fetchData: fetchTaskData,
     loading: fetchLoading,
     error: fetchError
-  } = useFetchData("/api/fabric-command?command=broadway%20k2verify.bwK2VerifyTasks%20mode%20=%20'Active'%20RESULT_STRUCTURE=CURSOR");
+  } = useFetchData("/api/fabric-command?command=broadway%20verify.bwK2VerifyTasks%20mode%20=%20'Active'%20RESULT_STRUCTURE=CURSOR");
   const {
     activeTaskIds
   } = useActiveTasksPolling(3e3);
@@ -18027,7 +18027,7 @@ function K2VerifyHomePage() {
       const task_id = row == null ? void 0 : row["task_id"];
       if (!task_id)
         return void toast.error(t3("k2verifyHome.toasts.missingTaskId"));
-      const validateCmd = `broadway k2verify.bwK2VerifyValidateMTable task_id='${task_id}';`;
+      const validateCmd = `broadway verify.bwK2VerifyValidateMTable task_id='${task_id}';`;
       try {
         await runFabricCommand(validateCmd);
       } catch (ve2) {
@@ -18037,7 +18037,7 @@ function K2VerifyHomePage() {
       const argsStr = JSON.stringify({
         task_id
       });
-      const command = `startjob BROADWAY_JOB name='k2verify.bwHandleTaskExecution' args='${argsStr}';`;
+      const command = `startjob BROADWAY_JOB name='verify.bwHandleTaskExecution' args='${argsStr}';`;
       await runFabricCommand(command);
       navigate(`/execution/${encodeURIComponent(task_id)}`, {
         state: {
@@ -18054,7 +18054,7 @@ function K2VerifyHomePage() {
       const task_id = row == null ? void 0 : row["task_id"];
       if (!task_id)
         return void toast.error(t3("k2verifyHome.toasts.missingTaskId"));
-      const command = `broadway k2verify.bwK2VerifyCancelTask task_id='${task_id}';`;
+      const command = `broadway verify.bwK2VerifyCancelTask task_id='${task_id}';`;
       await runFabricCommand(command);
     } catch (err2) {
       toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyHome.toasts.stopFailed"));
@@ -18066,7 +18066,7 @@ function K2VerifyHomePage() {
       const task_id = row == null ? void 0 : row["task_id"];
       if (!task_id)
         return void toast.error(t3("k2verifyHome.toasts.missingTaskId"));
-      const command = `broadway k2verify.bwK2VerifyDeleteTask task_id='${task_id}';`;
+      const command = `broadway verify.bwK2VerifyDeleteTask task_id='${task_id}';`;
       await runFabricCommand(command);
       setTaskRows((prev) => prev.filter((tt2) => tt2.task_id !== task_id));
       toast.success(t3("k2verifyHome.toasts.deletedOk", {
@@ -18948,7 +18948,7 @@ function K2VerifyTaskCreation() {
     fetchData: fetchmtableData,
     loading: mtableLoading,
     error: mtableError
-  } = useFetchData("/api/fabric-command?command=broadway%20k2verify.bwLookupTableNames%20RESULT_STRUCTURE=CURSOR");
+  } = useFetchData("/api/fabric-command?command=broadway%20verify.bwLookupTableNames%20RESULT_STRUCTURE=CURSOR");
   react.exports.useEffect(() => {
     if (mtableError) {
       toast.error((mtableError == null ? void 0 : mtableError.message) || t3("k2verifyTaskCreation.toasts.mtableFailed"));
@@ -18984,7 +18984,7 @@ function K2VerifyTaskCreation() {
   const handleExecution = async () => {
     const cmds = [];
     const paramsString = JSON.stringify(params);
-    cmds.push(`broadway k2verify.bwK2VerifyTaskCreation task_params='${paramsString}' old_task_id='${taskId}';`);
+    cmds.push(`broadway verify.bwK2VerifyTaskCreation task_params='${paramsString}' old_task_id='${taskId}';`);
     const command = cmds.join("\n");
     const encoded = encodeURIComponent(command);
     setEncodedCommand(encoded);
@@ -19129,7 +19129,7 @@ function K2VerifyTaskHistory() {
     fetchData: fetchTaskHistoryData,
     loading: taskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyExecutionHistory task_id='${decodedTaskId}' RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistory task_id='${decodedTaskId}' RESULT_STRUCTURE=CURSOR`)}`);
   react.exports.useEffect(() => {
     if (!decodedTaskId)
       return;
@@ -19274,7 +19274,7 @@ function K2VerifyExecution() {
   const endpoint = react.exports.useMemo(() => {
     if (!decodedTaskId || !executionId)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [decodedTaskId, executionId]);
   const {
     fetchData: fetchTaskHistoryData,
@@ -19292,7 +19292,7 @@ function K2VerifyExecution() {
     try {
       if (!decodedTaskId)
         return void toast.error(t3("k2verifyExecution.toasts.missingTaskId"));
-      const command = `broadway k2verify.bwK2VerifyCancelTask task_id='${decodedTaskId}';`;
+      const command = `broadway verify.bwK2VerifyCancelTask task_id='${decodedTaskId}';`;
       const encoded = encodeURIComponent(command);
       const res = await fetch(`/api/fabric-command?command=${encoded}`);
       const result = await res.json().catch(() => null);
@@ -19362,7 +19362,7 @@ function K2VerifyExecution() {
   const endpoint2 = react.exports.useMemo(() => {
     if (!decodedTaskId || !executionId || !tableName)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${executionId}' table_name='${tableName}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${executionId}' table_name='${tableName}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [decodedTaskId, executionId, tableName]);
   const {
     fetchData: fetchBucketDetailsData
@@ -19854,12 +19854,12 @@ function K2VerifyTaskHistoryDetailed() {
     fetchData: fetchTaskHistoryData,
     loading: fetchTaskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' RESULT_STRUCTURE=CURSOR`)}`);
   const bucketEndpoint = react.exports.useMemo(() => {
     if (!decodedTaskId || !decodedExecutionId || !tableName)
       return null;
     const safeTable = String(tableName).replace(/'/g, "''");
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' table_name='${safeTable}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' table_name='${safeTable}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [decodedTaskId, decodedExecutionId, tableName]);
   const {
     fetchData: fetchBucketDetailsData,
@@ -20143,7 +20143,7 @@ function K2VerifyTaskResults() {
     fetchData: fetchTaskHistoryData,
     loading: taskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyExecutionHistoryAll RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistoryAll RESULT_STRUCTURE=CURSOR`)}`);
   react.exports.useEffect(() => {
     let alive = true;
     (async () => {
@@ -21125,6 +21125,37 @@ function ResultsHeader({
   var _a2, _b2;
   const t3 = (_b2 = (_a2 = window == null ? void 0 : window.k2api) == null ? void 0 : _a2.i18n) == null ? void 0 : _b2.translate;
   const statusText = executionResult;
+  const parseK2Ts = (s2) => {
+    if (!s2)
+      return null;
+    const parts = String(s2).trim().split(" ");
+    if (parts.length !== 2)
+      return null;
+    const [datePart, timePart] = parts;
+    const [yyyy, mm, dd2] = datePart.split("-").map((v2) => parseInt(v2, 10));
+    const [hh2, mi2, secMs] = timePart.split(":");
+    if (!yyyy || !mm || !dd2 || hh2 == null || mi2 == null || secMs == null)
+      return null;
+    const [ssStr, msStr = "0"] = secMs.split(".");
+    const HH = parseInt(hh2, 10);
+    const MI = parseInt(mi2, 10);
+    const SS = parseInt(ssStr, 10);
+    const MS = parseInt(msStr.padEnd(3, "0").slice(0, 3), 10);
+    return new Date(yyyy, mm - 1, dd2, HH, MI, SS, MS);
+  };
+  const formatDuration = (ms) => {
+    if (ms == null || !Number.isFinite(ms) || ms < 0)
+      return "N/A";
+    const totalSeconds = Math.floor(ms / 1e3);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor(totalSeconds % 3600 / 60);
+    const seconds = totalSeconds % 60;
+    const pad2 = (n2) => String(n2).padStart(2, "0");
+    return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
+  };
+  const startDt = parseK2Ts(startTime);
+  const endDt = parseK2Ts(endTime);
+  const durationText = startDt && endDt ? formatDuration(endDt.getTime() - startDt.getTime()) : "N/A";
   return /* @__PURE__ */ jsxs("div", {
     style: {
       marginBottom: "32px",
@@ -21202,7 +21233,7 @@ function ResultsHeader({
     }), /* @__PURE__ */ jsxs("div", {
       style: {
         display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
+        gridTemplateColumns: "repeat(6, 1fr)",
         gap: "16px",
         textAlign: "center"
       },
@@ -21300,6 +21331,25 @@ function ResultsHeader({
             fontWeight: 400
           },
           children: endTime || "N/A"
+        })]
+      }), /* @__PURE__ */ jsxs("div", {
+        style: {
+          padding: "10px 12px",
+          borderRadius: "8px",
+          backgroundColor: "#f1f1f1"
+        },
+        children: [/* @__PURE__ */ jsx("div", {
+          style: {
+            fontSize: "12px",
+            color: "#64748b "
+          },
+          children: "Duration"
+        }), /* @__PURE__ */ jsx("div", {
+          style: {
+            fontSize: "15px",
+            fontWeight: 400
+          },
+          children: durationText
         })]
       })]
     })]
@@ -36169,7 +36219,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.6d6ef64c.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.bd928c8d.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -38971,7 +39021,7 @@ function K2VerifyReportPdfButton({
     };
   }, [effectiveExecutionId]);
   const fetchPiiRowsFromBroadway = react.exports.useCallback(async () => {
-    const command = `broadway k2verify.bwDownloadColumnLevelPIIData execution_id='${String(effectiveExecutionId)}' RESULT_STRUCTURE=CURSOR`;
+    const command = `broadway verify.bwDownloadColumnLevelPIIData execution_id='${String(effectiveExecutionId)}' RESULT_STRUCTURE=CURSOR`;
     const res = await fetch(`/api/fabric-command?command=${encodeURIComponent(command)}`, {
       method: "GET"
     });
@@ -38980,6 +39030,41 @@ function K2VerifyReportPdfButton({
     const data2 = await res.json();
     return normalizeBroadwayRows(data2);
   }, [effectiveExecutionId]);
+  const parseK2Ts = (s2) => {
+    if (!s2)
+      return null;
+    const parts = String(s2).trim().split(" ");
+    if (parts.length !== 2)
+      return null;
+    const [datePart, timePart] = parts;
+    const [yyyy, mm, dd2] = datePart.split("-").map((v2) => parseInt(v2, 10));
+    const [hh2, mi2, secMs] = timePart.split(":");
+    if (!yyyy || !mm || !dd2 || hh2 == null || mi2 == null || secMs == null)
+      return null;
+    const [ssStr, msStr = "0"] = secMs.split(".");
+    const HH = parseInt(hh2, 10);
+    const MI = parseInt(mi2, 10);
+    const SS = parseInt(ssStr, 10);
+    const MS = parseInt(String(msStr).padEnd(3, "0").slice(0, 3), 10);
+    return new Date(yyyy, mm - 1, dd2, HH, MI, SS, MS);
+  };
+  const formatDuration = (ms) => {
+    if (!Number.isFinite(ms) || ms < 0)
+      return "N/A";
+    const totalSeconds = Math.floor(ms / 1e3);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor(totalSeconds % 3600 / 60);
+    const seconds = totalSeconds % 60;
+    const pad2 = (n2) => String(n2).padStart(2, "0");
+    return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
+  };
+  const computeDurationText = (start, end) => {
+    const s2 = parseK2Ts(start);
+    const e = parseK2Ts(end);
+    if (!s2 || !e)
+      return "N/A";
+    return formatDuration(e.getTime() - s2.getTime());
+  };
   const buildPdfBlob = () => {
     if (!(tableSummaryData == null ? void 0 : tableSummaryData.length)) {
       console.warn("No table summary data available for PDF");
@@ -38989,6 +39074,7 @@ function K2VerifyReportPdfButton({
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const M2 = 15;
+    const HEADER_TOP_Y = 10;
     const CARD_RADIUS = 3;
     const COLORS = {
       pageBg: [240, 240, 240],
@@ -39003,16 +39089,10 @@ function K2VerifyReportPdfButton({
       zebra: [248, 248, 248]
     };
     const cardW = pageWidth - 2 * M2;
+    const HEADER_DESCRIPTION = "This report summarizes the results of the data comparison between source and target systems, including execution summary and table-level discrepancies.";
     const drawPageBackground = () => {
       doc.setFillColor(...COLORS.pageBg);
       doc.rect(0, 0, pageWidth, pageHeight, "F");
-    };
-    const drawHeader = () => {
-      if (logoImage)
-        doc.addImage(logoImage, "PNG", M2, 10, 40, 14);
-      doc.setFontSize(16);
-      doc.setTextColor(...COLORS.titleBlue);
-      doc.text(`Task #${state.task_id} - ${state.task_name}`, M2, 30);
     };
     const drawCard = (x2, y22, w2, h2) => {
       doc.setFillColor(...COLORS.cardBg);
@@ -39026,27 +39106,76 @@ function K2VerifyReportPdfButton({
       doc.setTextColor(...COLORS.text);
       doc.text(text, x2, y22);
     };
-    const renderExecutionSummaryTiles = (startY) => {
+    const drawSectionDescription = (text, x2, y22, maxWidth) => {
+      doc.setFontSize(9);
+      doc.setTextColor(...COLORS.subtle);
+      const lines = doc.splitTextToSize(String(text || ""), maxWidth);
+      doc.text(lines, x2, y22);
+      return {
+        lines,
+        height: Math.max(1, lines.length) * 4
+      };
+    };
+    const resolveStatusColor = (status) => {
+      const s2 = String(status || "").toUpperCase();
+      const ok2 = s2 === "PASSED" || s2 === "PASS" || s2 === "SUCCESS" || s2 === "SUCCEEDED" || s2 === "COMPLETED";
+      return ok2 ? COLORS.pass : COLORS.fail;
+    };
+    const drawHeader = () => {
+      if (logoImage)
+        doc.addImage(logoImage, "PNG", M2, HEADER_TOP_Y, 50, 14);
+      doc.setFontSize(16);
+      doc.setTextColor(...COLORS.titleBlue);
+      const titleY = 30;
+      doc.text(`Task #${state.task_id} - ${state.task_name}`, M2, titleY);
+      const descY = titleY + 6;
+      const {
+        height: headerDescH
+      } = drawSectionDescription(HEADER_DESCRIPTION, M2, descY, cardW);
+      return descY + headerDescH + 6;
+    };
+    const drawFooter = () => {
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i2 = 1; i2 <= totalPages; i2++) {
+        doc.setPage(i2);
+        doc.setFontSize(8);
+        doc.setTextColor(...COLORS.subtle);
+        const footerY = pageHeight - 10;
+        doc.text(`Generated on ${new Date().toLocaleString()}`, M2, footerY);
+        if (logoImage22) {
+          const logoW = 18;
+          const logoH = 5;
+          const logoX = (pageWidth - logoW) / 2;
+          const logoY = pageHeight - 10;
+          doc.addImage(logoImage22, "PNG", logoX, logoY, logoW, logoH);
+        }
+        doc.text(`Page ${i2} of ${totalPages}`, pageWidth - M2, footerY, {
+          align: "right"
+        });
+      }
+    };
+    const renderExecutionSummary = (startY) => {
       var _a2, _b2;
       const padX = 10;
       const padTop = 10;
-      const titleGap = 8;
-      const tileGapX = 4;
-      const tileGapY = 0;
-      const innerLeft = M2 + padX;
-      const innerRight = M2 + padX;
       const titleY = startY + padTop;
-      const tableY = startY + padTop + titleGap;
-      const headers = ["Execution ID", "Status", "Total Tables", "Failed Tables", "Failed %", "Start Time", "End Time"];
-      const values = [state.execution_id || "N/A", state.execution_status || "N/A", String((_a2 = state.total_tables) != null ? _a2 : "0"), String(failedTables != null ? failedTables : "0"), `${(_b2 = state.percent_records_failed) != null ? _b2 : "0"}%`, state.start_time || "N/A", state.end_time || "N/A"];
+      const descY = titleY + 5;
+      const description = "Provides an overall snapshot of the comparison run, including execution status, number of tables processed, failure percentage, and execution duration.";
+      const {
+        height: descH
+      } = drawSectionDescription(description, M2 + padX, descY, cardW - 2 * padX);
+      const tableY = descY + descH + 4;
+      const headers = ["Execution ID", "Status", "Total Tables", "Failed Tables", "Failed %", "Start Time", "End Time", "Duration"];
+      const durationText = computeDurationText(state.start_time, state.end_time);
+      const values = [state.execution_id || "N/A", state.execution_status || "N/A", String((_a2 = state.total_tables) != null ? _a2 : "0"), String(failedTables != null ? failedTables : "0"), `${(_b2 = state.percent_records_failed) != null ? _b2 : "0"}%`, state.start_time || "N/A", state.end_time || "N/A", durationText];
       autoTable(doc, {
         startY: tableY,
         head: [headers],
         body: [values],
         theme: "plain",
         margin: {
-          left: innerLeft,
-          right: innerRight
+          left: M2 + padX,
+          right: M2 + padX
         },
         styles: {
           fontSize: 9,
@@ -39062,6 +39191,8 @@ function K2VerifyReportPdfButton({
         willDrawCell: (data2) => {
           if (data2.section !== "head" && data2.section !== "body")
             return;
+          const tileGapX = 4;
+          const tileGapY = 0;
           const rx = data2.cell.x + tileGapX / 2;
           const ry = data2.cell.y + tileGapY / 2;
           const rw = data2.cell.width - tileGapX;
@@ -39081,14 +39212,15 @@ function K2VerifyReportPdfButton({
       const cardH = tableEndY - startY + 8;
       drawCard(M2, startY, cardW, cardH);
       drawSectionTitle("Execution Summary", M2 + padX, titleY);
+      drawSectionDescription(description, M2 + padX, descY, cardW - 2 * padX);
       autoTable(doc, {
         startY: tableY,
         head: [headers],
         body: [values],
         theme: "plain",
         margin: {
-          left: innerLeft,
-          right: innerRight
+          left: M2 + padX,
+          right: M2 + padX
         },
         styles: {
           fontSize: 9,
@@ -39104,13 +39236,15 @@ function K2VerifyReportPdfButton({
         },
         didParseCell: (data2) => {
           if (data2.section === "body" && data2.column.index === 1) {
-            data2.cell.styles.textColor = COLORS.pass;
+            data2.cell.styles.textColor = resolveStatusColor(data2.cell.raw);
             data2.cell.styles.fontStyle = "bold";
           }
         },
         willDrawCell: (data2) => {
           if (data2.section !== "head" && data2.section !== "body")
             return;
+          const tileGapX = 4;
+          const tileGapY = 0;
           const rx = data2.cell.x + tileGapX / 2;
           const ry = data2.cell.y + tileGapY / 2;
           const rw = data2.cell.width - tileGapX;
@@ -39131,10 +39265,13 @@ function K2VerifyReportPdfButton({
     const renderTableLevelSummary = (startY) => {
       const padX = 10;
       const padTop = 10;
-      const titleGap = 8;
       const cardTopPage1 = startY;
       const titleYPage1 = cardTopPage1 + padTop;
-      const tableStartYPage1 = cardTopPage1 + padTop + titleGap;
+      const descYPage1 = titleYPage1 + 5;
+      const description = "Displays detailed comparison results for each table, including record counts, pass/fail results, and discrepancies between source and target systems.";
+      const descLinesPage1 = doc.splitTextToSize(description, cardW - 2 * padX);
+      const descHPage1 = Math.max(1, descLinesPage1.length) * 4;
+      const tableStartYPage1 = descYPage1 + descHPage1 + 4;
       const exportColumns = [{
         header: "Source Table",
         key: "source_table_name"
@@ -39229,10 +39366,10 @@ function K2VerifyReportPdfButton({
         didParseCell: (data2) => {
           if (data2.section === "body" && data2.column.index === 2) {
             const v2 = String(data2.cell.raw || "").toUpperCase();
-            if (v2 === "PASSED") {
+            if (v2 === "PASSED" || v2 === "PASS") {
               data2.cell.styles.textColor = COLORS.pass;
               data2.cell.styles.fontStyle = "bold";
-            } else if (v2.includes("NOT") || v2 === "FAILED") {
+            } else if (v2.includes("NOT") || v2 === "FAILED" || v2 === "FAIL") {
               data2.cell.styles.textColor = COLORS.fail;
               data2.cell.styles.fontStyle = "bold";
             }
@@ -39241,16 +39378,26 @@ function K2VerifyReportPdfButton({
         willDrawPage: (data2) => {
           if (data2.pageNumber > 1) {
             drawPageBackground();
-            drawHeader();
-            const top = 35;
+            const contentStartY2 = drawHeader();
+            const top = contentStartY2;
             const maxH = pageHeight - top - 18;
             drawCard(M2, top, cardW, maxH);
-            drawSectionTitle("Table-Level Summary", M2 + padX, top + padTop);
-            data2.settings.margin.top = top + padTop + titleGap;
+            const titleY = top + padTop;
+            const descY = titleY + 5;
+            drawSectionTitle("Table-Level Summary", M2 + padX, titleY);
+            doc.setFontSize(9);
+            doc.setTextColor(...COLORS.subtle);
+            const lines = doc.splitTextToSize(description, cardW - 2 * padX);
+            doc.text(lines, M2 + padX, descY);
+            const descH = Math.max(1, lines.length) * 4;
+            data2.settings.margin.top = descY + descH + 4;
           } else {
             if (typeof page1CardHForDraw === "number") {
               drawCard(M2, cardTopPage1, cardW, page1CardHForDraw);
               drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
+              doc.setFontSize(9);
+              doc.setTextColor(...COLORS.subtle);
+              doc.text(descLinesPage1, M2 + padX, descYPage1);
             }
           }
         }
@@ -39261,36 +39408,17 @@ function K2VerifyReportPdfButton({
       const desiredH = tableEndY - cardTopPage1 + 10;
       const page1CardH = Math.min(maxPage1H, desiredH);
       drawCard(M2, cardTopPage1, cardW, page1CardH);
-      drawSectionTitle("Table Level Summary", M2 + padX, titleYPage1);
+      drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
+      doc.setFontSize(9);
+      doc.setTextColor(...COLORS.subtle);
+      doc.text(descLinesPage1, M2 + padX, descYPage1);
       autoTable(doc, tableOpts(tableStartYPage1, page1CardH));
       return doc.lastAutoTable.finalY + 10;
     };
-    const pageWidth2 = doc.internal.pageSize.getWidth();
-    const pageHeight2 = doc.internal.pageSize.getHeight();
-    const drawFooter = () => {
-      const totalPages = doc.internal.getNumberOfPages();
-      for (let i2 = 1; i2 <= totalPages; i2++) {
-        doc.setPage(i2);
-        doc.setFontSize(8);
-        doc.setTextColor(120, 120, 120);
-        const footerY = pageHeight2 - 10;
-        doc.text(`Generated on ${new Date().toLocaleString()}`, M2, footerY);
-        if (logoImage22) {
-          const logoW = 18;
-          const logoH = 5;
-          const logoX = (pageWidth2 - logoW) / 2;
-          const logoY = pageHeight2 - 10;
-          doc.addImage(logoImage22, "PNG", logoX, logoY, logoW, logoH);
-        }
-        doc.text(`Page ${i2} of ${totalPages}`, pageWidth2 - M2, footerY, {
-          align: "right"
-        });
-      }
-    };
     drawPageBackground();
-    drawHeader();
-    let y2 = 35;
-    y2 = renderExecutionSummaryTiles(y2);
+    const contentStartY = drawHeader();
+    let y2 = Math.max(35, contentStartY);
+    y2 = renderExecutionSummary(y2);
     y2 = renderTableLevelSummary(y2);
     drawFooter();
     return doc.output("blob");
@@ -39431,7 +39559,7 @@ function K2VerifyResultsDetailed() {
     fetchData: fetchTableSummaryData,
     loading: tableSummaryLoading,
     error: tableSummaryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyResultTables execution_id=${executionId} RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultTables execution_id=${executionId} RESULT_STRUCTURE=CURSOR`)}`);
   const [taskFlags, setTaskFlags] = react.exports.useState({
     logPass: false,
     piiOnly: false
@@ -39441,7 +39569,7 @@ function K2VerifyResultsDetailed() {
   const taskDetailsEndpoint = react.exports.useMemo(() => {
     if (!taskId)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwTaskDetails task_id='${taskId}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwTaskDetails task_id='${taskId}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [taskId]);
   const {
     fetchData: fetchTaskDetails,
@@ -39506,7 +39634,7 @@ function K2VerifyResultsDetailed() {
   const columnEndpoint = react.exports.useMemo(() => {
     if (!executionId || !columnModalTableName)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway k2verify.bwK2VerifyResultColumns source_table_name='${columnModalTableName}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultColumns source_table_name='${columnModalTableName}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [executionId, columnModalTableName]);
   const {
     fetchData: fetchColumnModalData,
@@ -39598,7 +39726,7 @@ function K2VerifyResultsDetailed() {
       const metricsParam = metricKeys.join(",");
       const filtersJson = JSON.stringify(filters || {});
       const command = `
-        broadway k2verify.bwK2VerifyResultRecordDetails
+        broadway verify.bwK2VerifyResultRecordDetails
         source_table_name='${sourceTableName}' execution_id='${executionId}' filters='${filtersJson}'
         selected_metrics='${metricsParam}' queryLimit=${limit} queryOffset=${offset}
         isCountRequired=${isCountRequired ? "true" : "false"} RESULT_STRUCTURE=CURSOR
@@ -40051,19 +40179,13 @@ function K2VerifyResultsDetailed() {
       }), selectedRow.rowIndex != null && selectedRow.metricKeys.length > 0 && tableSummaryData[selectedRow.rowIndex] ? /* @__PURE__ */ jsxs(Fragment, {
         children: [/* @__PURE__ */ jsxs("p", {
           className: "k2vr-subtle",
-          children: [t3("k2verifyResults.tableLabel"), " ", /* @__PURE__ */ jsx("strong", {
-            children: tableSummaryData[selectedRow.rowIndex].source_table_name
-          })]
+          children: [t3("k2verifyResults.tableLabel"), " ", tableSummaryData[selectedRow.rowIndex].source_table_name]
         }), /* @__PURE__ */ jsxs("p", {
           className: "k2vr-subtle",
-          children: [/* @__PURE__ */ jsx("strong", {
-            children: "Selected Metrics:"
-          }), " ", selectedRow.metricKeys.map(formatLabel).join(", ")]
+          children: ["Selected Metrics:", " ", selectedRow.metricKeys.map(formatLabel).join(", ")]
         }), Object.keys(recordDetailsFilters).length > 0 && /* @__PURE__ */ jsxs("p", {
           className: "k2vr-subtle",
-          children: [/* @__PURE__ */ jsx("strong", {
-            children: "Active Filters:"
-          }), " ", Object.entries(recordDetailsFilters).map(([key, value]) => `${formatLabel(key)}: ${value}`).join(", ")]
+          children: ["Active Filters:", " ", Object.entries(recordDetailsFilters).map(([key, value]) => `${formatLabel(key)}: ${value}`).join(", ")]
         }), /* @__PURE__ */ jsx("hr", {
           className: "k2vr-hr-thin"
         }), /* @__PURE__ */ jsx(ReactTablePaginate, {

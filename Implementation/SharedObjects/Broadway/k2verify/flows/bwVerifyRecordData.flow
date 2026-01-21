@@ -416,7 +416,7 @@ stages:
         parent: FabricSetRead
         in:
           key:
-            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+            const: verify.K2VERIFY_RESULT_FILES_PATH
   Stage 4:
     transactional: true
     actors:
@@ -435,13 +435,13 @@ stages:
             schema: any
             mandatory: false
             createdBy: format
-          execution_id:
-            external: execution_id
+          source_table_name:
+            external: source_table_name
             schema: any
             mandatory: false
             createdBy: format
-          source_table_name:
-            external: source_table_name
+          execution_id:
+            external: execution_id
             schema: any
             mandatory: false
             createdBy: format

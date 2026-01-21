@@ -68,17 +68,17 @@ stages:
         parent: FabricSetRead
         in:
           key:
-            const: k2verify.K2VERIFY_RESULT_FILES_PATH
+            const: verify.K2VERIFY_RESULT_FILES_PATH
       RESULTS INTERFACE:
         parent: FabricSetRead
         in:
           key:
-            const: k2verify.K2VERIFY_OPERATIONAL_INTERFACE
+            const: verify.K2VERIFY_OPERATIONAL_INTERFACE
       RESULTS SCHEMA:
         parent: FabricSetRead
         in:
           key:
-            const: k2verify.K2VERIFY_OPERATIONAL_SCHEMA
+            const: verify.K2VERIFY_OPERATIONAL_SCHEMA
   Bucket number:
     actors:
       SplitIID:
