@@ -424,7 +424,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: ${dir}/verify_fields_results_${execution_id}_${bucket_id}.csv
+            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
           bucket_id:
             external: bucket_id
             schema: string
@@ -436,7 +436,11 @@ stages:
             mandatory: false
             createdBy: format
           execution_id:
-            external: execution_id
+            schema: any
+            mandatory: false
+            createdBy: format
+          source_table_name:
+            external: source_table_name
             schema: any
             mandatory: false
             createdBy: format

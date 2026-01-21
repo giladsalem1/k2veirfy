@@ -192,7 +192,7 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: ${dir}/verify_fields_results_${execution_id}_${bucket_id}.csv
+            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
           bucket_id:
             link: IID/result
             schema: string
@@ -206,6 +206,11 @@ stages:
           execution_id:
             link: EXEC ID/result
             schema: string
+            mandatory: false
+            createdBy: format
+          source_table_name:
+            link: SRC TABLE/result
+            schema: any
             mandatory: false
             createdBy: format
   Get PII Columns:
