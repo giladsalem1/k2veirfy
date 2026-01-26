@@ -300,7 +300,7 @@ stages:
         in:
           string:
             link: Row Info/value/Excluded_Columns_Names
-  If Active in Config:
+  Verify data:
     transactional: false
     actors:
       Check Active:
@@ -426,18 +426,18 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-  Stage 4:
+  Tme befor PG Copy:
     actors:
-      Now:
+      TmeBeforPGCopy:
         parent: Now
-      START_TIME:
+      TmeBeforPGCopyStr:
         parent: ToString
         in:
           value:
-            link: Now/date
-  Stage 2:
+            link: TmeBeforPGCopy/date
+  Update time before PG Copy:
     actors:
-      'Update #Processed':
+      UpTimeBeforePGCP:
         parent: DbCommand
         in:
           interface:
@@ -473,13 +473,13 @@ stages:
             mandatory: false
             createdBy: sql
           time_until_copy:
-            link: START_TIME/string
+            link: TmeBeforPGCopyStr/string
             schema: any
             mandatory: false
             createdBy: sql
-  Post Load:
+  Copy bucket data to pg:
     actors:
-      pgCopy1:
+      pgCopy:
         parent: pgCopy
         in:
           interface:
@@ -503,22 +503,24 @@ stages:
             - TARGET_VALUE_SECURED
             - SOURCE_COLUMN_VALUE
             - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
           header:
             const: false
           file_path:
             link: fileName/string
-  Stage 5:
+  Time after PG Copy:
     actors:
-      Now1:
+      TimeAfterPGCopy:
         parent: Now
-      START_TIME1:
+      TimeAfterPGCopyStr:
         parent: ToString
         in:
           value:
-            link: Now1/date
-  Stage 3:
+            link: TimeAfterPGCopy/date
+  Update time after PG Copy:
     actors:
-      'Update #Processed1':
+      UpTimeAfterPGCP:
         parent: DbCommand
         in:
           interface:
@@ -554,13 +556,13 @@ stages:
             mandatory: false
             createdBy: sql
           time_after_copy:
-            link: START_TIME1/string
+            link: TimeAfterPGCopyStr/string
             schema: any
             mandatory: false
             createdBy: sql
-  Stage 1:
+  Remove bucket data file:
     actors:
-      rm1:
+      rm:
         parent: rm
         in:
           interface:

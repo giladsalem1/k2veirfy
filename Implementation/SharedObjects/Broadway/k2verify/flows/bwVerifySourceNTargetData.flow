@@ -391,10 +391,32 @@ stages:
         out:
           result:
             schema: integer
+      '# Fields':
+        parent: JavaScript
+        in:
+          script:
+            const: arr.length
+          arr:
+            link: SourceEnvQuery/columns
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: integer
+  Calc total fields:
+    transactional: false
+    actors:
+      TotalFields:
+        parent: MathMultiply
+        in:
+          a:
+            link: '# Records/result'
+          b:
+            link: '# Fields/result'
   'Update # records for report':
     transactional: false
     actors:
-      UpdateRecordsNum:
+      UpdateTotalRecords:
         parent: DbCommand
         in:
           interface:
@@ -432,6 +454,46 @@ stages:
           total_records:
             link: '# Records/result'
             schema: integer
+            mandatory: false
+            createdBy: sql
+      UpdateTotalFields:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution_buckets set total_fields = ${total_fields}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
+              and bucket_id=${bucket_id}
+          schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          total_fields:
+            link: TotalFields/result
+            schema: any
             mandatory: false
             createdBy: sql
   Prepare groups of keys:
@@ -830,6 +892,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          columns:
+            link: SourceEnvQuery/columns
+            schema: any
+            mandatory: false
+            createdBy: flowName
         out:
           keyNotFound:
             schema: boolean
@@ -1098,6 +1165,10 @@ schemas:
         CUSTOMER_ID:
           type: integer
   '# Records.in.arr':
+    type: array
+    items:
+      type: string
+  '# Fields.in.arr':
     type: array
     items:
       type: string

@@ -20122,19 +20122,19 @@ function K2VerifyTaskResults() {
   }, {
     header: "Total Tables Failed",
     accessorKey: "total_tables_failed",
-    size: 188,
+    size: 192,
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Non-Pass Count",
-    accessorKey: "non_pass_count",
-    size: 180,
+    header: "Non-Pass Records Count",
+    accessorKey: "non_pass_records_count",
+    size: 250,
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Non-Pass Rate (%)",
-    accessorKey: "percent_records_failed",
-    size: 187,
+    header: "Non-Pass Records %",
+    accessorKey: "non_pass_records_percent",
+    size: 250,
     enableSorting: true,
     enableColumnFilter: true
   }];
@@ -21118,13 +21118,14 @@ function ResultsHeader({
   endTime,
   totalTables,
   failedTables,
-  percentFailed,
+  percentFieldsPassed,
   pdfButton,
   onDownloadReport
 }) {
   var _a2, _b2;
   const t3 = (_b2 = (_a2 = window == null ? void 0 : window.k2api) == null ? void 0 : _a2.i18n) == null ? void 0 : _b2.translate;
   const statusText = executionResult;
+  const passedTables = Math.max(0, (Number(totalTables) || 0) - (Number(failedTables) || 0));
   const parseK2Ts = (s2) => {
     if (!s2)
       return null;
@@ -21248,7 +21249,7 @@ function ResultsHeader({
             fontSize: "12px",
             color: "#64748b "
           },
-          children: "Total Tables"
+          children: "Tables Verified"
         }), /* @__PURE__ */ jsx("div", {
           style: {
             fontSize: "15px",
@@ -21267,13 +21268,13 @@ function ResultsHeader({
             fontSize: "12px",
             color: "#64748b "
           },
-          children: "Failed Tables"
+          children: "Tables Passed"
         }), /* @__PURE__ */ jsx("div", {
           style: {
             fontSize: "15px",
             fontWeight: 400
           },
-          children: failedTables
+          children: passedTables
         })]
       }), /* @__PURE__ */ jsxs("div", {
         style: {
@@ -21286,13 +21287,13 @@ function ResultsHeader({
             fontSize: "12px",
             color: "#64748b "
           },
-          children: "Failed %"
+          children: "Fields Passed (%)"
         }), /* @__PURE__ */ jsxs("div", {
           style: {
             fontSize: "15px",
             fontWeight: 400
           },
-          children: [percentFailed, "%"]
+          children: [percentFieldsPassed, "%"]
         })]
       }), /* @__PURE__ */ jsxs("div", {
         style: {
@@ -36219,7 +36220,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.bd928c8d.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.8848251e.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -38987,10 +38988,7 @@ function K2VerifyReportPdfButton({
   const rowsToCsv = (rows) => {
     const headers = ["Data Platform", "Schema", "Table", "PII Column"];
     const keys = ["interface_name", "schema_name", "table_name", "pii_column"];
-    const lines = [
-      headers.join(","),
-      ...rows.map((r2) => keys.map((k3) => csvEscape(r2 == null ? void 0 : r2[k3])).join(","))
-    ];
+    const lines = [headers.join(","), ...rows.map((r2) => keys.map((k3) => csvEscape(r2 == null ? void 0 : r2[k3])).join(","))];
     return "\uFEFF" + lines.join("\r\n");
   };
   const fetchZipFromWs = react.exports.useCallback(async () => {
@@ -39030,6 +39028,19 @@ function K2VerifyReportPdfButton({
     const data2 = await res.json();
     return normalizeBroadwayRows(data2);
   }, [effectiveExecutionId]);
+  const tText = (key, fallback = "") => {
+    const s2 = t3 == null ? void 0 : t3(key);
+    if (typeof s2 !== "string" || s2 === key || !s2.trim()) {
+      return fallback ? String(fallback).trim() : "";
+    }
+    return s2.trim();
+  };
+  const stripMicros = (s2) => {
+    const v2 = String(s2 != null ? s2 : "").trim();
+    if (!v2)
+      return "";
+    return v2.replace(/\.\d+$/, "");
+  };
   const parseK2Ts = (s2) => {
     if (!s2)
       return null;
@@ -39049,7 +39060,7 @@ function K2VerifyReportPdfButton({
     return new Date(yyyy, mm - 1, dd2, HH, MI, SS, MS);
   };
   const formatDuration = (ms) => {
-    if (!Number.isFinite(ms) || ms < 0)
+    if (ms == null || !Number.isFinite(ms) || ms < 0)
       return "N/A";
     const totalSeconds = Math.floor(ms / 1e3);
     const hours = Math.floor(totalSeconds / 3600);
@@ -39089,7 +39100,6 @@ function K2VerifyReportPdfButton({
       zebra: [248, 248, 248]
     };
     const cardW = pageWidth - 2 * M2;
-    const HEADER_DESCRIPTION = "This report summarizes the results of the data comparison between source and target systems, including execution summary and table-level discrepancies.";
     const drawPageBackground = () => {
       doc.setFillColor(...COLORS.pageBg);
       doc.rect(0, 0, pageWidth, pageHeight, "F");
@@ -39107,9 +39117,15 @@ function K2VerifyReportPdfButton({
       doc.text(text, x2, y22);
     };
     const drawSectionDescription = (text, x2, y22, maxWidth) => {
+      const raw = String(text != null ? text : "").trim();
+      if (!raw)
+        return {
+          lines: [],
+          height: 0
+        };
       doc.setFontSize(9);
       doc.setTextColor(...COLORS.subtle);
-      const lines = doc.splitTextToSize(String(text || ""), maxWidth);
+      const lines = doc.splitTextToSize(raw, maxWidth);
       doc.text(lines, x2, y22);
       return {
         lines,
@@ -39122,17 +39138,19 @@ function K2VerifyReportPdfButton({
       return ok2 ? COLORS.pass : COLORS.fail;
     };
     const drawHeader = () => {
+      var _a2, _b2;
       if (logoImage)
         doc.addImage(logoImage, "PNG", M2, HEADER_TOP_Y, 50, 14);
       doc.setFontSize(16);
       doc.setTextColor(...COLORS.titleBlue);
       const titleY = 30;
-      doc.text(`Task #${state.task_id} - ${state.task_name}`, M2, titleY);
+      doc.text(`Task #${(_a2 = state == null ? void 0 : state.task_id) != null ? _a2 : ""} - ${(_b2 = state == null ? void 0 : state.task_name) != null ? _b2 : ""}`, M2, titleY);
+      const headerDesc = tText("k2verifyResults.reportHeaderDescription", "");
       const descY = titleY + 6;
       const {
         height: headerDescH
-      } = drawSectionDescription(HEADER_DESCRIPTION, M2, descY, cardW);
-      return descY + headerDescH + 6;
+      } = drawSectionDescription(headerDesc, M2, descY, cardW);
+      return headerDescH ? descY + headerDescH + 6 : titleY + 10;
     };
     const drawFooter = () => {
       const totalPages = doc.internal.getNumberOfPages();
@@ -39155,19 +39173,50 @@ function K2VerifyReportPdfButton({
       }
     };
     const renderExecutionSummary = (startY) => {
-      var _a2, _b2;
+      var _a2;
       const padX = 10;
       const padTop = 10;
       const titleY = startY + padTop;
       const descY = titleY + 5;
-      const description = "Provides an overall snapshot of the comparison run, including execution status, number of tables processed, failure percentage, and execution duration.";
+      const description = tText("k2verifyResults.executionSummaryDescription", "");
       const {
         height: descH
       } = drawSectionDescription(description, M2 + padX, descY, cardW - 2 * padX);
-      const tableY = descY + descH + 4;
-      const headers = ["Execution ID", "Status", "Total Tables", "Failed Tables", "Failed %", "Start Time", "End Time", "Duration"];
-      const durationText = computeDurationText(state.start_time, state.end_time);
-      const values = [state.execution_id || "N/A", state.execution_status || "N/A", String((_a2 = state.total_tables) != null ? _a2 : "0"), String(failedTables != null ? failedTables : "0"), `${(_b2 = state.percent_records_failed) != null ? _b2 : "0"}%`, state.start_time || "N/A", state.end_time || "N/A", durationText];
+      const tableY = descH ? descY + descH + 4 : descY;
+      const totalTables = Number((_a2 = state == null ? void 0 : state.total_tables) != null ? _a2 : 0) || 0;
+      const failedTbls = Number(failedTables != null ? failedTables : 0) || 0;
+      const passedTbls = Math.max(0, totalTables - failedTbls);
+      const startTimeText = stripMicros(state == null ? void 0 : state.start_time);
+      const endTimeText = stripMicros(state == null ? void 0 : state.end_time);
+      const durationText = startTimeText && endTimeText ? computeDurationText(state == null ? void 0 : state.start_time, state == null ? void 0 : state.end_time) : "";
+      const passedFieldsPct = (state == null ? void 0 : state.passed_fields_percent) == null || (state == null ? void 0 : state.passed_fields_percent) === "" ? "0" : String(state.passed_fields_percent);
+      const cols = [{
+        h: "Execution ID",
+        v: (state == null ? void 0 : state.execution_id) || "N/A"
+      }, {
+        h: "Status",
+        v: (state == null ? void 0 : state.execution_status) || "N/A"
+      }, {
+        h: "Tables Verified",
+        v: String(totalTables)
+      }, {
+        h: "Tables Passed",
+        v: String(passedTbls)
+      }, {
+        h: "Fields Passed %",
+        v: `${passedFieldsPct}%`
+      }, ...startTimeText ? [{
+        h: "Start Time",
+        v: startTimeText
+      }] : [], ...endTimeText ? [{
+        h: "End Time",
+        v: endTimeText
+      }] : [], ...durationText ? [{
+        h: "Duration",
+        v: durationText
+      }] : []];
+      const headers = cols.map((c2) => c2.h);
+      const values = cols.map((c2) => c2.v);
       autoTable(doc, {
         startY: tableY,
         head: [headers],
@@ -39235,9 +39284,12 @@ function K2VerifyReportPdfButton({
           fontStyle: "bold"
         },
         didParseCell: (data2) => {
-          if (data2.section === "body" && data2.column.index === 1) {
-            data2.cell.styles.textColor = resolveStatusColor(data2.cell.raw);
-            data2.cell.styles.fontStyle = "bold";
+          if (data2.section === "body") {
+            const colHeader = headers[data2.column.index];
+            if (colHeader === "Status") {
+              data2.cell.styles.textColor = resolveStatusColor(data2.cell.raw);
+              data2.cell.styles.fontStyle = "bold";
+            }
           }
         },
         willDrawCell: (data2) => {
@@ -39268,10 +39320,10 @@ function K2VerifyReportPdfButton({
       const cardTopPage1 = startY;
       const titleYPage1 = cardTopPage1 + padTop;
       const descYPage1 = titleYPage1 + 5;
-      const description = "Displays detailed comparison results for each table, including record counts, pass/fail results, and discrepancies between source and target systems.";
-      const descLinesPage1 = doc.splitTextToSize(description, cardW - 2 * padX);
-      const descHPage1 = Math.max(1, descLinesPage1.length) * 4;
-      const tableStartYPage1 = descYPage1 + descHPage1 + 4;
+      const description = tText("k2verifyResults.tableLevelSummaryDescription", "");
+      const descLinesPage1 = description ? doc.splitTextToSize(description, cardW - 2 * padX) : [];
+      const descHPage1 = description ? Math.max(1, descLinesPage1.length) * 4 : 0;
+      const tableStartYPage1 = descHPage1 ? descYPage1 + descHPage1 + 4 : descYPage1;
       const exportColumns = [{
         header: "Source Table",
         key: "source_table_name"
@@ -39385,19 +39437,25 @@ function K2VerifyReportPdfButton({
             const titleY = top + padTop;
             const descY = titleY + 5;
             drawSectionTitle("Table-Level Summary", M2 + padX, titleY);
-            doc.setFontSize(9);
-            doc.setTextColor(...COLORS.subtle);
-            const lines = doc.splitTextToSize(description, cardW - 2 * padX);
-            doc.text(lines, M2 + padX, descY);
-            const descH = Math.max(1, lines.length) * 4;
-            data2.settings.margin.top = descY + descH + 4;
+            if (description) {
+              doc.setFontSize(9);
+              doc.setTextColor(...COLORS.subtle);
+              const lines = doc.splitTextToSize(description, cardW - 2 * padX);
+              doc.text(lines, M2 + padX, descY);
+              const descH = Math.max(1, lines.length) * 4;
+              data2.settings.margin.top = descY + descH + 4;
+            } else {
+              data2.settings.margin.top = descY;
+            }
           } else {
             if (typeof page1CardHForDraw === "number") {
               drawCard(M2, cardTopPage1, cardW, page1CardHForDraw);
               drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
-              doc.setFontSize(9);
-              doc.setTextColor(...COLORS.subtle);
-              doc.text(descLinesPage1, M2 + padX, descYPage1);
+              if (description) {
+                doc.setFontSize(9);
+                doc.setTextColor(...COLORS.subtle);
+                doc.text(descLinesPage1, M2 + padX, descYPage1);
+              }
             }
           }
         }
@@ -39409,9 +39467,11 @@ function K2VerifyReportPdfButton({
       const page1CardH = Math.min(maxPage1H, desiredH);
       drawCard(M2, cardTopPage1, cardW, page1CardH);
       drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.subtle);
-      doc.text(descLinesPage1, M2 + padX, descYPage1);
+      if (description) {
+        doc.setFontSize(9);
+        doc.setTextColor(...COLORS.subtle);
+        doc.text(descLinesPage1, M2 + padX, descYPage1);
+      }
       autoTable(doc, tableOpts(tableStartYPage1, page1CardH));
       return doc.lastAutoTable.finalY + 10;
     };
@@ -39434,25 +39494,16 @@ function K2VerifyReportPdfButton({
       const base2 = `K2Verify_${effectiveExecutionId}`;
       perf.start("PDF Generation + Download");
       const pdfBlob = buildPdfBlob();
-      if (pdfBlob) {
+      if (pdfBlob)
         downloadBlob(pdfBlob, `${base2}_Report.pdf`);
-      }
       perf.end("PDF Generation + Download");
       perf.start("PII CSV (Broadway) Generation + Download");
       const piiRows = await fetchPiiRowsFromBroadway();
-      if (piiRows == null ? void 0 : piiRows.length) {
-        const csvText = rowsToCsv(piiRows);
-        const csvBlob = new Blob([csvText], {
-          type: "text/csv;charset=utf-8"
-        });
-        downloadBlob(csvBlob, `${base2}_PII_Columns.csv`);
-      } else {
-        const csvText = rowsToCsv([]);
-        const csvBlob = new Blob([csvText], {
-          type: "text/csv;charset=utf-8"
-        });
-        downloadBlob(csvBlob, `${base2}_PII_Columns.csv`);
-      }
+      const csvText = rowsToCsv(piiRows || []);
+      const csvBlob = new Blob([csvText], {
+        type: "text/csv;charset=utf-8"
+      });
+      downloadBlob(csvBlob, `${base2}_PII_Columns.csv`);
       perf.end("PII CSV (Broadway) Generation + Download");
       perf.start("ZIP Download (WS)");
       const {
@@ -40105,7 +40156,7 @@ function K2VerifyResultsDetailed() {
       endTime: state.end_time,
       totalTables: state.total_tables,
       failedTables,
-      percentFailed: state.percent_records_failed,
+      percentFieldsPassed: state.passed_fields_percent,
       pdfButton: /* @__PURE__ */ jsx(K2VerifyReportPdfButton, {
         state,
         tableSummaryData,

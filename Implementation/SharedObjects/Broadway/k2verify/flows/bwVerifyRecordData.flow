@@ -73,11 +73,6 @@ stages:
         in:
           functionName:
             const: fnVerifySourceNTarget
-          customizedKeyComparison:
-            external: customized_key
-            schema: string
-            mandatory: false
-            createdBy: functionName
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
             schema: any
@@ -314,12 +309,6 @@ stages:
             external: customized_key_values
             schema: any
             mandatory: false
-          SOURCE_COLUMN_ORIG_VALUE:
-            schema: any
-            mandatory: false
-          TARGET_COLUMN_ORIG_VALUE:
-            schema: any
-            mandatory: false
           COLUMN_NAME:
             link:
               path: Const6/value
@@ -432,17 +421,17 @@ stages:
             createdBy: format
           dir:
             link: FabricSetRead1/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
           source_table_name:
             external: source_table_name
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
           execution_id:
             external: execution_id
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
       ToBool:
@@ -450,69 +439,7 @@ stages:
         in:
           value:
             external: log_pass
-  Stage 15:
-    transactional: true
-    dependsOn: Stage 4
-    actors:
-      Equals2:
-        parent: Equals
-        condition: result
-        in:
-          b:
-            const: false
-            schema: boolean
-          a:
-            link: ToBool/bool
-      Filter1:
-        parent: Filter
-        in:
-          script:
-            const: value.MATCH_RESULT=="NOT PASSED"
-          values:
-            link: Const5/value
-        out:
-          values:
-            schema: '#ref'
-    split: '--------------------'
-  Stage 13:
-    else: true
-    transactional: true
-    dependsOn: Stage 4
-    actors:
-      Const3:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: Const5/value
-        out:
-          value:
-            schema: '#ref'
   Stage 14:
-    transactional: true
-    actors:
-      CsvBuilder1:
-        parent: CsvBuilder
-        in:
-          header:
-            const: false
-          columns:
-            const:
-            - EXECUTION_ID
-            - IID
-            - SOURCE_TABLE_NAME
-            - TARGET_TABLE_NAME
-            - CUSTOMIZED_KEY
-            - COLUMN_NAME
-            - MATCH_RESULT
-            - TARGET_VALUE_SECURED
-            - SOURCE_COLUMN_VALUE
-            - TARGET_COLUMN_VALUE
-          maps:
-            link:
-            - Filter1/values
-            - Const3/value
-  Stage 31:
     transactional: true
     actors:
       FileWrite1:
@@ -522,10 +449,10 @@ stages:
             const: file://
           append:
             const: true
+          stream:
+            link: Const5/value
           path:
             link: StringFormat1/string
-          stream:
-            link: CsvBuilder1/csv
 schemas:
   SrcRow.out.value:
     type: object
@@ -1705,26 +1632,3 @@ schemas:
             type: string
           RESULT:
             type: string
-  Filter1.out.values:
-    type: array
-    items: {
-      }
-  Const3.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        SOURCE_VALUE:
-          type: integer
-        TARGET_VALUE:
-          type: integer
-        TARGET_COLUMN_ORIG_VALUE: {
-          }
-        TARGET_SECURED:
-          type: string
-        COLUMN_NAME:
-          type: string
-        SOURCE_COLUMN_ORIG_VALUE: {
-          }
-        RESULT:
-          type: string

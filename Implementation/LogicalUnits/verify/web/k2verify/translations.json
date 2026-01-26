@@ -1,7 +1,9 @@
 {
   "k2verifyHome.title": "Verify Tasks",
   "k2verifyHome.newTask": "New Task",
-
+  "k2verifyResults.reportHeaderDescription": "Results summary of the data comparison between source and target systems, including execution outcomes and table-level discrepancies.",
+  "k2verifyResults.executionSummaryDescription": "Overall snapshot of the comparison run, including execution status, number of tables processed, failure percentage, and execution duration.",
+  "k2verifyResults.tableLevelSummaryDescription": "Detailed comparison of results for each table, including record counts, pass/fail outcomes, and discrepancies between source and target systems.",
   "k2verifyHome.toasts.loadFailed": "Failed to load tasks",
   "k2verifyHome.toasts.missingTaskId": "Missing task id",
   "k2verifyHome.toasts.executionFailed": "Execution failed",

@@ -37,22 +37,50 @@ stages:
                     ON t.task_id = te.task_id
                   WHERE lower(te.execution_status) NOT IN ('in_progress', 'stopped')
               ),
+
+              /* ---------- TABLE STATS (execution-level) ---------- */
               table_stats AS (
                   SELECT
-                      execution_id,
+                      kts.execution_id,
                       COUNT(*) AS total_tables,
-                      COUNT(*) FILTER (WHERE upper(match_result) <> 'PASSED') AS total_tables_failed
-                  FROM ${@schema}.k2verify_table_summary
+                      COUNT(*) FILTER (WHERE upper(kts.match_result) <> 'PASSED') AS total_tables_failed
+                  FROM ${@schema}.k2verify_table_summary kts
                   GROUP BY 1
               ),
+
+              /* ---------- RECORD NON-PASS COMPONENTS (execution-level) ---------- */
+              /* NOTE: excludes number_of_records_unsecured_in_target entirely */
               record_stats AS (
                   SELECT
+                      kts.execution_id,
+                      COALESCE(SUM(kts.number_of_records_mismatch), 0)       AS records_mismatch,
+                      COALESCE(SUM(kts.number_of_records_only_in_source), 0) AS records_only_in_source,
+                      COALESCE(SUM(kts.number_of_records_only_in_target), 0) AS records_only_in_target
+                  FROM ${@schema}.k2verify_table_summary kts
+                  GROUP BY 1
+              ),
+
+              /* ---------- FIELD NON-PASS COMPONENTS (execution-level) ---------- */
+              field_stats AS (
+                  SELECT
+                      krs.execution_id,
+                      COALESCE(SUM(krs.number_of_fields_mismatch), 0)       AS fields_mismatch,
+                      COALESCE(SUM(krs.number_of_fields_only_in_source), 0) AS fields_only_in_source,
+                      COALESCE(SUM(krs.number_of_fields_only_in_target), 0) AS fields_only_in_target
+                  FROM ${@schema}.k2verify_record_summary krs
+                  GROUP BY 1
+              ),
+
+              /* ---------- TRUE TOTALS (execution-level) ---------- */
+              bucket_totals AS (
+                  SELECT
                       execution_id,
-                      SUM(number_of_fields_match)    AS total_match_fields,
-                      SUM(number_of_fields_mismatch) AS total_mismatch_fields
-                  FROM ${@schema}.k2verify_record_summary
+                      COALESCE(SUM(total_records), 0) AS total_records,
+                      COALESCE(SUM(total_fields), 0)  AS total_fields
+                  FROM ${@schema}.task_execution_buckets
                   GROUP BY 1
               )
+
               SELECT
                   ti.task_id,
                   ti.task_title AS task_name,
@@ -62,23 +90,73 @@ stages:
                   ti.end_time,
                   ti.source_interface,
                   ti.target_interface,
-                  COALESCE(ts.total_tables, 0) AS total_tables,
+
+                  COALESCE(ts.total_tables, 0)        AS total_tables,
                   COALESCE(ts.total_tables_failed, 0) AS total_tables_failed,
-                  COALESCE(rs.total_mismatch_fields, 0) AS non_pass_count,
+
+                  /* true totals from buckets */
+                  COALESCE(bt.total_records, 0) AS total_records,
+                  COALESCE(bt.total_fields, 0)  AS total_fields,
+
+                  /* =========================
+                     NON-PASS RECORDS
+                     (exclude unsecured_in_target)
+                     ========================= */
+                  (
+                      COALESCE(rs.records_mismatch, 0)
+                    + COALESCE(rs.records_only_in_source, 0)
+                    + COALESCE(rs.records_only_in_target, 0)
+                  ) AS non_pass_records_count,
+
                   TRUNC(
-                CASE
-                  WHEN COALESCE(rs.total_match_fields, 0)
-                     + COALESCE(rs.total_mismatch_fields, 0) > 0
-                  THEN (COALESCE(rs.total_mismatch_fields, 0)::numeric
-                       / (COALESCE(rs.total_match_fields, 0)
-                        + COALESCE(rs.total_mismatch_fields, 0))::numeric) * 100
-                  ELSE 0
-                END
-              , 2) AS percent_records_failed
+                    CASE
+                      WHEN COALESCE(bt.total_records, 0) > 0
+                      THEN (
+                        (
+                            COALESCE(rs.records_mismatch, 0)
+                          + COALESCE(rs.records_only_in_source, 0)
+                          + COALESCE(rs.records_only_in_target, 0)
+                        )::numeric
+                        / COALESCE(bt.total_records, 0)::numeric
+                      ) * 100
+                      ELSE 0
+                    END
+                  , 2) AS non_pass_records_percent,
+
+                  /* =========================
+                     NON-PASS FIELDS (count)
+                     ========================= */
+                  (
+                      COALESCE(fs.fields_mismatch, 0)
+                    + COALESCE(fs.fields_only_in_source, 0)
+                    + COALESCE(fs.fields_only_in_target, 0)
+                  ) AS non_pass_fields_count,
+
+                  /* =========================
+                     PASSED FIELDS (percent)
+                     passed% = 100 - (non_pass_fields / total_fields * 100)
+                     ========================= */
+                  TRUNC(
+                    CASE
+                      WHEN COALESCE(bt.total_fields, 0) > 0
+                      THEN 100
+                         - (
+                            (
+                                COALESCE(fs.fields_mismatch, 0)
+                              + COALESCE(fs.fields_only_in_source, 0)
+                              + COALESCE(fs.fields_only_in_target, 0)
+                            )::numeric
+                            / COALESCE(bt.total_fields, 0)::numeric
+                          ) * 100
+                      ELSE 0
+                    END
+                  , 2) AS passed_fields_percent
 
               FROM task_info ti
-              LEFT JOIN table_stats ts ON ts.execution_id = ti.execution_id
-              LEFT JOIN record_stats rs ON rs.execution_id = ti.execution_id
+              LEFT JOIN table_stats   ts ON ts.execution_id = ti.execution_id
+              LEFT JOIN record_stats  rs ON rs.execution_id = ti.execution_id
+              LEFT JOIN field_stats   fs ON fs.execution_id = ti.execution_id
+              LEFT JOIN bucket_totals bt ON bt.execution_id = ti.execution_id
               ORDER BY ti.start_time DESC;
           schema:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result

@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_buckets
     bucket_id         bigint NOT NULL,
     status            text,
     total_records     numeric(20,0),
+    total_fields      numeric(20,0),
     processed_records numeric(20,0),
     failed_records    numeric(20,0),
     start_time        timestamp without time zone,

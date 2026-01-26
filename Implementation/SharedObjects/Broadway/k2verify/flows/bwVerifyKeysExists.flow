@@ -81,6 +81,15 @@ stages:
         out:
           map:
             schema: '#ref'
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: Target Key Not Found In Source
+            schema: string
+        out:
+          value:
+            schema: string
     split: '--------------------'
   Tar record doesn't exist:
     transactional: true
@@ -132,6 +141,15 @@ stages:
         out:
           map:
             schema: '#ref'
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: Source Key Not Found In Target
+            schema: string
+        out:
+          value:
+            schema: string
     split: '--------------------'
   Stage 2:
     else: true
@@ -162,11 +180,113 @@ stages:
             schema: boolean
           a:
             link: Or1/result
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: columns
+        out:
+          value:
+            schema: string
+  Stage 6:
+    transactional: true
+    actors:
+      ReportDetailsMap12:
+        parent: MapCreate
+        in:
+          EXECUTION_ID:
+            external: execution_id
+            schema: string
+            mandatory: false
+          CUSTOMIZED_KEY:
+            external: customized_key
+            schema: string
+            mandatory: false
+          TARGET_COLUMN_VALUE:
+            schema: '#ref'
+            mandatory: false
+          MATCH_RESULT:
+            link:
+            - Const2/value
+            - Const3/value
+            schema: string
+            mandatory: false
+          SOURCE_TABLE_NAME:
+            external: source_table_name
+            schema: string
+            mandatory: false
+          TARGET_TABLE_NAME:
+            external: target_table_name
+            schema: string
+            mandatory: false
+          COLUMN_NAME:
+            link:
+              path: Const6/value
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          IID:
+            const: '0'
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+  Stage 5:
+    last: 1
+    transactional: true
+    actors:
+      ArrayBuilder2:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: ReportDetailsMap12/map
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+  Stage 8:
+    transactional: true
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ArrayBuilder2/array
+            schema: '#ref'
+        out:
+          value:
+            schema: '#ref'
       Result Files Dir:
         parent: FabricSetRead
         in:
           key:
             const: verify.K2VERIFY_RESULT_FILES_PATH
+  Stage 7:
+    transactional: true
+    actors:
+      CsvBuilder1:
+        parent: CsvBuilder
+        in:
+          header:
+            const: false
+          columns:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+          maps:
+            link: Const1/value
       Format File Name:
         parent: StringFormat
         in:
@@ -192,30 +312,6 @@ stages:
             schema: any
             mandatory: false
             createdBy: format
-  Format Csv:
-    transactional: true
-    actors:
-      CsvBuilder1:
-        parent: CsvBuilder
-        in:
-          header:
-            const: false
-          columns:
-            const:
-            - EXECUTION_ID
-            - IID
-            - SOURCE_TABLE_NAME
-            - TARGET_TABLE_NAME
-            - CUSTOMIZED_KEY
-            - COLUMN_NAME
-            - MATCH_RESULT
-            - TARGET_VALUE_SECURED
-            - SOURCE_COLUMN_VALUE
-            - TARGET_COLUMN_VALUE
-          maps:
-            link:
-            - ReportDetailsMap1/map
-            - ReportDetailsMap11/map
   Write to file:
     transactional: true
     actors:
@@ -226,10 +322,10 @@ stages:
             const: file://
           append:
             const: true
-          path:
-            link: Format File Name/string
           stream:
             link: CsvBuilder1/csv
+          path:
+            link: Format File Name/string
 schemas:
   SrcRecord=[{}].in.b:
     type: array
@@ -269,3 +365,80 @@ schemas:
         type: string
       MATCH_RESULT:
         type: string
+  ReportDetailsMap12.in.TARGET_COLUMN_VALUE:
+    type: array
+    items: {
+      }
+  ReportDetailsMap12.out.map:
+    type: object
+    properties:
+      EXECUTION_ID:
+        type: string
+      CUSTOMIZED_KEY: {
+        }
+      TARGET_COLUMN_VALUE:
+        type: string
+      MATCH_RESULT:
+        type: string
+  ArrayBuilder2.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        EXECUTION_ID:
+          type: string
+        IID:
+          type: string
+        SOURCE_TABLE_NAME:
+          type: string
+        TARGET_TABLE_NAME:
+          type: string
+        CUSTOMIZED_KEY: {
+          }
+        SOURCE_COLUMN_ORIG_VALUE: {
+          }
+        TARGET_COLUMN_ORIG_VALUE: {
+          }
+        COLUMN_NAME:
+          type: string
+        SOURCE_COLUMN_VALUE:
+          type: string
+        TARGET_COLUMN_VALUE:
+          type: string
+        MATCH_RESULT:
+          type: string
+        TARGET_VALUE_SECURED:
+          type: string
+  Const1.in.value:
+    type: array
+    items: {
+      }
+  Const1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        EXECUTION_ID:
+          type: string
+        IID:
+          type: string
+        SOURCE_TABLE_NAME:
+          type: string
+        TARGET_TABLE_NAME:
+          type: string
+        CUSTOMIZED_KEY: {
+          }
+        SOURCE_COLUMN_ORIG_VALUE: {
+          }
+        TARGET_COLUMN_ORIG_VALUE: {
+          }
+        COLUMN_NAME:
+          type: string
+        SOURCE_COLUMN_VALUE:
+          type: string
+        TARGET_COLUMN_VALUE:
+          type: string
+        MATCH_RESULT:
+          type: string
+        TARGET_VALUE_SECURED:
+          type: string

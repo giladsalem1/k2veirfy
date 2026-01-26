@@ -27,11 +27,10 @@ stages:
                   kts.execution_id,
                   kts.source_table_name,
                   kts.target_table_name,
-                  COALESCE(SUM(kts.number_of_records_match), 0)              AS records_match,
-                  COALESCE(SUM(kts.number_of_records_mismatch), 0)           AS records_mismatch,
-                  COALESCE(SUM(kts.number_of_records_only_in_source), 0)     AS records_only_in_source,
-                  COALESCE(SUM(kts.number_of_records_only_in_target), 0)     AS records_only_in_target,
-                  MAX(kts.match_result)                                      AS match_result
+                  COALESCE(SUM(kts.number_of_records_mismatch), 0)       AS records_mismatch,
+                  COALESCE(SUM(kts.number_of_records_only_in_source), 0) AS records_only_in_source,
+                  COALESCE(SUM(kts.number_of_records_only_in_target), 0) AS records_only_in_target,
+                  MAX(kts.match_result)                                  AS match_result
                 FROM ${@schema}.k2verify_table_summary kts
                 WHERE kts.execution_id = ${execution_id}
                 GROUP BY
@@ -45,79 +44,94 @@ stages:
                   krs.execution_id,
                   krs.source_table_name,
                   krs.target_table_name,
-                  COALESCE(SUM(krs.number_of_fields_match), 0)              AS fields_match,
-                  COALESCE(SUM(krs.number_of_fields_mismatch), 0)           AS fields_mismatch,
-                  COALESCE(SUM(krs.number_of_fields_only_in_source), 0)     AS fields_only_in_source,
-                  COALESCE(SUM(krs.number_of_fields_only_in_target), 0)     AS fields_only_in_target
+                  COALESCE(SUM(krs.number_of_fields_mismatch), 0)       AS fields_mismatch,
+                  COALESCE(SUM(krs.number_of_fields_only_in_source), 0) AS fields_only_in_source,
+                  COALESCE(SUM(krs.number_of_fields_only_in_target), 0) AS fields_only_in_target
                 FROM ${@schema}.k2verify_record_summary krs
                 WHERE krs.execution_id = ${execution_id}
                 GROUP BY
                   krs.execution_id,
                   krs.source_table_name,
                   krs.target_table_name
+              ),
+
+              bucket_totals AS (
+                SELECT
+                  execution_id,
+                  table_name,
+                  COALESCE(SUM(total_records), 0) AS total_records,
+                  COALESCE(SUM(total_fields), 0)  AS total_fields
+                FROM ${@schema}.task_execution_buckets
+                WHERE execution_id = ${execution_id}
+                GROUP BY
+                  execution_id,
+                  table_name
               )
 
               SELECT
                 tet.task_id,
-                tet.execution_id,
+                ts.execution_id,
                 ts.source_table_name,
                 ts.target_table_name,
-                ts.match_result                                   AS result,
+                ts.match_result                    AS result,
                 tet.start_time,
                 tet.end_time,
 
-                (ts.records_match
-                 + ts.records_mismatch
-                 + ts.records_only_in_source
-                 + ts.records_only_in_target)                AS total_records,
+                /* ---------- RECORD METRICS ---------- */
+                bt.total_records,
 
-                CASE WHEN (ts.records_match
-                           + ts.records_mismatch
-                           + ts.records_only_in_source
-                           + ts.records_only_in_target) > 0
-                     THEN ROUND(
-                       ts.records_match::numeric * 100.0 /
-                       (ts.records_match
-                        + ts.records_mismatch
-                        + ts.records_only_in_source
-                        + ts.records_only_in_target
-                      ),
-                       2)
-                     ELSE NULL
-                END                                               AS records_passed_pct,
+                (bt.total_records
+                 - ts.records_mismatch
+                 - ts.records_only_in_source
+                 - ts.records_only_in_target
+                )                                  AS records_match,
+
+                CASE
+                  WHEN bt.total_records > 0
+                  THEN ROUND(
+                    (
+                      bt.total_records
+                      - ts.records_mismatch
+                      - ts.records_only_in_source
+                      - ts.records_only_in_target
+                    )::numeric * 100.0 / bt.total_records,
+                    2
+                  )
+                  ELSE NULL
+                END                                AS records_passed_pct,
 
                 ts.records_only_in_source,
                 ts.records_only_in_target,
-                ts.records_mismatch                               AS mismatched_records,
+                ts.records_mismatch                AS mismatched_records,
 
                 /* ---------- FIELD METRICS ---------- */
-                (fs.fields_match
-                 + fs.fields_mismatch
-                 + fs.fields_only_in_source
-                 + fs.fields_only_in_target)                 AS total_fields,
+                bt.total_fields,
 
-                CASE WHEN (fs.fields_match
-                           + fs.fields_mismatch
-                           + fs.fields_only_in_source
-                           + fs.fields_only_in_target) > 0
-                     THEN ROUND(
-                       fs.fields_match::numeric * 100.0 /
-                       (fs.fields_match
-                        + fs.fields_mismatch
-                        + fs.fields_only_in_source
-                        + fs.fields_only_in_target),
-                       2)
-                     ELSE NULL
-                END                                               AS fields_passed_pct
+                CASE
+                  WHEN bt.total_fields > 0
+                  THEN ROUND(
+                    (
+                      bt.total_fields
+                      - COALESCE(fs.fields_mismatch, 0)
+                      - COALESCE(fs.fields_only_in_source, 0)
+                      - COALESCE(fs.fields_only_in_target, 0)
+                    )::numeric * 100.0 / bt.total_fields,
+                    2
+                  )
+                  ELSE NULL
+                END                                AS fields_passed_pct
 
               FROM table_stats ts
               LEFT JOIN field_stats fs
-                ON fs.execution_id       = ts.execution_id
-               AND fs.source_table_name  = ts.source_table_name
-               AND fs.target_table_name  = ts.target_table_name
+                ON fs.execution_id      = ts.execution_id
+               AND fs.source_table_name = ts.source_table_name
+               AND fs.target_table_name = ts.target_table_name
+              LEFT JOIN bucket_totals bt
+                ON bt.execution_id = ts.execution_id
+               AND bt.table_name   = ts.source_table_name
               LEFT JOIN ${@schema}.task_execution_tables tet
                 ON tet.execution_id = ts.execution_id
-               AND tet.table_name         = ts.source_table_name
+               AND tet.table_name   = ts.source_table_name
               ORDER BY ts.source_table_name, ts.target_table_name;
           schema:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
