@@ -41,10 +41,14 @@ stages:
                 retry_interval: ''
       LuFunction2:
         parent: LuFunction
-        disabled: true
         in:
           functionName:
             const: fnVerifySourceNTarget
+          customizedKeyComparison:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: functionName
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
             schema: any
@@ -370,6 +374,20 @@ stages:
         out:
           value:
             schema: '#ref'
+  Stage 16:
+    transactional: true
+    actors:
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+            - Const1/value
+            - Const2/value
+        out:
+          value:
+            schema: '#ref'
   Stage 4:
     transactional: true
     actors:
@@ -398,23 +416,41 @@ stages:
             schema: any
             mandatory: false
             createdBy: format
+      CsvBuilder1:
+        parent: CsvBuilder
+        in:
+          header:
+            const: false
+          columns:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          maps:
+            link: Const5/value
   Stage 31:
     transactional: true
     actors:
       FileWrite1:
         parent: FileWrite
-        disabled: true
         in:
           interface:
             const: file://
           append:
             const: true
-          stream:
-            link:
-            - Const1/value
-            - Const2/value
           path:
             link: StringFormat1/string
+          stream:
+            link: CsvBuilder1/csv
 schemas:
   SrcRow.out.value:
     type: object
@@ -1506,3 +1542,74 @@ schemas:
             }
           source_value: {
             }
+  Const5.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      LAST_NAME:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      FIRST_NAME:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
+      SSN:
+        type: object
+        properties:
+          SOURCE_VALUE:
+            type: string
+          TARGET_VALUE:
+            type: string
+          TARGET_COLUMN_ORIG_VALUE:
+            type: string
+          TARGET_SECURED:
+            type: string
+          COLUMN_NAME:
+            type: string
+          SOURCE_COLUMN_ORIG_VALUE:
+            type: string
+          RESULT:
+            type: string
