@@ -904,6 +904,7 @@
                     "actors": [
                         {
                             "name": "FieldSumPK",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1147,6 +1148,7 @@
                     "actors": [
                         {
                             "name": "FieldSumIDX",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1293,6 +1295,7 @@
                     "actors": [
                         {
                             "name": "RecordSummary",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1478,6 +1481,7 @@
                     "actors": [
                         {
                             "name": "TableSummaryRows",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1601,6 +1605,7 @@
                     "actors": [
                         {
                             "name": "DbFetchField1",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbFetchField",
                                 "inputs": [
@@ -1678,6 +1683,7 @@
                         },
                         {
                             "name": "DbCommand2",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1766,6 +1772,7 @@
                     "actors": [
                         {
                             "name": "DbLoad1",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
