@@ -104,6 +104,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
+          log_pass:
+            external: log_pass
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -416,52 +421,6 @@ stages:
             schema: any
             mandatory: false
             createdBy: format
-      ToBool:
-        parent: ToBool
-        in:
-          value:
-            external: log_pass
-  Stage 15:
-    transactional: true
-    dependsOn: Stage 4
-    actors:
-      Equals2:
-        parent: Equals
-        condition: result
-        in:
-          b:
-            const: false
-            schema: boolean
-          a:
-            link: ToBool/bool
-      Filter1:
-        parent: Filter
-        in:
-          script:
-            const: value.MATCH_RESULT=="NOT PASSED"
-          values:
-            link: Const5/value
-        out:
-          values:
-            schema: '#ref'
-    split: '--------------------'
-  Stage 13:
-    else: true
-    transactional: true
-    dependsOn: Stage 4
-    actors:
-      Const3:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: Const5/value
-        out:
-          value:
-            schema: '#ref'
-  Stage 14:
-    transactional: true
-    actors:
       CsvBuilder1:
         parent: CsvBuilder
         in:
@@ -482,9 +441,7 @@ stages:
             - SOURCE_COLUMN_VALUE_TRANS
             - TARGET_COLUMN_VALUE_TRANS
           maps:
-            link:
-            - Filter1/values
-            - Const3/value
+            link: Const5/value
   Stage 31:
     transactional: true
     actors:
@@ -1661,26 +1618,3 @@ schemas:
             type: string
           RESULT:
             type: string
-  Filter1.out.values:
-    type: array
-    items: {
-      }
-  Const3.out.value:
-    type: array
-    items:
-      type: object
-      properties:
-        SOURCE_VALUE:
-          type: integer
-        TARGET_VALUE:
-          type: integer
-        TARGET_COLUMN_ORIG_VALUE: {
-          }
-        TARGET_SECURED:
-          type: string
-        COLUMN_NAME:
-          type: string
-        SOURCE_COLUMN_ORIG_VALUE: {
-          }
-        RESULT:
-          type: string

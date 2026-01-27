@@ -34,6 +34,7 @@ stages:
             external: schema
       K2VERIFY_LOG_PASS:
         parent: FabricSetRead
+        height: 129
         in:
           key:
             const: K2VERIFY_LOG_PASS

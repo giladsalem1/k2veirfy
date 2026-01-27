@@ -58,11 +58,12 @@ public class SharedLogic {
             Map<String, Object> targetMap, String customizedKeyComparison,
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
             String targetEnv, String pii_columns, String execution_id, String source_table_name,
-            String target_table_name, String customized_key_values)
+            String target_table_name, String customized_key_values, String log_pass)
             throws Exception {
-        List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
+
+        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
+        List<String> piiCols = Arrays.asList(pii_columns.split(DELIMITTER));
         LUType luType = getLuType();
-        StringBuilder stringBuilder = new StringBuilder();
         List<String> tctin = new ArrayList<>();
         for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
             tctin.add(column.toUpperCase());
@@ -71,55 +72,100 @@ public class SharedLogic {
         for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
             sctin.add(column.toUpperCase());
         }
-        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
-        sourceMap.forEach((key, value) -> {
-            if (key.contains("_ORIG"))
-                return;
-            String origKey = key.replaceFirst("SRC_", "");
-            Boolean piiCol = pii_columns_arr.contains(origKey);
-            Map<String, Object> columnResult = new HashMap<>();
-            Object targetValue = targetMap.get("TAR_" + origKey);
-            columnResult.put("EXECUTION_ID", execution_id);
-            columnResult.put("IID", 0);
-            columnResult.put("SOURCE_TABLE_NAME", source_table_name);
-            columnResult.put("TARGET_TABLE_NAME", target_table_name);
-            columnResult.put("CUSTOMIZED_KEY", customized_key_values);
-            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", value);
-            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", targetValue);
-            columnResult.put("COLUMN_NAME", origKey);
-            columnResult.put("SOURCE_COLUMN_VALUE", value);
-            columnResult.put("TARGET_COLUMN_VALUE", targetValue);
-            if( sourceMap.get(key + "_ORIG") != null){
-                columnResult.put("SOURCE_COLUMN_VALUE", sourceMap.get(key + "_ORIG"));
-            }
-            if( targetMap.get("TAR_" +origKey+ "_ORIG") != null){
-                columnResult.put("TARGET_COLUMN_VALUE", targetMap.get("TAR_" +origKey+ "_ORIG"));
+
+        for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
+            final String key = entry.getKey();
+
+            // Skip transform/orig helper keys themselves, and non-src keys
+            if (key.endsWith("_ORIG") || !key.startsWith("SRC_")) {
+                continue;
             }
 
+            final String colName = key.substring(4); // remove "SRC_"
+            final String colNameUpper = colName.toUpperCase(Locale.ROOT);
 
-            if ((value == null && targetValue == null) || (value != null && value.equals(targetValue))
-                    || (value != null && targetValue == null && tctin.contains(key.toUpperCase()))
-                    || (value == null && targetValue != null && sctin.contains(key))) {
+            final boolean piiCol = piiCols.contains(colNameUpper);
+
+            Object srcValue = entry.getValue();
+            Object tarValue = targetMap.get("TAR_" + colName);
+            Object srcTrans = srcValue;
+            Object tarTrans = tarValue;
+            if (sourceMap.get(key + "_ORIG") != null) {
+                srcValue = sourceMap.get(key + "_ORIG");
+            }
+            if (targetMap.get("TAR_" + colName + "_ORIG") != null) {
+                tarValue = targetMap.get("TAR_" + colName + "_ORIG");
+            }
+
+            final boolean tarIgnoreNullForCol = tctin.contains(colNameUpper);
+            final boolean srcIgnoreNullForCol = sctin.contains(colNameUpper);
+
+            final boolean equal = (srcTrans == tarTrans) ||
+                    (srcTrans != null && srcTrans.equals(tarTrans));
+
+            final boolean treatedAsEqual = equal
+                    || (srcTrans != null && tarValue == null && tarIgnoreNullForCol)
+                    || (srcTrans == null && tarValue != null && srcIgnoreNullForCol);
+
+            final String matchResult;
+            final String targetSecured;
+
+            // Apply your logic, but avoid overwriting TARGET_VALUE_SECURED incorrectly
+            if (treatedAsEqual) {
                 if (piiCol) {
-                    columnResult.put("MATCH_RESULT", "NOT PASSED");
-                    columnResult.put("TARGET_VALUE_SECURED", "false");
-                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
-                    columnResult.put("TARGET_COLUMN_VALUE", "*");
-                } else
-                    columnResult.put("MATCH_RESULT", "PASSED");
-                columnResult.put("TARGET_VALUE_SECURED", "true");
+                    matchResult = "NOT PASSED";
+                    targetSecured = "false";
+                    srcValue = "*";
+                    tarValue = "*";
+                } else {
+                    matchResult = "PASSED";
+                    targetSecured = "true";
+                }
             } else {
                 if (piiCol) {
-                    columnResult.put("MATCH_RESULT", "PASSED");
-                    columnResult.put("TARGET_VALUE_SECURED", "true");
-                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
-                    columnResult.put("TARGET_COLUMN_VALUE", targetValue);
-                } else
-                    columnResult.put("MATCH_RESULT", "NOT PASSED");
-                columnResult.put("TARGET_VALUE_SECURED", "false");
+                    matchResult = "PASSED";
+                    targetSecured = "true";
+                    srcValue = "*";
+                    // keep tarValue as-is (same as your previous behavior)
+                } else {
+                    matchResult = "NOT PASSED";
+                    targetSecured = "false";
+                }
             }
-            compareResult.add(columnResult);
-        });
+            if ("false".equals(log_pass)) {
+                if ("NOT PASSED".equals(matchResult)) {
+                    Map<String, Object> columnResult = new HashMap<>();
+                    columnResult.put("EXECUTION_ID", execution_id);
+                    columnResult.put("IID", 0);
+                    columnResult.put("SOURCE_TABLE_NAME", source_table_name);
+                    columnResult.put("TARGET_TABLE_NAME", target_table_name);
+                    columnResult.put("CUSTOMIZED_KEY", customized_key_values);
+                    columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
+                    columnResult.put("SOURCE_COLUMN_VALUE_TRANS", tarTrans);
+                    columnResult.put("COLUMN_NAME", colName);
+                    columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
+                    columnResult.put("TARGET_COLUMN_VALUE", tarValue);
+                    columnResult.put("MATCH_RESULT", matchResult);
+                    columnResult.put("TARGET_VALUE_SECURED", targetSecured);
+                    compareResult.add(columnResult);
+                }
+            } else {
+                Map<String, Object> columnResult = new HashMap<>();
+                columnResult.put("EXECUTION_ID", execution_id);
+                columnResult.put("IID", 0);
+                columnResult.put("SOURCE_TABLE_NAME", source_table_name);
+                columnResult.put("TARGET_TABLE_NAME", target_table_name);
+                columnResult.put("CUSTOMIZED_KEY", customized_key_values);
+                columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
+                columnResult.put("SOURCE_COLUMN_VALUE_TRANS", tarTrans);
+                columnResult.put("COLUMN_NAME", colName);
+                columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
+                columnResult.put("TARGET_COLUMN_VALUE", tarValue);
+                columnResult.put("MATCH_RESULT", matchResult);
+                columnResult.put("TARGET_VALUE_SECURED", targetSecured);
+                compareResult.add(columnResult);
+            }
+        }
         return compareResult;
     }
 
