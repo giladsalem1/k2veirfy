@@ -993,12 +993,17 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: PIIColumns/value
+            link: SourceEnvQuery/columns
             schema: string
             mandatory: false
             createdBy: flowName
           customized_key_values:
             link: ToString/string
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          pii_columns:
+            link: PIIColumns/value
             schema: string
             mandatory: false
             createdBy: flowName

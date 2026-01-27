@@ -48,281 +48,92 @@ import java.sql.DriverManager;
 public class SharedLogic {
 
     // Added Below Line to split based on the Global Delimitter
-        static final int COL_EXECUTION_ID = 0;
-        static final int COL_IID = 1;
-        static final int COL_SOURCE_TABLE = 2;
-        static final int COL_TARGET_TABLE = 3;
-        static final int COL_CUSTOMIZED_KEY = 4;
-        static final int COL_COLUMN_NAME = 5;
-        static final int COL_SOURCE_VALUE = 6;
-        static final int COL_TARGET_VALUE = 7;
-        static final int COL_MATCH_RESULT = 8;
-        static final int COL_TARGET_SECURED = 9;
-        static final int COL_SOURCE_ORIG = 10;
-        static final int COL_TARGET_ORIG = 11;
-
-        static final int FIELD_ROW_SIZE = 12;
-        static String DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
-
-public static ArrayList<String> fnVerifySourceNTarget(
-        Map<String, Object> sourceMap,
-        Map<String, Object> targetMap,
-        String source_columns_to_Ignore_null,
-        String target_columns_to_Ignore_null,
-        String sourceEnv,
-        String targetEnv,
-        String pii_columns,
-        String execution_id,
-        String source_table_name,
-        String target_table_name,
-        String customized_key_values
-) {
-
-    final Set<String> piiCols = splitToUpperSet(pii_columns);
-    final Set<String> tarIgnoreNull = splitToUpperSet(target_columns_to_Ignore_null);
-    final Set<String> srcIgnoreNull = splitToUpperSet(source_columns_to_Ignore_null);
-
-    final int expected = Math.max(16, sourceMap.size());
-    final ArrayList<String> result = new ArrayList<>(expected);
-
-    final String execId = execution_id;
-    final String iid = "0";
-    final String srcTable = source_table_name;
-    final String tarTable = target_table_name;
-    final String ck = customized_key_values;
-
-    final StringBuilder sb = new StringBuilder(512);
-
-    for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
-        final String key = entry.getKey();
-
-        // Skip transform/orig helper keys themselves, and non-src keys
-        if (key.endsWith("ORIG") || !key.startsWith("SRC_")) {
-            continue;
-        }
-
-        final String colName = key.substring(4); // remove "SRC_"
-        final String colNameUpper = colName.toUpperCase(Locale.ROOT);
-
-        final boolean piiCol = piiCols.contains(colNameUpper);
-
-        Object srcValue = entry.getValue();
-        Object tarValue = targetMap.get("TAR_" + colName);
-
-        // "TRANS" values come from *_k2orig in your current structure
-        final Object srcTrans = sourceMap.get(key + "_ORIG");                // SRC_<col>_k2orig
-        final Object tarTrans = targetMap.get("TAR_" + colName + "_ORIG");   // TAR_<col>_k2orig
-
-        final boolean tarIgnoreNullForCol = tarIgnoreNull.contains(colNameUpper);
-        final boolean srcIgnoreNullForCol = srcIgnoreNull.contains(colNameUpper);
-
-        final boolean equal =
-                (srcValue == tarValue) ||
-                (srcValue != null && srcValue.equals(tarValue));
-
-        final boolean treatedAsEqual =
-                equal
-                || (srcValue != null && tarValue == null && tarIgnoreNullForCol)
-                || (srcValue == null && tarValue != null && srcIgnoreNullForCol);
-
-        final String matchResult;
-        final String targetSecured;
-
-        // Apply your logic, but avoid overwriting TARGET_VALUE_SECURED incorrectly
-        if (treatedAsEqual) {
-            if (piiCol) {
-                matchResult = "NOT PASSED";
-                targetSecured = "false";
-                srcValue = "*";
-                tarValue = "*";
-            } else {
-                matchResult = "PASSED";
-                targetSecured = "true";
-            }
-        } else {
-            if (piiCol) {
-                matchResult = "PASSED";
-                targetSecured = "true";
-                srcValue = "*";
-                // keep tarValue as-is (same as your previous behavior)
-            } else {
-                matchResult = "NOT PASSED";
-                targetSecured = "false";
-            }
-        }
-
-        if("NOT PASSED".equals(matchResult)){
-        // Build CSV line in the exact order you requested
-        sb.setLength(0);
-        appendCsv(sb, execId);
-        appendCsv(sb, iid);
-        appendCsv(sb, srcTable);
-        appendCsv(sb, tarTable);
-        appendCsv(sb, ck);
-        appendCsv(sb, colName);
-        appendCsv(sb, matchResult);
-        appendCsv(sb, targetSecured);
-        appendCsv(sb, srcValue);
-        appendCsv(sb, tarValue);
-        appendCsv(sb, srcTrans);
-        appendCsv(sb, tarTrans, true); // last column
-        sb.append('\n');    
-        result.add(sb.toString());
-    
-        }
+    static String DELIMITTER;
+    static {
+        DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
     }
-
-    return result;
-}
-
-private static Set<String> splitToUpperSet(String s) {
-    if (s == null || s.isBlank()) return Collections.emptySet();
-    return Arrays.stream(s.split(DELIMITTER)) // DELIMITTER = your existing delimiter
-            .map(String::trim)
-            .filter(x -> !x.isEmpty())
-            .map(x -> x.toUpperCase(Locale.ROOT))
-            .collect(Collectors.toSet());
-}
-
-/**
- * Appends a value as a CSV field + comma (unless last=true).
- * Escapes quotes and wraps in quotes if needed.
- */
-private static void appendCsv(StringBuilder sb, Object val) {
-    appendCsv(sb, val, false);
-}
-
-private static void appendCsv(StringBuilder sb, Object val, boolean last) {
-    String s = (val == null) ? "" : String.valueOf(val);
-
-    boolean needsQuotes = false;
-    for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);
-        if (c == '"' || c == ',' || c == '\n' || c == '\r') {
-            needsQuotes = true;
-            break;
-        }
-    }
-
-    if (needsQuotes) {
-        sb.append('"');
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c == '"') sb.append("\"\"");
-            else sb.append(c);
-        }
-        sb.append('"');
-    } else {
-        sb.append(s);
-    }
-
-    if (!last) sb.append(',');
-}
 
     @out(name = "result", type = Object.class, desc = "")
-    public static ArrayList<Object[]> fnVerifySourceNTargetOld(Map<String, Object> sourceMap,
+    public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap,
             Map<String, Object> targetMap, String customizedKeyComparison,
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
             String targetEnv, String pii_columns, String execution_id, String source_table_name,
             String target_table_name, String customized_key_values)
             throws Exception {
-        // List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
-        // Use Sets for O(1) contains
-        final Set<String> piiCols = splitToUpperSet(pii_columns);
-        final Set<String> tarIgnoreNull = splitToUpperSet(target_columns_to_Ignore_null);
-        final Set<String> srcIgnoreNull = splitToUpperSet(source_columns_to_Ignore_null);
-
-        // Estimate number of compared columns: sourceMap includes *_k2orig keys too
-        final int expected = Math.max(16, sourceMap.size() / 2);
-        final ArrayList<Object[]> compareResult = new ArrayList<>(expected);
-
-        // Constants reused for every field row
-        final String execId = execution_id;
-        final Integer iid = 0; // keep as Integer if your pipeline expects Object
-        final String srcTable = source_table_name;
-        final String tarTable = target_table_name;
-        final String ck = customized_key_values;
-
-        for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
-            final String key = entry.getKey();
-
-            // Your original code skips keys that "contain _k2orig".
-            // Cheaper & more accurate: skip only suffix "_k2orig".
-            if (key.endsWith("_k2orig")) {
-                continue;
+        List<String> pii_columns_arr = Arrays.asList(pii_columns.split(DELIMITTER));
+        LUType luType = getLuType();
+        StringBuilder stringBuilder = new StringBuilder();
+        List<String> tctin = new ArrayList<>();
+        for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
+            tctin.add(column.toUpperCase());
+        }
+        List<String> sctin = new ArrayList<>();
+        for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
+            sctin.add(column.toUpperCase());
+        }
+        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
+        sourceMap.forEach((key, value) -> {
+            if (key.contains("_ORIG"))
+                return;
+            String origKey = key.replaceFirst("SRC_", "");
+            Boolean piiCol = pii_columns_arr.contains(origKey);
+            Map<String, Object> columnResult = new HashMap<>();
+            Object targetValue = targetMap.get("TAR_" + origKey);
+            columnResult.put("EXECUTION_ID", execution_id);
+            columnResult.put("IID", 0);
+            columnResult.put("SOURCE_TABLE_NAME", source_table_name);
+            columnResult.put("TARGET_TABLE_NAME", target_table_name);
+            columnResult.put("CUSTOMIZED_KEY", customized_key_values);
+            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", value);
+            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", targetValue);
+            columnResult.put("COLUMN_NAME", origKey);
+            columnResult.put("SOURCE_COLUMN_VALUE", value);
+            columnResult.put("TARGET_COLUMN_VALUE", targetValue);
+            if( sourceMap.get(key + "_ORIG") != null){
+                columnResult.put("SOURCE_COLUMN_VALUE", sourceMap.get(key + "_ORIG"));
+            }
+            if( targetMap.get("TAR_" +origKey+ "_ORIG") != null){
+                columnResult.put("TARGET_COLUMN_VALUE", targetMap.get("TAR_" +origKey+ "_ORIG"));
             }
 
-            // Expect "SRC_<col>"
-            if (!key.startsWith("SRC_")) {
-                continue;
-            }
 
-            final String origKey = key.substring(4); // remove "SRC_"
-            final String origKeyUpper = origKey.toUpperCase(Locale.ROOT);
-
-            final boolean piiCol = piiCols.contains(origKeyUpper);
-
-            final Object srcValue = entry.getValue();
-            final Object tarValue = targetMap.get("TAR_" + origKey);
-
-            final Object srcOrig = sourceMap.get(key + "_k2orig");
-            final Object tarOrig = targetMap.get("TAR_" + origKey + "_k2orig");
-
-            final boolean tarIgnoreNullForCol = tarIgnoreNull.contains(origKeyUpper);
-            final boolean srcIgnoreNullForCol = srcIgnoreNull.contains(origKeyUpper);
-
-            final boolean equal = (srcValue == tarValue) ||
-                    (srcValue != null && srcValue.equals(tarValue));
-
-            final boolean treatedAsEqual = equal
-                    || (srcValue != null && tarValue == null && tarIgnoreNullForCol)
-                    || (srcValue == null && tarValue != null && srcIgnoreNullForCol);
-
-            // Build Object[] row
-            final Object[] row = new Object[FIELD_ROW_SIZE];
-            row[COL_EXECUTION_ID] = execId;
-            row[COL_IID] = iid;
-            row[COL_SOURCE_TABLE] = srcTable;
-            row[COL_TARGET_TABLE] = tarTable;
-            row[COL_CUSTOMIZED_KEY] = ck;
-
-            row[COL_COLUMN_NAME] = origKey;
-
-            row[COL_SOURCE_ORIG] = srcOrig;
-            row[COL_TARGET_ORIG] = tarOrig;
-
-            row[COL_SOURCE_VALUE] = srcValue;
-            row[COL_TARGET_VALUE] = tarValue;
-
-            // Decide match + secured (also fixes the "secured overwritten" issue)
-            if (treatedAsEqual) {
+            if ((value == null && targetValue == null) || (value != null && value.equals(targetValue))
+                    || (value != null && targetValue == null && tctin.contains(key.toUpperCase()))
+                    || (value == null && targetValue != null && sctin.contains(key))) {
                 if (piiCol) {
-                    row[COL_MATCH_RESULT] = "NOT PASSED";
-                    row[COL_TARGET_SECURED] = "false";
-                    row[COL_SOURCE_VALUE] = "*";
-                    row[COL_TARGET_VALUE] = "*";
-                } else {
-                    row[COL_MATCH_RESULT] = "PASSED";
-                    row[COL_TARGET_SECURED] = "true";
-                }
+                    columnResult.put("MATCH_RESULT", "NOT PASSED");
+                    columnResult.put("TARGET_VALUE_SECURED", "false");
+                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
+                    columnResult.put("TARGET_COLUMN_VALUE", "*");
+                } else
+                    columnResult.put("MATCH_RESULT", "PASSED");
+                columnResult.put("TARGET_VALUE_SECURED", "true");
             } else {
                 if (piiCol) {
-                    // mismatch in PII means it was secured properly -> passed
-                    row[COL_MATCH_RESULT] = "PASSED";
-                    row[COL_TARGET_SECURED] = "true";
-                    row[COL_SOURCE_VALUE] = "*";
-                    // keep target value visible (same as your original)
-                    row[COL_TARGET_VALUE] = tarValue;
-                } else {
-                    row[COL_MATCH_RESULT] = "NOT PASSED";
-                    row[COL_TARGET_SECURED] = "false";
-                }
+                    columnResult.put("MATCH_RESULT", "PASSED");
+                    columnResult.put("TARGET_VALUE_SECURED", "true");
+                    columnResult.put("SOURCE_COLUMN_VALUE", "*");
+                    columnResult.put("TARGET_COLUMN_VALUE", targetValue);
+                } else
+                    columnResult.put("MATCH_RESULT", "NOT PASSED");
+                columnResult.put("TARGET_VALUE_SECURED", "false");
             }
-
-            compareResult.add(row);
-        }
-
+            compareResult.add(columnResult);
+        });
         return compareResult;
+    }
+
+    private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
+            throws ReflectiveOperationException, InterruptedException, SQLException {
+        String luName = getLuType().luName;
+        if (customFunctionName != null) {
+            Db.Row row = fabric()
+                    .fetch(String.format("Broadway %s.%s value=?", luName, customFunctionName), columnValue).firstRow();
+            columnValue = row.get("value");
+            // columnValue = luType.invokeFunction(customFunctionName, null, new
+            // Object[]{columnValue});
+        }
+        return columnValue == null ? null : columnValue.toString();
     }
 
     @desc("Get Resporce FIle of LU")

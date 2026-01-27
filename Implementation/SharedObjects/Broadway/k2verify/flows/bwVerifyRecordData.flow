@@ -21,35 +21,6 @@ stages:
         out:
           value:
             schema: '#ref'
-  Stage 11:
-    transactional: true
-    actors:
-      JavaScript1:
-        parent: JavaScript
-        height: 142
-        in:
-          script:
-            const: value.keySet();
-          value:
-            link: SrcRow/value
-            schema: '#ref'
-            mandatory: false
-        out:
-          result:
-            schema: '#ref'
-  Stage 12:
-    transactional: true
-    actors:
-      Mapper1:
-        parent: Mapper
-        in:
-          script:
-            const: value.replaceFirst("SRC_","");
-          values:
-            link: JavaScript1/result
-        out:
-          values:
-            schema: '#ref'
   Stage 34:
     transactional: true
     actors:
@@ -73,6 +44,11 @@ stages:
         in:
           functionName:
             const: fnVerifySourceNTarget
+          customizedKeyComparison:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: functionName
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
             schema: any
@@ -94,7 +70,7 @@ stages:
             mandatory: false
             createdBy: functionName
           pii_columns:
-            external: columns
+            external: pii_columns
             schema: string
             mandatory: false
             createdBy: functionName
@@ -274,7 +250,7 @@ stages:
         in:
           value:
             const: null
-            link: Mapper1/values
+            external: columns
         out:
           value:
             schema: string
@@ -307,6 +283,12 @@ stages:
             mandatory: false
           CUSTOMIZED_KEY:
             external: customized_key_values
+            schema: any
+            mandatory: false
+          SOURCE_COLUMN_ORIG_VALUE:
+            schema: any
+            mandatory: false
+          TARGET_COLUMN_ORIG_VALUE:
             schema: any
             mandatory: false
           COLUMN_NAME:
@@ -421,17 +403,17 @@ stages:
             createdBy: format
           dir:
             link: FabricSetRead1/result
-            schema: string
+            schema: any
             mandatory: false
             createdBy: format
           source_table_name:
             external: source_table_name
-            schema: string
+            schema: any
             mandatory: false
             createdBy: format
           execution_id:
             external: execution_id
-            schema: string
+            schema: any
             mandatory: false
             createdBy: format
       ToBool:
@@ -439,7 +421,71 @@ stages:
         in:
           value:
             external: log_pass
+  Stage 15:
+    transactional: true
+    dependsOn: Stage 4
+    actors:
+      Equals2:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: false
+            schema: boolean
+          a:
+            link: ToBool/bool
+      Filter1:
+        parent: Filter
+        in:
+          script:
+            const: value.MATCH_RESULT=="NOT PASSED"
+          values:
+            link: Const5/value
+        out:
+          values:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 13:
+    else: true
+    transactional: true
+    dependsOn: Stage 4
+    actors:
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Const5/value
+        out:
+          value:
+            schema: '#ref'
   Stage 14:
+    transactional: true
+    actors:
+      CsvBuilder1:
+        parent: CsvBuilder
+        in:
+          header:
+            const: false
+          columns:
+            const:
+            - EXECUTION_ID
+            - IID
+            - SOURCE_TABLE_NAME
+            - TARGET_TABLE_NAME
+            - CUSTOMIZED_KEY
+            - COLUMN_NAME
+            - MATCH_RESULT
+            - TARGET_VALUE_SECURED
+            - SOURCE_COLUMN_VALUE
+            - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
+          maps:
+            link:
+            - Filter1/values
+            - Const3/value
+  Stage 31:
     transactional: true
     actors:
       FileWrite1:
@@ -449,10 +495,10 @@ stages:
             const: file://
           append:
             const: true
-          stream:
-            link: Const5/value
           path:
             link: StringFormat1/string
+          stream:
+            link: CsvBuilder1/csv
 schemas:
   SrcRow.out.value:
     type: object
@@ -476,23 +522,6 @@ schemas:
         type: string
       TAR_LAST_NAME:
         type: string
-  JavaScript1.in.value:
-    type: object
-    properties:
-      SRC_FIRST_NAME:
-        type: string
-      SRC_CUSTOMER_ID:
-        type: string
-      SRC_SSN:
-        type: string
-  JavaScript1.out.result:
-    type: array
-    items:
-      type: string
-  Mapper1.out.values:
-    type: array
-    items:
-      type: string
   LuFunction2.in.sourceMap:
     type: object
     properties:
@@ -1632,3 +1661,26 @@ schemas:
             type: string
           RESULT:
             type: string
+  Filter1.out.values:
+    type: array
+    items: {
+      }
+  Const3.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SOURCE_VALUE:
+          type: integer
+        TARGET_VALUE:
+          type: integer
+        TARGET_COLUMN_ORIG_VALUE: {
+          }
+        TARGET_SECURED:
+          type: string
+        COLUMN_NAME:
+          type: string
+        SOURCE_COLUMN_ORIG_VALUE: {
+          }
+        RESULT:
+          type: string

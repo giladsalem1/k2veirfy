@@ -20,16 +20,11 @@ stages:
             link: PII From Config mt/string
             schema: any
             mandatory: false
-      Const2:
-        parent: Const
+      Uppercase1:
+        parent: Uppercase
         in:
-          value:
-            const: null
+          string:
             external: customized_pii
-        out:
-          value:
-            external: pii_columns
-            schema: string
     split: '--------------------'
   Stage 1:
     else: true
@@ -88,6 +83,17 @@ stages:
             schema: '#ref'
   Concat piis:
     dependsOn: Split piis
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Uppercase1/string
+        out:
+          value:
+            external: pii_columns
+            schema: string
     split: '--------------------'
   Stage 2:
     dependsOn: Stage 1
@@ -100,6 +106,17 @@ stages:
             external: delim
           elements:
             link: PII From Catalog mt1/result/field
+  Stage 3:
+    dependsOn: Concat piis
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 2
+    actors:
+      Uppercase2:
+        parent: Uppercase
+        in:
+          string:
+            link: Concat2/string
         out:
           string:
             external: pii_columns
