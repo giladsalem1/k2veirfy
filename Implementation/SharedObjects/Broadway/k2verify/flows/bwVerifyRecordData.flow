@@ -41,14 +41,10 @@ stages:
                 retry_interval: ''
       LuFunction2:
         parent: LuFunction
+        disabled: true
         in:
           functionName:
             const: fnVerifySourceNTarget
-          customizedKeyComparison:
-            external: customized_key
-            schema: string
-            mandatory: false
-            createdBy: functionName
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
             schema: any
@@ -407,6 +403,7 @@ stages:
     actors:
       FileWrite1:
         parent: FileWrite
+        disabled: true
         in:
           interface:
             const: file://
