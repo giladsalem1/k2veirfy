@@ -41,7 +41,6 @@ stages:
                 retry_interval: ''
       LuFunction2:
         parent: LuFunction
-        disabled: true
         in:
           functionName:
             const: fnVerifySourceNTarget
@@ -438,7 +437,6 @@ stages:
     actors:
       FileWrite1:
         parent: FileWrite
-        disabled: true
         in:
           interface:
             const: file://

@@ -481,7 +481,6 @@ stages:
     actors:
       pgCopy:
         parent: pgCopy
-        disabled: true
         in:
           interface:
             const: null
@@ -565,7 +564,6 @@ stages:
     actors:
       rm:
         parent: rm
-        disabled: true
         in:
           interface:
             const: file://
