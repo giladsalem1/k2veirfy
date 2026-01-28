@@ -41,7 +41,6 @@ stages:
                 retry_interval: ''
       LuFunction2:
         parent: LuFunction
-        disabled: true
         in:
           functionName:
             const: fnVerifySourceNTarget
@@ -414,7 +413,6 @@ stages:
             createdBy: format
       CsvBuilder1:
         parent: CsvBuilder
-        disabled: true
         in:
           header:
             const: false
@@ -439,7 +437,6 @@ stages:
     actors:
       FileWrite1:
         parent: FileWrite
-        disabled: true
         in:
           interface:
             const: file://
