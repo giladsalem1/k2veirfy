@@ -166,7 +166,7 @@ public class SharedLogic {
                 compareResult.add(columnResult);
             }
         }
-        return compareResult;
+        return new ArrayList<>();
     }
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
