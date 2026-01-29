@@ -383,6 +383,21 @@ stages:
         out:
           value:
             schema: '#ref'
+  Stage 11:
+    transactional: true
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr.length
+          arr:
+            link: Const5/value
+            schema: any
+            mandatory: false
+        out:
+          result:
+            external: failed_fields
   Stage 4:
     transactional: true
     actors:

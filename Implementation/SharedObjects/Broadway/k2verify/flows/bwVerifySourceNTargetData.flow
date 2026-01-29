@@ -499,7 +499,7 @@ stages:
             createdBy: sql
           total_fields:
             link: TotalFields/result
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
   Prepare groups of keys:
@@ -900,7 +900,7 @@ stages:
             createdBy: flowName
           columns:
             link: SourceEnvQuery/columns
-            schema: any
+            schema: '#ref'
             mandatory: false
             createdBy: flowName
         out:
@@ -978,11 +978,6 @@ stages:
               id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
-          customized_key:
-            link: CustomizedKey/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
           log_pass:
             link: K2VERIFY_LOG_PASS/result
             schema: string
@@ -1015,9 +1010,12 @@ stages:
             createdBy: flowName
           verify_dir:
             link: VERIFY_DIR/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
+        out:
+          failed_fields:
+            schema: integer
     split: '--------------------'
   Stage 1:
     else: true
@@ -1039,6 +1037,13 @@ stages:
             schema: integer
           a:
             link: '# ProcessedRecords/value'
+      Aggregate1:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: VerifyRecordData/failed_fields
+              pos: 0
   Write each 1000:
     transactional: true
     dependsOn: '# processed records'
@@ -1113,6 +1118,46 @@ stages:
         in:
           value:
             link: Now1/date
+      'Update #Processed1':
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution_buckets set failed_fields = ${failed_fields}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
+              and bucket_id=${bucket_id}
+          schema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table_name:
+            link: SRC DB Table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          failed_fields:
+            link: Aggregate1/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
   Bucket Verify Completed:
     transactional: false
     actors:
@@ -1898,6 +1943,10 @@ schemas:
     type: array
     items: {
       }
+  VerifyKeysExists.in.columns:
+    type: array
+    items:
+      type: string
   VerifyRecordData.in.src_row:
     type: object
     properties:

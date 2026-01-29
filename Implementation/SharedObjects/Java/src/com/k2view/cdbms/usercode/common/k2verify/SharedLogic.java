@@ -61,10 +61,6 @@ public class SharedLogic {
             String target_table_name, String customized_key_values, String log_pass)
             throws Exception {
 
-        if(true){
-        return new ArrayList<>();
-        }
-
         ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
         List<String> piiCols = Arrays.asList(pii_columns.split(DELIMITTER));
         LUType luType = getLuType();
@@ -170,7 +166,7 @@ public class SharedLogic {
                 compareResult.add(columnResult);
             }
         }
-        return new ArrayList<>();
+        return compareResult;
     }
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
