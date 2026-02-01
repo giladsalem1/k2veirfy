@@ -160,14 +160,125 @@ stages:
             link: CustomizedKey/value
   Prep Data Queries:
     actors:
-      SourceTableColumns:
-        parent: Const
+      bwGenerateSelectStmt1:
+        parent: InnerFlow
         in:
-          value:
-            const: null
-            external: source_table_columns
+          flowName:
+            const: bwGenerateSelectStmt
+          schema:
+            link: SRC DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            link: SRC DB Interface/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: SRC DB Table/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          env_prefix:
+            const: SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            external: excludedColumnsNames
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: CustomizedKey/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          delimiter:
+            link: SEPERATOR/variableValue
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          ColumnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          pii_columns:
+            link: PIIColumns/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: ExcludeCondition/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
         out:
-          value:
+          columns:
+            schema: '#ref'
+          sql:
+            schema: string
+      bwGenerateSelectStmt11:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGenerateSelectStmt
+          schema:
+            link: TAR DB Schema/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            link: TAR DB Interface/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: TAR DB Table/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          env_prefix:
+            const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            external: excludedColumnsNames
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          customizedKeyComparison:
+            link: CustomizedKey/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          delimiter:
+            link: SEPERATOR/variableValue
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          ColumnMapping:
+            external: ColumnMapping
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          pii_columns:
+            link: PIIColumns/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          excludeCondition:
+            link: ExcludeCondition/value
+            schema: any
+            mandatory: false
+            createdBy: flowName
+        out:
+          columns:
+            schema: '#ref'
+          sql:
             schema: string
   Exctract comparison keys:
     transactional: false
@@ -271,7 +382,7 @@ stages:
           script:
             const: arr.length
           arr:
-            link: SourceTableColumns/value
+            link: bwGenerateSelectStmt1/columns
             schema: '#ref'
             mandatory: false
         out:
@@ -446,10 +557,17 @@ stages:
             link: SRC DB Interface/value
           sql:
             const: null
-            external: source_sql
+            link: bwGenerateSelectStmt1/sql
           size:
             const: null
             link: FETCH_SIZE/variableValue
+          rowsGeneratorDistribution:
+            const:
+              distribution: uniform
+              round: true
+              type: integer
+              minimum: 0
+              maximum: 10
           parent_rows:
             link: GetKeysMapsList/SrcKeysMapsList
         out:
@@ -494,10 +612,17 @@ stages:
             link: TAR DB Interface/value
           sql:
             const: null
-            external: tar_sql
+            link: bwGenerateSelectStmt11/sql
           size:
             const: null
             link: FETCH_SIZE/variableValue
+          rowsGeneratorDistribution:
+            const:
+              distribution: uniform
+              round: true
+              type: integer
+              minimum: 0
+              maximum: 10
           parent_rows:
             link: GetKeysMapsList/TarKeysMapsList
         out:
@@ -767,7 +892,7 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: SourceTableColumns/value
+            link: bwGenerateSelectStmt1/columns
             schema: string
             mandatory: false
             createdBy: flowName
@@ -862,7 +987,7 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: SourceTableColumns/value
+            link: bwGenerateSelectStmt1/columns
             schema: string
             mandatory: false
             createdBy: flowName
@@ -1029,6 +1154,14 @@ stages:
             mandatory: false
             createdBy: sql
 schemas:
+  bwGenerateSelectStmt1.out.columns:
+    type: array
+    items:
+      type: string
+  bwGenerateSelectStmt11.out.columns:
+    type: array
+    items:
+      type: string
   GetBucketKeysList.out.keys_list:
     type: array
     items:

@@ -302,27 +302,6 @@ stages:
             link: Row Info/value/Excluded_Columns_Names
   Execluded columns:
     transactional: false
-    actors:
-      SRC QUERY:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_SRC_DB_QUERY
-      TAR QUERY:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_TAR_DB_QUERY
-      SRC COLS:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_SRC_TABLE_COLUMNS
-      TAR COLS:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_TAR_TABLE_COLUMNS
   Verify data:
     transactional: false
     actors:
@@ -444,27 +423,9 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          source_table_columns:
-            link: SRC COLS/result
+          excludedColumnsNames:
+            link: UpperExcluded/string
             schema: any
-            mandatory: false
-            createdBy: flowName
-          source_sql:
-            link: SRC QUERY/result
-            schema: string
-            editor:
-              id: com.k2view.code
-              language: sql
-              template: true
-            mandatory: false
-            createdBy: flowName
-          tar_sql:
-            link: TAR QUERY/result
-            schema: string
-            editor:
-              id: com.k2view.code
-              language: sql
-              template: true
             mandatory: false
             createdBy: flowName
   Tme befor PG Copy:
