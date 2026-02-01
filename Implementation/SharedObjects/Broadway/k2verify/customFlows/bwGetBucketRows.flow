@@ -91,6 +91,16 @@ stages:
         out:
           result:
             schema: string
+      Replace1:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: Delim/value
+          replace:
+            const: ' || ''|'' || '
+          string:
+            link: CustomKey/value
   'Execute filteirng query ':
     dependsOn: Prepare keys
     actors:
@@ -171,8 +181,17 @@ stages:
             const: null
             external: interface
           sql:
-            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})),
-              ${@bucketsNum}) = ${@bucketID} ${@and}
+            const: |-
+              SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})), ${@bucketsNum}) = ${@bucketID} ${@and}
+
+
+              SELECT ${@key} as  FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})), ${@bucketsNum}) = ${@bucketID} ${@and}
+              [
+                {
+                  "customer_id|ssn": "3000001|000-00-0001"
+                },
+
+                select (customer_id | "|" | ssn) as "customer_id|ssn"
           key:
             link: strKeys/string
             schema: string
@@ -232,10 +251,10 @@ stages:
             const: null
             external: interface
           sql:
-            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE  MOD(ABS(hashtext(${@concatKey}
+            const: SELECT ${@key} as "${@keysAlias}" FROM ${@schema}.${@table} WHERE  MOD(ABS(hashtext(${@concatKey}
               || '')::bigint),${@bucketsNum}) = ${@bucketID} ${@and}
           key:
-            link: strKeys/string
+            link: Replace1/string
             schema: string
             mandatory: false
             createdBy: sql
@@ -267,6 +286,11 @@ stages:
           and:
             link: IfElse1/result
             schema: any
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
             mandatory: false
             createdBy: sql
         out:
@@ -340,7 +364,6 @@ stages:
     actors:
       ArrayToMap1:
         parent: ArrayToMap
-        disabled: true
         in:
           keys:
             const: null
@@ -358,7 +381,6 @@ stages:
     actors:
       ArrayBuilder1:
         parent: ArrayBuilder
-        disabled: true
         in:
           input:
             link:
