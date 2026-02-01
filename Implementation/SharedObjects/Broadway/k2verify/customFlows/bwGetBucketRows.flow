@@ -271,6 +271,7 @@ stages:
             createdBy: sql
         out:
           result:
+            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 6:
@@ -333,14 +334,13 @@ stages:
               iterate: Iterate
             - path: DbCommand2/result
               iterate: Iterate
-            - path: DbCommand3/result
-              iterate: Iterate
             - path: DbCommand4/result
               iterate: Iterate
   Stage 2:
     actors:
       ArrayToMap1:
         parent: ArrayToMap
+        disabled: true
         in:
           keys:
             const: null
@@ -358,6 +358,7 @@ stages:
     actors:
       ArrayBuilder1:
         parent: ArrayBuilder
+        disabled: true
         in:
           input:
             link:

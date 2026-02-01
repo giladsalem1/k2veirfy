@@ -264,14 +264,13 @@ stages:
             createdBy: functionName
         out:
           result:
+            external: keys_list
             schema: '#ref'
   Deep Copy Keys:
     actors:
       DeepCopyKeysRS:
         parent: DeepCopy
-        in:
-          value:
-            link: LuFunction1/result
+        disabled: true
         out:
           value:
             external: keys_list
