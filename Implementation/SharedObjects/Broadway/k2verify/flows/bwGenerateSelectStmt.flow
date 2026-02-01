@@ -881,7 +881,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 17",
+                    "name": "Stage 16",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -889,17 +889,7 @@
                             "actorType": {
                                 "parentType": "DeepCopy",
                                 "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "outputs": []
                             }
                         }
                     ]

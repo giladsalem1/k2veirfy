@@ -34,15 +34,9 @@ stages:
             external: schema
       K2VERIFY_LOG_PASS:
         parent: FabricSetRead
-        height: 129
         in:
           key:
             const: K2VERIFY_LOG_PASS
-      VERIFY_DIR:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_RESULT_FILES_PATH
   Table config:
     actors:
       IID:
@@ -93,6 +87,11 @@ stages:
         out:
           value:
             schema: string
+      FabricSetRead1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_RESULT_FILES_PATH
   Tables details:
     actors:
       SRC DB Interface:
@@ -161,145 +160,14 @@ stages:
             link: CustomizedKey/value
   Prep Data Queries:
     actors:
-      SourceEnvQuery:
-        parent: InnerFlow
+      SourceTableColumns:
+        parent: Const
         in:
-          flowName:
-            const: bwGenerateSelectStmt
-          interface:
-            link: SRC DB Interface/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          schema:
-            link: SRC DB Schema/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          table:
-            link: SRC DB Table/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          env_prefix:
-            const: SRC
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          excludedColumnsNames:
-            external: excludedColumnsNames
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          customizedKeyComparison:
-            link: CustomizedKey/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          delimiter:
-            link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          ColumnMapping:
-            external: ColumnMapping
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          pii_columns:
-            link: PIIColumns/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          excludeCondition:
-            link: ExcludeCondition/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
+          value:
+            const: null
+            external: source_table_columns
         out:
-          sql:
-            schema: string
-          columns:
-            schema: '#ref'
-      TargetEnvQuery:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGenerateSelectStmt
-          interface:
-            link: TAR DB Interface/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          schema:
-            link: TAR DB Schema/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          table:
-            link: TAR DB Table/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          env_prefix:
-            const: TAR
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          excludedColumnsNames:
-            external: excludedColumnsNames
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          customizedKeyComparison:
-            link: CustomizedKey/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          delimiter:
-            link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          ColumnMapping:
-            external: ColumnMapping
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          pii_columns:
-            link: PIIColumns/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          excludeCondition:
-            link: ExcludeCondition/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          sql:
-            schema: string
-          columns:
-            schema: '#ref'
-      GetSummaryTables:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetSummaryTableNames
-          interface:
-            link: RESULT_INTERFACE/variableValue
-            schema: string
-            mandatory: false
-        out:
-          field_summary:
-            schema: string
-          record_summary:
-            schema: string
-          table_summary:
-            schema: string
-          entity_summary:
-            schema: string
-          schema:
+          value:
             schema: string
   Exctract comparison keys:
     transactional: false
@@ -403,7 +271,7 @@ stages:
           script:
             const: arr.length
           arr:
-            link: SourceEnvQuery/columns
+            link: SourceTableColumns/value
             schema: '#ref'
             mandatory: false
         out:
@@ -578,7 +446,7 @@ stages:
             link: SRC DB Interface/value
           sql:
             const: null
-            link: SourceEnvQuery/sql
+            external: source_sql
           size:
             const: null
             link: FETCH_SIZE/variableValue
@@ -626,7 +494,7 @@ stages:
             link: TAR DB Interface/value
           sql:
             const: null
-            link: TargetEnvQuery/sql
+            external: tar_sql
           size:
             const: null
             link: FETCH_SIZE/variableValue
@@ -899,8 +767,8 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: SourceEnvQuery/columns
-            schema: '#ref'
+            link: SourceTableColumns/value
+            schema: string
             mandatory: false
             createdBy: flowName
         out:
@@ -994,7 +862,7 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: SourceEnvQuery/columns
+            link: SourceTableColumns/value
             schema: string
             mandatory: false
             createdBy: flowName
@@ -1009,13 +877,13 @@ stages:
             mandatory: false
             createdBy: flowName
           verify_dir:
-            link: VERIFY_DIR/result
-            schema: string
+            link: FabricSetRead1/result
+            schema: any
             mandatory: false
             createdBy: flowName
         out:
           failed_fields:
-            schema: integer
+            schema: any
     split: '--------------------'
   Stage 1:
     else: true
@@ -1037,13 +905,6 @@ stages:
             schema: integer
           a:
             link: '# ProcessedRecords/value'
-      Aggregate1:
-        parent: Aggregate
-        in:
-          input:
-            link:
-              path: VerifyRecordData/failed_fields
-              pos: 0
   Write each 1000:
     transactional: true
     dependsOn: '# processed records'
@@ -1118,46 +979,6 @@ stages:
         in:
           value:
             link: Now1/date
-      'Update #Processed1':
-        parent: DbCommand
-        in:
-          interface:
-            const: null
-            link: RESULT_INTERFACE/variableValue
-          sql:
-            const: update ${@schema}.task_execution_buckets set failed_fields = ${failed_fields}
-              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
-              and bucket_id=${bucket_id}
-          schema:
-            link: LOAD_SCHEMA/variableValue
-            schema: string
-            mandatory: false
-            createdBy: sql
-          task_id:
-            external: task_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          table_name:
-            link: SRC DB Table/value
-            schema: string
-            mandatory: false
-            createdBy: sql
-          bucket_id:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: sql
-          failed_fields:
-            link: Aggregate1/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
   Bucket Verify Completed:
     transactional: false
     actors:
@@ -1208,14 +1029,6 @@ stages:
             mandatory: false
             createdBy: sql
 schemas:
-  SourceEnvQuery.out.columns:
-    type: array
-    items:
-      type: string
-  TargetEnvQuery.out.columns:
-    type: array
-    items:
-      type: string
   GetBucketKeysList.out.keys_list:
     type: array
     items:
@@ -1943,10 +1756,6 @@ schemas:
     type: array
     items: {
       }
-  VerifyKeysExists.in.columns:
-    type: array
-    items:
-      type: string
   VerifyRecordData.in.src_row:
     type: object
     properties:

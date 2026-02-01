@@ -210,7 +210,7 @@ stages:
             createdBy: format
           source_table_name:
             link: SRC TABLE/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
   Get PII Columns:
@@ -292,7 +292,7 @@ stages:
         out:
           pk_columns:
             schema: string
-  Execluded columns:
+  Stage 1:
     transactional: false
     actors:
       UpperExcluded:
@@ -300,6 +300,29 @@ stages:
         in:
           string:
             link: Row Info/value/Excluded_Columns_Names
+  Execluded columns:
+    transactional: false
+    actors:
+      SRC QUERY:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_SRC_DB_QUERY
+      TAR QUERY:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_TAR_DB_QUERY
+      SRC COLS:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_SRC_TABLE_COLUMNS
+      TAR COLS:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_TAR_TABLE_COLUMNS
   Verify data:
     transactional: false
     actors:
@@ -371,11 +394,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          excludedColumnsNames:
-            link: UpperExcluded/string
-            schema: string
-            mandatory: false
-            createdBy: flowName
           customizedKeyComparison:
             link: bwGetPKColumns/pk_columns
             schema: string
@@ -426,6 +444,29 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          source_table_columns:
+            link: SRC COLS/result
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          source_sql:
+            link: SRC QUERY/result
+            schema: string
+            editor:
+              id: com.k2view.code
+              language: sql
+              template: true
+            mandatory: false
+            createdBy: flowName
+          tar_sql:
+            link: TAR QUERY/result
+            schema: string
+            editor:
+              id: com.k2view.code
+              language: sql
+              template: true
+            mandatory: false
+            createdBy: flowName
   Tme befor PG Copy:
     actors:
       TmeBeforPGCopy:
@@ -474,7 +515,7 @@ stages:
             createdBy: sql
           time_until_copy:
             link: TmeBeforPGCopyStr/string
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
   Copy bucket data to pg:
@@ -557,11 +598,26 @@ stages:
             createdBy: sql
           time_after_copy:
             link: TimeAfterPGCopyStr/string
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
   Remove bucket data file:
     actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: NoSuchFileException
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
       rm:
         parent: rm
         in:
