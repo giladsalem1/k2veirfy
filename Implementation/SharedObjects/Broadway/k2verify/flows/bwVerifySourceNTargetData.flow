@@ -37,6 +37,13 @@ stages:
         in:
           key:
             const: K2VERIFY_LOG_PASS
+      Now13 - ts1:
+        parent: Now
+      ToString1:
+        parent: ToString
+        in:
+          value:
+            link: Now13 - ts1/date
   Table config:
     actors:
       IID:
@@ -172,12 +179,12 @@ stages:
             createdBy: flowName
           interface:
             link: SRC DB Interface/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           table:
             link: SRC DB Table/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           env_prefix:
@@ -187,17 +194,17 @@ stages:
             createdBy: flowName
           excludedColumnsNames:
             external: excludedColumnsNames
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           customizedKeyComparison:
             link: CustomizedKey/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delimiter:
             link: SEPERATOR/variableValue
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           ColumnMapping:
@@ -207,7 +214,7 @@ stages:
             createdBy: flowName
           pii_columns:
             link: PIIColumns/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           excludeCondition:
@@ -232,12 +239,12 @@ stages:
             createdBy: flowName
           interface:
             link: TAR DB Interface/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           table:
             link: TAR DB Table/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           env_prefix:
@@ -247,17 +254,17 @@ stages:
             createdBy: flowName
           excludedColumnsNames:
             external: excludedColumnsNames
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           customizedKeyComparison:
             link: CustomizedKey/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delimiter:
             link: SEPERATOR/variableValue
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           ColumnMapping:
@@ -267,7 +274,7 @@ stages:
             createdBy: flowName
           pii_columns:
             link: PIIColumns/value
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           excludeCondition:
@@ -361,6 +368,11 @@ stages:
         out:
           keys_list:
             schema: '#ref'
+  after_keys_extract:
+    transactional: false
+    actors:
+      Now2:
+        parent: Now
   Num of records to compare:
     transactional: false
     actors:
@@ -408,9 +420,9 @@ stages:
             const: null
             link: RESULT_INTERFACE/variableValue
           sql:
-            const: update ${@schema}.task_execution_buckets set total_records = ${total_records}
-              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
-              and bucket_id=${bucket_id}
+            const: update ${@schema}.task_execution_buckets set total_records = ${total_records},
+              total_fields = ${total_fields} where task_id=${task_id} and execution_id=${execution_id}
+              and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -441,44 +453,9 @@ stages:
             schema: integer
             mandatory: false
             createdBy: sql
-      UpdateTotalFields:
-        parent: DbCommand
-        in:
-          interface:
-            const: null
-            link: RESULT_INTERFACE/variableValue
-          sql:
-            const: update ${@schema}.task_execution_buckets set total_fields = ${total_fields}
-              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
-              and bucket_id=${bucket_id}
-          schema:
-            link: LOAD_SCHEMA/variableValue
-            schema: string
-            mandatory: false
-            createdBy: sql
-          task_id:
-            external: task_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          table_name:
-            link: SRC DB Table/value
-            schema: string
-            mandatory: false
-            createdBy: sql
-          bucket_id:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: sql
           total_fields:
             link: TotalFields/result
-            schema: integer
+            schema: any
             mandatory: false
             createdBy: sql
   Prepare groups of keys:
@@ -495,6 +472,20 @@ stages:
         out:
           result:
             schema: '#ref'
+      Now9:
+        parent: Now
+      DateDuration1:
+        parent: DateDuration
+        in:
+          from:
+            link: Now2/date
+          to:
+            link: Now9/date
+      ts2:
+        parent: ToString
+        in:
+          value:
+            link: Now9/date
   For each group of keys:
     transactional: true
     actors:
@@ -509,6 +500,8 @@ stages:
         out:
           value:
             schema: '#ref'
+      Now3:
+        parent: Now
   Keys formatted in arrays and maps:
     transactional: true
     actors:
@@ -546,6 +539,8 @@ stages:
             schema: '#ref'
           TarKeysCombinations:
             schema: '#ref'
+  Stage 2:
+    transactional: true
   Execute Query - Source:
     transactional: true
     actors:
@@ -656,6 +651,8 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
+  Stage 3:
+    transactional: true
   Extract Row:
     transactional: true
     actors:
@@ -715,6 +712,22 @@ stages:
         out:
           result:
             schema: '#ref'
+      Now4:
+        parent: Now
+      DateDuration2:
+        parent: DateDuration
+        in:
+          from:
+            link: Now3/date
+          to:
+            link: Now4/date
+      Aggregate2:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration2/millis
+              pos: 0
   Keys arrays and maps:
     transactional: true
     actors:
@@ -793,6 +806,8 @@ stages:
         out:
           value:
             schema: '#ref'
+      Now7:
+        parent: Now
   Stringify key:
     transactional: true
     actors:
@@ -899,6 +914,24 @@ stages:
         out:
           keyNotFound:
             schema: boolean
+      Now5:
+        parent: Now
+      Now8:
+        parent: Now
+      DateDuration3:
+        parent: DateDuration
+        in:
+          from:
+            link: Now7/date
+          to:
+            link: Now8/date
+      Aggregate3:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration3/millis
+              pos: 0
   Record exists->verify data:
     transactional: true
     dependsOn: Verify record exists
@@ -1003,12 +1036,12 @@ stages:
             createdBy: flowName
           verify_dir:
             link: FabricSetRead1/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
         out:
           failed_fields:
-            schema: any
+            schema: integer
     split: '--------------------'
   Stage 1:
     else: true
@@ -1030,6 +1063,22 @@ stages:
             schema: integer
           a:
             link: '# ProcessedRecords/value'
+      Now6:
+        parent: Now
+      DateDuration4:
+        parent: DateDuration
+        in:
+          from:
+            link: Now5/date
+          to:
+            link: Now6/date
+      Aggregate4:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration4/millis
+              pos: 0
   Write each 1000:
     transactional: true
     dependsOn: '# processed records'
@@ -1083,6 +1132,22 @@ stages:
             schema: integer
             mandatory: false
             createdBy: sql
+      Now10:
+        parent: Now
+      DateDuration5:
+        parent: DateDuration
+        in:
+          from:
+            link: Now6/date
+          to:
+            link: Now10/date
+      Aggregate5:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration5/millis
+              pos: 0
     split: '--------------------'
   Stage 39:
     else: true
@@ -1094,6 +1159,9 @@ stages:
   Close loop:
     last: 1
     transactional: true
+    actors:
+      Now11:
+        parent: Now
   Bucket verify end_time:
     transactional: false
     actors:
@@ -1104,6 +1172,20 @@ stages:
         in:
           value:
             link: Now1/date
+      Now12:
+        parent: Now
+      DateDuration6:
+        parent: DateDuration
+        in:
+          from:
+            link: Now11/date
+          to:
+            link: Now12/date
+      ToString2:
+        parent: ToString
+        in:
+          value:
+            link: Now12/date
   Bucket Verify Completed:
     transactional: false
     actors:
@@ -1115,8 +1197,10 @@ stages:
             link: RESULT_INTERFACE/variableValue
           sql:
             const: update ${@schema}.task_execution_buckets set processed_records
-              = ${processed_records}, end_time=${end_time}, status='Completed' where
-              task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
+              = ${processed_records}, end_time=${end_time}, status='Completed' , duration_1=${duration_1}
+              , duration_2=${duration_2}, duration_3=${duration_3} , duration_4=${duration_4},
+              duration_5=${duration_5},duration_6=${duration_6}, ts1=${ts1},ts2=${ts2},ts3=${ts3}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
               and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
@@ -1151,6 +1235,51 @@ stages:
           end_time:
             link: END_TIME/string
             schema: string
+            mandatory: false
+            createdBy: sql
+          duration_1:
+            link: DateDuration1/millis
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_2:
+            link: Aggregate2/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_4:
+            link: Aggregate4/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_3:
+            link: Aggregate3/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_6:
+            link: DateDuration6/millis
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_5:
+            link: Aggregate5/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          ts1:
+            link: ToString1/string
+            schema: any
+            mandatory: false
+            createdBy: sql
+          ts2:
+            link: ts2/string
+            schema: any
+            mandatory: false
+            createdBy: sql
+          ts3:
+            link: ToString2/string
+            schema: any
             mandatory: false
             createdBy: sql
 schemas:
