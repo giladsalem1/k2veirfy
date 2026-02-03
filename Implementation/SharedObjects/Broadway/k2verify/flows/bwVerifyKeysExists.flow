@@ -59,7 +59,7 @@ stages:
         out:
           result:
             external: keyNotFound
-  Report key is missing:
+  Stage 1:
     transactional: true
     actors:
       =true:
@@ -71,6 +71,9 @@ stages:
             schema: boolean
           a:
             link: Or1/result
+  Report key is missing:
+    transactional: true
+    actors:
       Const6:
         parent: Const
         in:

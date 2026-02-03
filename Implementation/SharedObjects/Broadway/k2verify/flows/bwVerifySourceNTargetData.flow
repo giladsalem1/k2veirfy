@@ -806,8 +806,6 @@ stages:
         out:
           value:
             schema: '#ref'
-      Now7:
-        parent: Now
   Stringify key:
     transactional: true
     actors:
@@ -851,9 +849,33 @@ stages:
         out:
           result:
             schema: '#ref'
-  Verify record exists:
+      Now7:
+        parent: Now
+  Stage 4:
     transactional: true
     actors:
+      IsNull1:
+        parent: IsNull
+        in:
+          value:
+            link: FilterSrcRow/result
+      IsNull2:
+        parent: IsNull
+        in:
+          value:
+            link: FilterTarRow/result
+  Verify record exists:
+    transactional: true
+    dependsOn: Stage 4
+    actors:
+      Or1:
+        parent: Or
+        condition: result
+        in:
+          a:
+            link: IsNull1/result
+          b:
+            link: IsNull2/result
       VerifyKeysExists:
         parent: InnerFlow
         in:
@@ -879,13 +901,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          target_column_value:
-            link:
-              path: PrimaryKeyTarValue/value
-              iterate: First
-            schema: '#ref'
-            mandatory: false
-            createdBy: flowName
           source_table_name:
             link: SRC DB Table/value
             schema: string
@@ -893,11 +908,6 @@ stages:
             createdBy: flowName
           target_table_name:
             link: TAR DB Table/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          key_columns:
-            link: CustomizedKey/value
             schema: string
             mandatory: false
             createdBy: flowName
@@ -914,8 +924,14 @@ stages:
         out:
           keyNotFound:
             schema: boolean
-      Now5:
-        parent: Now
+    split: '--------------------'
+  Stage 6:
+    else: true
+    transactional: true
+    dependsOn: Stage 4
+  Stage 5:
+    transactional: true
+    actors:
       Now8:
         parent: Now
       DateDuration3:
@@ -932,9 +948,11 @@ stages:
             link:
               path: DateDuration3/millis
               pos: 0
+      Now5:
+        parent: Now
   Record exists->verify data:
     transactional: true
-    dependsOn: Verify record exists
+    dependsOn: Stage 5
     actors:
       RecordExists:
         parent: Equals
@@ -944,7 +962,7 @@ stages:
             const: false
             schema: boolean
           a:
-            link: VerifyKeysExists/keyNotFound
+            link: Or1/result
       VerifyRecordData:
         parent: InnerFlow
         in:
@@ -1046,7 +1064,7 @@ stages:
   Stage 1:
     else: true
     transactional: true
-    dependsOn: Verify record exists
+    dependsOn: Stage 5
   '# processed records':
     transactional: true
     actors:
@@ -2014,10 +2032,6 @@ schemas:
           type: string
         TAR_SSN:
           type: string
-  VerifyKeysExists.in.target_column_value:
-    type: array
-    items: {
-      }
   VerifyRecordData.in.src_row:
     type: object
     properties:
