@@ -2,85 +2,16 @@ tags: d2d,d2dv2,D2D,k2verify
 stages:
   Check record emoty:
     transactional: true
-    actors:
-      SrcRecord=[{}]:
-        parent: Equals
-        in:
-          b:
-            const: {
-              }
-            schema: '#ref'
-          a:
-            external: src_row
-      IsNull1:
-        parent: IsNull
-        in:
-          value:
-            external: src_row
-      TarRecord=[{}]:
-        parent: Equals
-        in:
-          b:
-            const: {
-              }
-            schema: '#ref'
-          a:
-            external: tar_row
-      IsNull2:
-        parent: IsNull
-        in:
-          value:
-            external: tar_row
   Src record doesn't exist:
     transactional: true
     dependsOn: Check record emoty
     actors:
-      SrcEmpty:
-        parent: Or
+      IsNull3:
+        parent: IsNull
         condition: result
         in:
-          b:
-            link: SrcRecord=[{}]/result
-          a:
-            link: IsNull1/result
-      ReportDetailsMap1:
-        parent: MapCreate
-        in:
-          EXECUTION_ID:
-            external: execution_id
-            schema: string
-            mandatory: false
-          CUSTOMIZED_KEY:
-            external: customized_key
-            schema: string
-            mandatory: false
-          TARGET_COLUMN_VALUE:
-            external: target_column_value
-            schema: '#ref'
-            mandatory: false
-          MATCH_RESULT:
-            const: Target Key Not Found In Source
-            schema: string
-            mandatory: false
-          SOURCE_TABLE_NAME:
-            external: source_table_name
-            schema: string
-            mandatory: false
-          TARGET_TABLE_NAME:
-            external: target_table_name
-            schema: string
-            mandatory: false
-          COLUMN_NAME:
-            external: key_columns
-            schema: string
-            mandatory: false
-          IID:
-            const: '0'
-            schema: string
-            mandatory: false
-        out:
-          map:
-            schema: '#ref'
+          value:
+            external: src_row
       Const2:
         parent: Const
         in:
@@ -95,52 +26,12 @@ stages:
     transactional: true
     dependsOn: Check record emoty
     actors:
-      TAREmpty:
-        parent: Or
+      IsNull4:
+        parent: IsNull
         condition: result
         in:
-          b:
-            link: TarRecord=[{}]/result
-          a:
-            link: IsNull2/result
-      ReportDetailsMap11:
-        parent: MapCreate
-        in:
-          EXECUTION_ID:
-            external: execution_id
-            schema: string
-            mandatory: false
-          CUSTOMIZED_KEY:
-            external: customized_key
-            schema: string
-            mandatory: false
-          TARGET_COLUMN_VALUE:
-            external: target_column_value
-            schema: '#ref'
-            mandatory: false
-          MATCH_RESULT:
-            const: Source Key Not Found In Target
-            schema: string
-            mandatory: false
-          SOURCE_TABLE_NAME:
-            external: source_table_name
-            schema: string
-            mandatory: false
-          TARGET_TABLE_NAME:
-            external: target_table_name
-            schema: string
-            mandatory: false
-          COLUMN_NAME:
-            external: key_columns
-            schema: string
-            mandatory: false
-          IID:
-            const: '0'
-            schema: string
-            mandatory: false
-        out:
-          map:
-            schema: '#ref'
+          value:
+            external: tar_row
       Const3:
         parent: Const
         in:
@@ -162,9 +53,9 @@ stages:
         parent: Or
         in:
           a:
-            link: SrcEmpty/result
+            link: IsNull3/result
           b:
-            link: TAREmpty/result
+            link: IsNull4/result
         out:
           result:
             external: keyNotFound
@@ -285,6 +176,8 @@ stages:
             - TARGET_VALUE_SECURED
             - SOURCE_COLUMN_VALUE
             - TARGET_COLUMN_VALUE
+            - SOURCE_COLUMN_VALUE_TRANS
+            - TARGET_COLUMN_VALUE_TRANS
           maps:
             link: Const1/value
       Format File Name:
@@ -299,7 +192,7 @@ stages:
             createdBy: format
           dir:
             link: Result Files Dir/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
           execution_id:
@@ -309,7 +202,7 @@ stages:
             createdBy: format
           source_table_name:
             external: source_table_name
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
   Write to file:
@@ -327,44 +220,6 @@ stages:
           path:
             link: Format File Name/string
 schemas:
-  SrcRecord=[{}].in.b:
-    type: array
-    items: {
-      }
-  TarRecord=[{}].in.b:
-    type: array
-    items: {
-      }
-  ReportDetailsMap1.in.TARGET_COLUMN_VALUE:
-    type: array
-    items: {
-      }
-  ReportDetailsMap1.out.map:
-    type: object
-    properties:
-      EXECUTION_ID:
-        type: string
-      CUSTOMIZED_KEY: {
-        }
-      TARGET_COLUMN_VALUE:
-        type: string
-      MATCH_RESULT:
-        type: string
-  ReportDetailsMap11.in.TARGET_COLUMN_VALUE:
-    type: array
-    items: {
-      }
-  ReportDetailsMap11.out.map:
-    type: object
-    properties:
-      EXECUTION_ID:
-        type: string
-      CUSTOMIZED_KEY: {
-        }
-      TARGET_COLUMN_VALUE:
-        type: string
-      MATCH_RESULT:
-        type: string
   ReportDetailsMap12.in.TARGET_COLUMN_VALUE:
     type: array
     items: {

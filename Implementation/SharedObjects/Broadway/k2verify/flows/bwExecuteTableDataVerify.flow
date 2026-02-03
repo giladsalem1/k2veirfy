@@ -779,7 +779,7 @@
                                 "inputs": [
                                     {
                                         "name": "format",
-                                        "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
+                                        "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' AFFINITY ='10.76.1.5' ${maxWorkers};"
                                     },
                                     {
                                         "const": "verify",
