@@ -585,9 +585,18 @@ stages:
             link:
               path: DateDuration7/millis
               pos: 0
+  Stage 8:
+    transactional: true
   Stage 7:
     transactional: true
+    dependsOn: Stage 8
     actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            external: source_transformation_function
       ApplySrcTransformation:
         parent: InnerFlow
         in:
@@ -616,6 +625,24 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
+    split: '--------------------'
+  Stage 9:
+    else: true
+    transactional: true
+    dependsOn: Stage 8
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: SourceDbQuery/result
+        out:
+          value:
+            schema: '#ref'
+  Stage 11:
+    transactional: true
+    actors:
       Now13:
         parent: Now
       DateDuration8:
@@ -675,9 +702,35 @@ stages:
             link:
               path: DateDuration9/millis
               pos: 0
-  Stage 3:
+  Stage 10:
     transactional: true
     actors:
+      Now15:
+        parent: Now
+      DateDuration10:
+        parent: DateDuration
+        in:
+          from:
+            link: Now14/date
+          to:
+            link: Now15/date
+      Aggregate7:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration10/millis
+              pos: 0
+  Stage 3:
+    transactional: true
+    dependsOn: Stage 10
+    actors:
+      NotNull2:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            external: target_transformation_function
       ApplyTarTransformation:
         parent: InnerFlow
         in:
@@ -706,22 +759,21 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-      Now15:
-        parent: Now
-      DateDuration10:
-        parent: DateDuration
+    split: '--------------------'
+  Stage 12:
+    else: true
+    transactional: true
+    dependsOn: Stage 10
+    actors:
+      Const3:
+        parent: Const
         in:
-          from:
-            link: Now14/date
-          to:
-            link: Now15/date
-      Aggregate7:
-        parent: Aggregate
-        in:
-          input:
-            link:
-              path: DateDuration10/millis
-              pos: 0
+          value:
+            const: null
+            link: TargetDbQuery/result
+        out:
+          value:
+            schema: '#ref'
   Extract Row:
     transactional: true
     actors:
@@ -736,7 +788,9 @@ stages:
             mandatory: false
             createdBy: functionName
           sourceList:
-            link: ApplySrcTransformation/transformedRecords
+            link:
+            - ApplySrcTransformation/transformedRecords
+            - Const2/value
             schema: '#ref'
             mandatory: false
             createdBy: functionName
@@ -764,7 +818,9 @@ stages:
             mandatory: false
             createdBy: functionName
           sourceList:
-            link: ApplyTarTransformation/transformedRecords
+            link:
+            - ApplyTarTransformation/transformedRecords
+            - Const3/value
             schema: '#ref'
             mandatory: false
             createdBy: functionName
@@ -1497,6 +1553,105 @@ schemas:
           type: string
         SRC_LAST_NAME:
           type: string
+  Const2.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        SRC_CUSTOMER_ID:
+          type: integer
+        SRC_CREATED_AT:
+          type: date
+        SRC_CHILDREN_COUNT:
+          type: integer
+        SRC_LOYALTY_POINTS:
+          type: integer
+        SRC_SIGNUP_DATE:
+          type: date
+        SRC_PREFERRED_LANGUAGE:
+          type: string
+        SRC_COUNTRY:
+          type: string
+        SRC_COMM_CHANNEL:
+          type: string
+        SRC_FAVORITE_NUMBER:
+          type: integer
+        SRC_LAST_LOGIN_TZ:
+          type: date
+        SRC_UPDATED_AT:
+          type: date
+        SRC_TIMEZONE:
+          type: string
+        SRC_HOME_LAT:
+          type: integer
+        SRC_IS_VIP:
+          type: string
+        SRC_BALANCE:
+          type: integer
+        SRC_CREDIT_LIMIT:
+          type: integer
+        SRC_SMALL_FLAG:
+          type: integer
+        SRC_LAST_NAME:
+          type: string
+        SRC_RISK_SCORE:
+          type: integer
+        SRC_ROW_VERSION:
+          type: integer
+        SRC_FIRST_NAME:
+          type: string
+        SRC_MARKETING_OPT_IN:
+          type: string
+        SRC_VALID_TO:
+          type: date
+        SRC_NOTES:
+          type: string
+        SRC_FLOAT_SCORE:
+          type: number
+        SRC_VALID_FROM:
+          type: date
+        SRC_DATE_OF_BIRTH:
+          type: date
+        SRC_HEIGHT_CM:
+          type: integer
+        SRC_LAST_LOGIN_TS:
+          type: date
+        SRC_WEIGHT_KG:
+          type: integer
+        SRC_SSN:
+          type: string
+        SRC_HOME_LON:
+          type: integer
+        SRC_DOUBLE_SCORE:
+          type: number
+        SRC_MIDDLE_NAME:
+          type: string
+        SRC_EMAIL:
+          type: string
+        SRC_ALT_EMAIL:
+          type: string
+        SRC_PHONE:
+          type: string
+        SRC_ALT_PHONE:
+          type: string
+        SRC_ADDRESS_LINE1:
+          type: string
+        SRC_ADDRESS_LINE2:
+          type: string
+        SRC_CITY:
+          type: string
+        SRC_STATE_PROVINCE:
+          type: string
+        SRC_POSTAL_CODE:
+          type: string
+        SRC_GENDER:
+          type: string
+        SRC_MARITAL_STATUS:
+          type: string
+        SRC_NATIONAL_ID:
+          type: string
+        SRC_PASSPORT_NO:
+          type: string
   TargetDbQuery.out.result:
     type: array
     items:
@@ -1533,6 +1688,105 @@ schemas:
         SRC_FIRST_NAME:
           type: string
         SRC_LAST_NAME:
+          type: string
+  Const3.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        TAR_CUSTOMER_ID:
+          type: integer
+        TAR_CREATED_AT:
+          type: date
+        TAR_CHILDREN_COUNT:
+          type: integer
+        TAR_LOYALTY_POINTS:
+          type: integer
+        TAR_SIGNUP_DATE:
+          type: date
+        TAR_PREFERRED_LANGUAGE:
+          type: string
+        TAR_COUNTRY:
+          type: string
+        TAR_COMM_CHANNEL:
+          type: string
+        TAR_FAVORITE_NUMBER:
+          type: integer
+        TAR_LAST_LOGIN_TZ:
+          type: date
+        TAR_UPDATED_AT:
+          type: date
+        TAR_TIMEZONE:
+          type: string
+        TAR_HOME_LAT:
+          type: integer
+        TAR_IS_VIP:
+          type: string
+        TAR_BALANCE:
+          type: integer
+        TAR_CREDIT_LIMIT:
+          type: integer
+        TAR_SMALL_FLAG:
+          type: integer
+        TAR_LAST_NAME:
+          type: string
+        TAR_RISK_SCORE:
+          type: integer
+        TAR_ROW_VERSION:
+          type: integer
+        TAR_FIRST_NAME:
+          type: string
+        TAR_MARKETING_OPT_IN:
+          type: string
+        TAR_VALID_TO:
+          type: date
+        TAR_NOTES:
+          type: string
+        TAR_FLOAT_SCORE:
+          type: number
+        TAR_VALID_FROM:
+          type: date
+        TAR_DATE_OF_BIRTH:
+          type: date
+        TAR_HEIGHT_CM:
+          type: integer
+        TAR_LAST_LOGIN_TS:
+          type: date
+        TAR_WEIGHT_KG:
+          type: integer
+        TAR_SSN:
+          type: string
+        TAR_HOME_LON:
+          type: integer
+        TAR_DOUBLE_SCORE:
+          type: number
+        TAR_MIDDLE_NAME:
+          type: string
+        TAR_EMAIL:
+          type: string
+        TAR_ALT_EMAIL:
+          type: string
+        TAR_PHONE:
+          type: string
+        TAR_ALT_PHONE:
+          type: string
+        TAR_ADDRESS_LINE1:
+          type: string
+        TAR_ADDRESS_LINE2:
+          type: string
+        TAR_CITY:
+          type: string
+        TAR_STATE_PROVINCE:
+          type: string
+        TAR_POSTAL_CODE:
+          type: string
+        TAR_GENDER:
+          type: string
+        TAR_MARITAL_STATUS:
+          type: string
+        TAR_NATIONAL_ID:
+          type: string
+        TAR_PASSPORT_NO:
           type: string
   SrcRecordsMap.in.targetList:
     type: array
