@@ -621,12 +621,10 @@ stages:
       DateDuration8:
         parent: DateDuration
         in:
-          to:
-            link:
-            - Now4/date
-            - Now13/date
           from:
-            link: DateDuration7/millis
+            link: Now4/date
+          to:
+            link: Now13/date
       Aggregate1:
         parent: Aggregate
         in:
