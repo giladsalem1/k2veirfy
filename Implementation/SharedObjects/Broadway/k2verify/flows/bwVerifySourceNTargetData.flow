@@ -455,7 +455,7 @@ stages:
             createdBy: sql
           total_fields:
             link: TotalFields/result
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
   Prepare groups of keys:
@@ -500,8 +500,6 @@ stages:
         out:
           value:
             schema: '#ref'
-      Now3:
-        parent: Now
   Keys formatted in arrays and maps:
     transactional: true
     actors:
@@ -541,6 +539,9 @@ stages:
             schema: '#ref'
   Stage 2:
     transactional: true
+    actors:
+      Now3:
+        parent: Now
   Execute Query - Source:
     transactional: true
     actors:
@@ -568,6 +569,25 @@ stages:
         out:
           result:
             schema: '#ref'
+      Now4:
+        parent: Now
+      DateDuration7:
+        parent: DateDuration
+        in:
+          from:
+            link: Now3/date
+          to:
+            link: Now4/date
+      Aggregate2:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration7/millis
+              pos: 0
+  Stage 7:
+    transactional: true
+    actors:
       ApplySrcTransformation:
         parent: InnerFlow
         in:
@@ -596,6 +616,24 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
+      Now13:
+        parent: Now
+      DateDuration8:
+        parent: DateDuration
+        in:
+          to:
+            link:
+            - Now4/date
+            - Now13/date
+          from:
+            link: DateDuration7/millis
+      Aggregate1:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration8/millis
+              pos: 0
   Execute Query - Target:
     transactional: true
     actors:
@@ -623,6 +661,25 @@ stages:
         out:
           result:
             schema: '#ref'
+      Now14:
+        parent: Now
+      DateDuration9:
+        parent: DateDuration
+        in:
+          from:
+            link: Now13/date
+          to:
+            link: Now14/date
+      Aggregate6:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration9/millis
+              pos: 0
+  Stage 3:
+    transactional: true
+    actors:
       ApplyTarTransformation:
         parent: InnerFlow
         in:
@@ -651,8 +708,22 @@ stages:
         out:
           transformedRecords:
             schema: '#ref'
-  Stage 3:
-    transactional: true
+      Now15:
+        parent: Now
+      DateDuration10:
+        parent: DateDuration
+        in:
+          from:
+            link: Now14/date
+          to:
+            link: Now15/date
+      Aggregate7:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration10/millis
+              pos: 0
   Extract Row:
     transactional: true
     actors:
@@ -712,21 +783,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now4:
+      Now16:
         parent: Now
-      DateDuration2:
+      DateDuration11:
         parent: DateDuration
         in:
           from:
-            link: Now3/date
+            link: Now15/date
           to:
-            link: Now4/date
-      Aggregate2:
+            link: Now16/date
+      Aggregate8:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration2/millis
+              path: DateDuration11/millis
               pos: 0
   Keys arrays and maps:
     transactional: true
@@ -1214,12 +1285,13 @@ stages:
             const: null
             link: RESULT_INTERFACE/variableValue
           sql:
-            const: update ${@schema}.task_execution_buckets set processed_records
-              = ${processed_records}, end_time=${end_time}, status='Completed' , duration_1=${duration_1}
-              , duration_2=${duration_2}, duration_3=${duration_3} , duration_4=${duration_4},
-              duration_5=${duration_5},duration_6=${duration_6}, ts1=${ts1},ts2=${ts2},ts3=${ts3}
-              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}
-              and bucket_id=${bucket_id}
+            const: |-
+              update ${@schema}.task_execution_buckets set processed_records = ${processed_records}, end_time=${end_time},
+              status='Completed' , duration_1=${duration_1} ,duration_2=0, duration_3=${duration_3} ,
+              duration_4=${duration_4}, duration_5=${duration_5},duration_6=${duration_6}, duration_7=${duration_7},
+              duration_8=${duration_8},duration_9=${duration_9}, duration_10=${duration_10},duration_11=${duration_11},
+              ts1=${ts1},ts2=${ts2},ts3=${ts3}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -1260,11 +1332,6 @@ stages:
             schema: any
             mandatory: false
             createdBy: sql
-          duration_2:
-            link: Aggregate2/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
           duration_4:
             link: Aggregate4/sum
             schema: any
@@ -1297,6 +1364,31 @@ stages:
             createdBy: sql
           ts3:
             link: ToString2/string
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_7:
+            link: Aggregate2/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_8:
+            link: Aggregate1/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_9:
+            link: Aggregate6/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_10:
+            link: Aggregate7/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_11:
+            link: Aggregate8/sum
             schema: any
             mandatory: false
             createdBy: sql
@@ -1436,11 +1528,13 @@ schemas:
     items:
       type: object
       properties:
-        SRC_FIRST_NAME:
-          type: string
         SRC_CUSTOMER_ID:
           type: string
         SRC_SSN:
+          type: string
+        SRC_FIRST_NAME:
+          type: string
+        SRC_LAST_NAME:
           type: string
   SrcRecordsMap.in.targetList:
     type: array
