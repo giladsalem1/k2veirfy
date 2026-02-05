@@ -704,23 +704,6 @@ stages:
               pos: 0
   Stage 10:
     transactional: true
-    actors:
-      Now15:
-        parent: Now
-      DateDuration10:
-        parent: DateDuration
-        in:
-          from:
-            link: Now14/date
-          to:
-            link: Now15/date
-      Aggregate7:
-        parent: Aggregate
-        in:
-          input:
-            link:
-              path: DateDuration10/millis
-              pos: 0
   Stage 3:
     transactional: true
     dependsOn: Stage 10
@@ -774,6 +757,25 @@ stages:
         out:
           value:
             schema: '#ref'
+  Stage 13:
+    transactional: true
+    actors:
+      Now15:
+        parent: Now
+      DateDuration10:
+        parent: DateDuration
+        in:
+          from:
+            link: Now14/date
+          to:
+            link: Now15/date
+      Aggregate7:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration10/millis
+              pos: 0
   Extract Row:
     transactional: true
     actors:
@@ -807,6 +809,25 @@ stages:
         out:
           result:
             schema: '#ref'
+      Now16:
+        parent: Now
+      DateDuration11:
+        parent: DateDuration
+        in:
+          from:
+            link: Now15/date
+          to:
+            link: Now16/date
+      Aggregate8:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DateDuration11/millis
+              pos: 0
+  Stage 14:
+    transactional: true
+    actors:
       TarRecordsMap:
         parent: LuFunction
         in:
@@ -837,21 +858,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now16:
+      Now17:
         parent: Now
-      DateDuration11:
+      DateDuration12:
         parent: DateDuration
         in:
           from:
-            link: Now15/date
-          to:
             link: Now16/date
-      Aggregate8:
+          to:
+            link: Now17/date
+      Aggregate9:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration11/millis
+              path: DateDuration12/millis
               pos: 0
   Keys arrays and maps:
     transactional: true
@@ -1343,7 +1364,7 @@ stages:
               update ${@schema}.task_execution_buckets set processed_records = ${processed_records}, end_time=${end_time},
               status='Completed' , duration_1=${duration_1} ,duration_2=0, duration_3=${duration_3} ,
               duration_4=${duration_4}, duration_5=${duration_5},duration_6=${duration_6}, duration_7=${duration_7},
-              duration_8=${duration_8},duration_9=${duration_9}, duration_10=${duration_10},duration_11=${duration_11},
+              duration_8=${duration_8},duration_9=${duration_9}, duration_10=${duration_10},duration_11=${duration_11},duration_12=${duration_12},
               ts1=${ts1},ts2=${ts2},ts3=${ts3}
               where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
@@ -1443,6 +1464,11 @@ stages:
             createdBy: sql
           duration_11:
             link: Aggregate8/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          duration_12:
+            link: Aggregate9/sum
             schema: any
             mandatory: false
             createdBy: sql
