@@ -202,68 +202,89 @@ public class SharedLogic {
         return null;
     }
 
+   
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
-            List<Map<String, Object>> targetList,
-            List<Map<String, Object>> sourceList,
-            List<String> joinKeys,
-            String env_prefix) {
+        List<Map<String, Object>> targetList,
+        List<Map<String, Object>> sourceList,
+        List<String> joinKeys,
+        String env_prefix) {
 
-        Map<String, Map<String, Object>> sourceLookup = new HashMap<>();
+    final int k = joinKeys.size();
+    final java.util.Locale LOCALE = java.util.Locale.ROOT;
 
-        // Build lookup for source
-        for (Map<String, Object> src : sourceList) {
-            StringBuilder keyBuilder = new StringBuilder();
+    // Precompute key names
+    final String[] tgtKeys = new String[k];
+    final String[] srcKeys = new String[k];
+    final String[] tgtKeysLower = new String[k];
+    final String[] srcKeysLower = new String[k];
 
-            for (int i = 0; i < joinKeys.size(); i++) {
-                String logicalKey = env_prefix + "_" + joinKeys.get(i);
-                Object value = getIgnoreCase(src, logicalKey);
+    for (int i = 0; i < k; i++) {
+        String key = joinKeys.get(i);
+        tgtKeys[i] = key;
+        srcKeys[i] = env_prefix + "_" + key;
 
-                keyBuilder.append(value == null ? "" : value.toString());
-                if (i < joinKeys.size() - 1)
-                    keyBuilder.append("_");
-            }
-
-            sourceLookup.put(keyBuilder.toString(), src);
-        }
-
-        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
-
-        for (Map<String, Object> tgt : targetList) {
-            StringBuilder lookupKey = new StringBuilder();
-
-            for (int i = 0; i < joinKeys.size(); i++) {
-                Object value = getIgnoreCase(tgt, joinKeys.get(i));
-                lookupKey.append(value == null ? "" : value.toString());
-                if (i < joinKeys.size() - 1)
-                    lookupKey.append("_");
-            }
-
-            Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
-            if (matched != null) {
-
-                // Build JSON-style key
-                StringBuilder jsonKey = new StringBuilder("{");
-                for (int i = 0; i < joinKeys.size(); i++) {
-                    String k = joinKeys.get(i);
-                    Object value = getIgnoreCase(tgt, k);
-
-                    jsonKey.append("\"")
-                            .append(k)
-                            .append("\":\"")
-                            .append(value == null ? "" : value.toString())
-                            .append("\"");
-
-                    if (i < joinKeys.size() - 1)
-                        jsonKey.append(",");
-                }
-                jsonKey.append("}");
-
-                result.put(jsonKey.toString(), matched);
-            }
-        }
-
-        return result;
+        tgtKeysLower[i] = key.toLowerCase(LOCALE);
+        srcKeysLower[i] = srcKeys[i].toLowerCase(LOCALE);
     }
+
+    // Build lookup for source: joinKeyString -> original source row
+    final int srcCap = (int) (sourceList.size() / 0.75f) + 1;
+    final Map<String, Map<String, Object>> sourceLookup = new HashMap<>(srcCap);
+
+    for (Map<String, Object> src : sourceList) {
+        // Build lowercase index once for this row
+        Map<String, Object> srcLower = new HashMap<>((int) (src.size() / 0.75f) + 1);
+        for (Map.Entry<String, Object> e : src.entrySet()) {
+            String kk = e.getKey();
+            if (kk != null) srcLower.put(kk.toLowerCase(LOCALE), e.getValue());
+        }
+
+        StringBuilder keyBuilder = new StringBuilder(k * 16);
+        for (int i = 0; i < k; i++) {
+            Object v = srcLower.get(srcKeysLower[i]);
+            if (v != null) keyBuilder.append(v);
+            if (i < k - 1) keyBuilder.append('_');
+        }
+        sourceLookup.put(keyBuilder.toString(), src);
+    }
+
+    final int tgtCap = (int) (targetList.size() / 0.75f) + 1;
+    final Map<String, Map<String, Object>> result = new LinkedHashMap<>(tgtCap);
+
+    for (Map<String, Object> tgt : targetList) {
+        // Build lowercase index once for this row
+        Map<String, Object> tgtLower = new HashMap<>((int) (tgt.size() / 0.75f) + 1);
+        for (Map.Entry<String, Object> e : tgt.entrySet()) {
+            String kk = e.getKey();
+            if (kk != null) tgtLower.put(kk.toLowerCase(LOCALE), e.getValue());
+        }
+
+        // Build lookupKey + jsonKey in one pass
+        StringBuilder lookupKey = new StringBuilder(k * 16);
+        StringBuilder jsonKey = new StringBuilder(k * 24 + 2).append('{');
+
+        for (int i = 0; i < k; i++) {
+            String col = tgtKeys[i];
+            Object v = tgtLower.get(tgtKeysLower[i]);
+
+            if (v != null) lookupKey.append(v);
+            if (i < k - 1) lookupKey.append('_');
+
+            jsonKey.append('"').append(col).append("\":\"");
+            if (v != null) jsonKey.append(v);
+            jsonKey.append('"');
+            if (i < k - 1) jsonKey.append(',');
+        }
+        jsonKey.append('}');
+
+        Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
+        if (matched != null) {
+            result.put(jsonKey.toString(), matched);
+        }
+    }
+
+    return result;
+}
 
     @out(name = "result", type = Object.class, desc = "")
     public static Set<String> fnMergeSrcTrgKeys(
