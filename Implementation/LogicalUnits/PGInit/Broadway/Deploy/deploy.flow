@@ -1,0 +1,35 @@
+tags: Deploy
+stages:
+  ' ': {
+    }
+  Create PGDB Tables:
+    actors:
+      createPGDBS:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: createSRCDbs
+          is_first_deploy:
+            external: is_first_deploy
+            schema: boolean
+            mandatory: false
+  Populate PGDBS:
+    actors:
+      populatePGDBS:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: populatePGDBS
+          is_first_deploy:
+            external: is_first_deploy
+            schema: boolean
+            mandatory: false
+  Stage 1:
+    actors:
+      Finished Deploy Activities:
+        parent: Logger
+        in:
+          message:
+            const: Finished Deploy Postgres Activities
+          level:
+            const: info

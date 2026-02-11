@@ -1,0 +1,75 @@
+tags: Create
+stages:
+  Start:
+    actors:
+      FabricSet ENV:
+        parent: FabricSet
+        disabled: true
+        in:
+          key:
+            const: environment
+          value:
+            const: Production
+  Stage 1:
+    actors:
+      Get  SQL Resource File To insert data to DB Tables:
+        parent: LuFunction
+        in:
+          functionName:
+            const: loadFromLUResourceinitPG
+          path:
+            external: path
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: blob
+  Stage 2:
+    actors:
+      ArrayGrouper:
+        parent: ArrayGrouper
+        in:
+          size:
+            const: 500
+          input:
+            link:
+              path: Get  SQL Resource File To insert data to DB Tables/result
+              pos: 0
+        out:
+          result:
+            schema: '#ref'
+  Execute Insert Sql Statements:
+    actors:
+      Insert Error Handler:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: com.k2view.fabric.common.io.basic.exception.StandardSqlException
+              conditions:
+                standardType: UNIQUE_CONSTRAINT
+              actions:
+                suppress: false
+                log: true
+                flowName: ''
+      Insert To DB:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: null
+            link:
+              path: ArrayGrouper/result
+              iterate: Iterate
+schemas:
+  ArrayGrouper.out.result:
+    type: array
+    items:
+      type: array
+      items:
+        type: array
+        items:
+          type: blob

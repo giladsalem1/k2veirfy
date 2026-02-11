@@ -1,0 +1,189 @@
+tags: Create
+stages:
+  Check Flag:
+    actors:
+      is_first_deploy:
+        parent: Const
+        remark: A boolean representing if this is the first deploy
+        in:
+          value:
+            const: null
+            external: is_first_deploy
+            schema: boolean
+        out:
+          value:
+            schema: boolean
+  'True':
+    dependsOn: Check Flag
+    actors:
+      Equals:
+        parent: Equals
+        condition: result
+        in:
+          a:
+            link: is_first_deploy/value
+            schema: boolean
+          b:
+            const: true
+            schema: boolean
+    split: '--------------------'
+  'False':
+    else: true
+    transactional: false
+    dependsOn: Check Flag
+  Insert Data To 10K table:
+    dependsOn: 'True'
+    actors:
+      10K customer inserts:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: populateDbs
+          interface:
+            const: local_pg
+            schema: string
+            editor:
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+              id: com.k2view.interface
+            mandatory: false
+          path:
+            const: sqlscripts/10k_table_inserts.sql
+            schema: string
+            mandatory: false
+    split: '--------------------'
+  Stage 1:
+    transactional: false
+    dependsOn: 'False'
+  customer_test_1m:
+    dependsOn: Insert Data To 10K table
+    actors:
+      Create customer_test_1m:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: create table if not exists  public.customer_test_1m as select *
+              from public.customer_test_10k where false
+      inflate to 1M:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: |-
+              INSERT INTO public.customer_test_1m (
+                  customer_id,
+                  created_at, children_count, loyalty_points, signup_date,
+                  preferred_language, country, comm_channel, favorite_number,
+                  last_login_tz, updated_at, timezone, home_lat, is_vip,
+                  balance, credit_limit, small_flag, last_name, risk_score,
+                  row_version, first_name, marketing_opt_in, valid_to, notes,
+                  preferences_json, float_score, avatar_raw, valid_from,
+                  date_of_birth, profile_blob, height_cm, last_login_ts,
+                  weight_kg, ssn, home_lon, double_score, middle_name,
+                  email, alt_email, phone, alt_phone, address_line1,
+                  address_line2, city, state_province, postal_code,
+                  gender, marital_status, national_id, passport_no
+              )
+              SELECT
+                  t.customer_id + (g.i * 10000) AS customer_id,
+                  t.created_at, t.children_count, t.loyalty_points, t.signup_date,
+                  t.preferred_language, t.country, t.comm_channel, t.favorite_number,
+                  t.last_login_tz, t.updated_at, t.timezone, t.home_lat, t.is_vip,
+                  t.balance, t.credit_limit, t.small_flag, t.last_name, t.risk_score,
+                  t.row_version, t.first_name, t.marketing_opt_in, t.valid_to, t.notes,
+                  t.preferences_json, t.float_score, t.avatar_raw, t.valid_from,
+                  t.date_of_birth, t.profile_blob, t.height_cm, t.last_login_ts,
+                  t.weight_kg, t.ssn, t.home_lon, t.double_score, t.middle_name,
+                  t.email, t.alt_email, t.phone, t.alt_phone, t.address_line1,
+                  t.address_line2, t.city, t.state_province, t.postal_code,
+                  t.gender, t.marital_status, t.national_id, t.passport_no
+              FROM public.customer_test_10k t
+              CROSS JOIN generate_series(0, 99) AS g(i);
+      add PK:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: |-
+              ALTER TABLE public.customer_test_1m
+              ADD CONSTRAINT customer_test_1m_pkey
+              PRIMARY KEY (customer_id);
+    split: '--------------------'
+  Stage 3:
+    dependsOn: Stage 1
+  customer_test_1m_trg_pii_70pass:
+    dependsOn: customer_test_1m
+    actors:
+      Create customer_test_10m_trg_pii_70pass:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: create table if not exists  public.customer_test_1m_trg_pii_70pass
+              as select * from public.customer_test_1m
+      add PK1:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: |-
+              ALTER TABLE public.customer_test_1m_trg_pii_70pass
+              ADD CONSTRAINT customer_test_1m_trg_pii_70pass_pkey
+              PRIMARY KEY (customer_id);
+    split: '--------------------'
+  Stage 5:
+    dependsOn: Stage 3
+  Stage 2:
+    dependsOn: customer_test_1m_trg_pii_70pass
+    actors:
+      update PII columns:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: "-- update values to 3/5 PII fields so only they will be PASSED,\
+              \ and other 2 will be NOT PASS\n\t\tupdate public.customer_test_1m_trg_pii_70pass\
+              \ t\n\t\tset\n\t\t first_name =COALESCE(t.first_name, 'FN') || '_X',\n\
+              \t\t last_name =COALESCE(t.last_name, 'LN') || '_X',\n\t\t email =COALESCE(t.email,\
+              \ 'email@example.com') || '.' || t.customer_id::text || '.mod'"
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: "-- update 13/45 non-PII columns only they will be NOT PASSED,\
+              \ and rest are PASSED\n\t\tUPDATE customer_test_1m_trg_pii_70pass t\n\
+              \t\tSET\n\t\t  -- 2) MIDDLE_NAME\n\t\t  middle_name = COALESCE(t.middle_name,\
+              \ 'MN') || '_X',\n\t\t  -- 5) ALT_EMAIL\n\t\t  alt_email = COALESCE(t.alt_email,\
+              \ 'alt@example.com')\n\t\t\t\t\t  || '.' || t.customer_id::text || '.mod',\n\
+              \t\t  -- 6) PHONE\n\t\t  phone = COALESCE(t.phone, '0000000000')\n\t\
+              \t\t\t  || 'X' || RIGHT(t.customer_id::text, 4),\n\t\t  -- 7) ALT_PHONE\n\
+              \t\t  alt_phone = COALESCE(t.alt_phone, '1111111111')\n\t\t\t\t\t  ||\
+              \ 'X' || RIGHT(t.customer_id::text, 4),\n\t\t  -- 8) SSN\n\t\t  ssn\
+              \ = COALESCE(t.ssn, '000-00-0000')\n\t\t\t\t|| '-' || RIGHT(t.customer_id::text,\
+              \ 4),\n\t\t  -- 9) DATE_OF_BIRTH\n\t\t  date_of_birth = COALESCE(t.date_of_birth,\
+              \ timestamp '2000-01-01')\n\t\t\t\t\t\t  - interval '1 day',\n\t\t \
+              \ -- 10) ADDRESS_LINE1\n\t\t  address_line1 = COALESCE(t.address_line1,\
+              \ 'ADDR1') || ' MOD',\n\t\t  -- 11) ADDRESS_LINE2\n\t\t  address_line2\
+              \ = COALESCE(t.address_line2, 'ADDR2') || ' MOD',\n\t\t  -- 12) CITY\n\
+              \t\t  city = COALESCE(t.city, 'CITY') || '_X',\n\t\t  -- 13) STATE_PROVINCE\n\
+              \t\t  state_province = COALESCE(t.state_province, 'STATE') || '_X',\n\
+              \t\t  -- 14) POSTAL_CODE\n\t\t  postal_code = COALESCE(t.postal_code,\
+              \ '00000') || 'X',\n\t\t  -- 15) COUNTRY (2-char safe)\n\t\t  country\
+              \ = SUBSTRING(COALESCE(t.country, 'ZZ') || 'X' FROM 1 FOR 2),\n\t\t\
+              \  -- 17) MARITAL_STATUS\n\t\t  marital_status = COALESCE(t.marital_status,\
+              \ 'S') || '_X'\n\t\t;\n"
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 5

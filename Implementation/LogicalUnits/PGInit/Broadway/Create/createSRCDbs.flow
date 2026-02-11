@@ -1,0 +1,76 @@
+tags: Create
+stages:
+  Start:
+    actors:
+      is_first_deploy:
+        parent: Const
+        remark: A boolean representing if this is the first deploy
+        in:
+          value:
+            const: null
+            external: is_first_deploy
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 1:
+    dependsOn: Start
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link: is_first_deploy/value
+    split: '--------------------'
+  Stage 2:
+    else: true
+    dependsOn: Start
+  Create Source Tables:
+    dependsOn: Stage 1
+    actors:
+      Get  SQL Resource File To create CRM DB Tables:
+        parent: LuFunction
+        in:
+          functionName:
+            const: loadFromLUResourceinitPG
+          path:
+            const: sqlscripts/10k_table_create.sql
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: any
+    split: '--------------------'
+  Stage 3:
+    dependsOn: Stage 2
+  Statements For Source:
+    dependsOn: Create Source Tables
+    actors:
+      Create Error Handler:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: com.k2view.fabric.common.io.basic.exception.StandardSqlException
+              conditions:
+                standardType: UNIQUE_CONSTRAINT
+              actions:
+                suppress: false
+                log: true
+                flowName: ''
+      CREATE 10K customer table:
+        parent: DbCommand
+        in:
+          interface:
+            const: local_pg
+          sql:
+            const: null
+            link: Get  SQL Resource File To create CRM DB Tables/result
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 3
