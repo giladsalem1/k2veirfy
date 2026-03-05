@@ -44,6 +44,7 @@ import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
+
 @SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class SharedLogic {
 
@@ -52,7 +53,7 @@ public class SharedLogic {
     static {
         DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
     }
-
+    /* 
     @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap,
             Map<String, Object> targetMap,
@@ -141,7 +142,7 @@ public class SharedLogic {
                     columnResult.put("TARGET_TABLE_NAME", target_table_name);
                     columnResult.put("CUSTOMIZED_KEY", customized_key_values);
                     columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
-                    columnResult.put("SOURCE_COLUMN_VALUE_TRANS", tarTrans);
+                    columnResult.put("TARGET_COLUMN_VALUE_TRANS", tarTrans);
                     columnResult.put("COLUMN_NAME", colName);
                     columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
                     columnResult.put("TARGET_COLUMN_VALUE", tarValue);
@@ -157,7 +158,7 @@ public class SharedLogic {
                 columnResult.put("TARGET_TABLE_NAME", target_table_name);
                 columnResult.put("CUSTOMIZED_KEY", customized_key_values);
                 columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
-                columnResult.put("SOURCE_COLUMN_VALUE_TRANS", tarTrans);
+                columnResult.put("TARGET_COLUMN_VALUE_TRANS", tarTrans);
                 columnResult.put("COLUMN_NAME", colName);
                 columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
                 columnResult.put("TARGET_COLUMN_VALUE", tarValue);
@@ -168,6 +169,126 @@ public class SharedLogic {
         }
         return compareResult;
     }
+        */
+
+   @out(name = "result", type = Object.class, desc = "")
+    public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(
+        Map<String, Object> sourceMap,
+        Map<String, Object> targetMap,
+        String source_columns_to_Ignore_null,
+        String target_columns_to_Ignore_null,
+        String sourceEnv,
+        String targetEnv,
+        String pii_columns,
+        String execution_id,
+        String source_table_name,
+        String target_table_name,
+        String customized_key_values,
+        String log_pass)
+        throws Exception {
+
+    ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
+
+    Set<String> piiCols = new HashSet<>(Arrays.asList(pii_columns.split(DELIMITTER)));
+
+
+    Set<String> tctin = new HashSet<>();
+    for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
+        tctin.add(column.toUpperCase());
+    }
+
+    Set<String> sctin = new HashSet<>();
+    for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
+        sctin.add(column.toUpperCase());
+    }
+
+
+    final Integer ZERO = 0;
+    final boolean logPassOnly = "false".equals(log_pass);
+
+    for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
+        final String key = entry.getKey();
+
+        if (key.endsWith("_ORIG") || !key.startsWith("SRC_")) {
+            continue;
+        }
+
+        final String colName = key.substring(4);
+        final String colNameUpper = colName.toUpperCase();
+        final boolean piiCol = piiCols.contains(colNameUpper);
+
+        final String tarKey = "TAR_" + colName;
+        final String srcOrigKey = key + "_ORIG";
+        final String tarOrigKey = tarKey + "_ORIG";
+
+        Object srcValue = entry.getValue();
+        Object tarValue = targetMap.get(tarKey);
+        Object srcTrans = srcValue;
+        Object tarTrans = tarValue;
+
+        if (sourceMap.get(srcOrigKey) != null) {
+            srcValue = sourceMap.get(srcOrigKey);
+        }
+        if (targetMap.get(tarOrigKey) != null) {
+            tarValue = targetMap.get(tarOrigKey);
+        }
+
+        final boolean tarIgnoreNullForCol = tctin.contains(colNameUpper);
+        final boolean srcIgnoreNullForCol = sctin.contains(colNameUpper);
+
+        final boolean equal = (srcTrans == tarTrans) ||
+                (srcTrans != null && srcTrans.equals(tarTrans));
+
+        final boolean treatedAsEqual = equal
+                || (srcTrans != null && tarValue == null && tarIgnoreNullForCol)
+                || (srcTrans == null && tarValue != null && srcIgnoreNullForCol);
+
+        final String matchResult;
+        final String targetSecured;
+
+        if (treatedAsEqual) {
+            if (piiCol) {
+                matchResult = "NOT PASSED";
+                targetSecured = "false";
+                srcValue = "*";
+                tarValue = "*";
+            } else {
+                matchResult = "PASSED";
+                targetSecured = "true";
+            }
+        } else {
+            if (piiCol) {
+                matchResult = "PASSED";
+                targetSecured = "true";
+                srcValue = "*";
+            } else {
+                matchResult = "NOT PASSED";
+                targetSecured = "false";
+            }
+        }
+
+        boolean shouldLog = !logPassOnly || "NOT PASSED".equals(matchResult);
+
+        if (shouldLog) {
+            Map<String, Object> columnResult = new HashMap<>(16);
+            columnResult.put("EXECUTION_ID", execution_id);
+            columnResult.put("IID", ZERO);
+            columnResult.put("SOURCE_TABLE_NAME", source_table_name);
+            columnResult.put("TARGET_TABLE_NAME", target_table_name);
+            columnResult.put("CUSTOMIZED_KEY", customized_key_values);
+            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
+            columnResult.put("TARGET_COLUMN_VALUE_TRANS", tarTrans);
+            columnResult.put("COLUMN_NAME", colName);
+            columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
+            columnResult.put("TARGET_COLUMN_VALUE", tarValue);
+            columnResult.put("MATCH_RESULT", matchResult);
+            columnResult.put("TARGET_VALUE_SECURED", targetSecured);
+            compareResult.add(columnResult);
+        }
+    }
+
+    return compareResult;
+}
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
             throws ReflectiveOperationException, InterruptedException, SQLException {
@@ -202,83 +323,147 @@ public class SharedLogic {
         return null;
     }
 
-   
+   /* 
+   public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
+            List<Map<String, Object>> targetList,
+            List<Map<String, Object>> sourceList,
+            List<String> joinKeys,
+            String env_prefix) {
+
+        Map<String, Map<String, Object>> sourceLookup = new HashMap<>();
+
+        // Build lookup for source
+        for (Map<String, Object> src : sourceList) {
+            StringBuilder keyBuilder = new StringBuilder();
+
+            for (int i = 0; i < joinKeys.size(); i++) {
+                String logicalKey = env_prefix + "_" + joinKeys.get(i);
+                Object value = getIgnoreCase(src, logicalKey);
+
+                keyBuilder.append(value == null ? "" : value.toString());
+                if (i < joinKeys.size() - 1)
+                    keyBuilder.append("_");
+            }
+
+            sourceLookup.put(keyBuilder.toString(), src);
+        }
+
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+
+        for (Map<String, Object> tgt : targetList) {
+            StringBuilder lookupKey = new StringBuilder();
+
+            for (int i = 0; i < joinKeys.size(); i++) {
+                Object value = getIgnoreCase(tgt, joinKeys.get(i));
+                lookupKey.append(value == null ? "" : value.toString());
+                if (i < joinKeys.size() - 1)
+                    lookupKey.append("_");
+            }
+
+            Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
+            if (matched != null) {
+
+                // Build JSON-style key
+                StringBuilder jsonKey = new StringBuilder("{");
+                for (int i = 0; i < joinKeys.size(); i++) {
+                    String k = joinKeys.get(i);
+                    Object value = getIgnoreCase(tgt, k);
+
+                    jsonKey.append("\"")
+                            .append(k)
+                            .append("\":\"")
+                            .append(value == null ? "" : value.toString())
+                            .append("\"");
+
+                    if (i < joinKeys.size() - 1)
+                        jsonKey.append(",");
+                }
+                jsonKey.append("}");
+
+                result.put(jsonKey.toString(), matched);
+            }
+        }
+
+        return result;
+    }
+    */
+    
+    private static Map<String, Object> toLowerCaseKeys(Map<String, Object> original) {
+        Map<String, Object> normalized = new HashMap<>(original.size() * 4 / 3 + 1);
+        for (Map.Entry<String, Object> entry : original.entrySet()) {
+            normalized.put(entry.getKey().toLowerCase(), entry.getValue());
+        }
+        return normalized;
+    }
+
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
         List<Map<String, Object>> targetList,
         List<Map<String, Object>> sourceList,
         List<String> joinKeys,
         String env_prefix) {
 
-    final int k = joinKeys.size();
-    final java.util.Locale LOCALE = java.util.Locale.ROOT;
-
-    // Precompute key names
-    final String[] tgtKeys = new String[k];
-    final String[] srcKeys = new String[k];
-    final String[] tgtKeysLower = new String[k];
-    final String[] srcKeysLower = new String[k];
-
-    for (int i = 0; i < k; i++) {
-        String key = joinKeys.get(i);
-        tgtKeys[i] = key;
-        srcKeys[i] = env_prefix + "_" + key;
-
-        tgtKeysLower[i] = key.toLowerCase(LOCALE);
-        srcKeysLower[i] = srcKeys[i].toLowerCase(LOCALE);
+    // Lowercase the join keys once
+    List<String> lowerJoinKeys = new ArrayList<>(joinKeys.size());
+    for (String key : joinKeys) {
+        lowerJoinKeys.add(key.toLowerCase());
     }
 
-    // Build lookup for source: joinKeyString -> original source row
-    final int srcCap = (int) (sourceList.size() / 0.75f) + 1;
-    final Map<String, Map<String, Object>> sourceLookup = new HashMap<>(srcCap);
+    // Pre-compute prefixed keys once (instead of inside the loop)
+    List<String> prefixedKeys = new ArrayList<>(lowerJoinKeys.size());
+    for (String key : lowerJoinKeys) {
+        prefixedKeys.add(env_prefix.toLowerCase() + "_" + key);
+    }
 
+    // Normalize all source maps once
+    List<Map<String, Object>> normalizedSources = new ArrayList<>(sourceList.size());
     for (Map<String, Object> src : sourceList) {
-        // Build lowercase index once for this row
-        Map<String, Object> srcLower = new HashMap<>((int) (src.size() / 0.75f) + 1);
-        for (Map.Entry<String, Object> e : src.entrySet()) {
-            String kk = e.getKey();
-            if (kk != null) srcLower.put(kk.toLowerCase(LOCALE), e.getValue());
-        }
+        normalizedSources.add(toLowerCaseKeys(src));
+    }
 
-        StringBuilder keyBuilder = new StringBuilder(k * 16);
-        for (int i = 0; i < k; i++) {
-            Object v = srcLower.get(srcKeysLower[i]);
-            if (v != null) keyBuilder.append(v);
-            if (i < k - 1) keyBuilder.append('_');
+    // Normalize all target maps once
+    List<Map<String, Object>> normalizedTargets = new ArrayList<>(targetList.size());
+    for (Map<String, Object> tgt : targetList) {
+        normalizedTargets.add(toLowerCaseKeys(tgt));
+    }
+
+    // Build source lookup — now using plain .get()
+    Map<String, Map<String, Object>> sourceLookup = new HashMap<>(sourceList.size() * 4 / 3 + 1);
+
+    for (Map<String, Object> src : normalizedSources) {
+        StringBuilder keyBuilder = new StringBuilder();
+        for (int i = 0; i < prefixedKeys.size(); i++) {
+            Object value = src.get(prefixedKeys.get(i));  // plain get()!
+            keyBuilder.append(value == null ? "" : value.toString());
+            if (i < prefixedKeys.size() - 1) keyBuilder.append('\0');
         }
         sourceLookup.put(keyBuilder.toString(), src);
     }
 
-    final int tgtCap = (int) (targetList.size() / 0.75f) + 1;
-    final Map<String, Map<String, Object>> result = new LinkedHashMap<>(tgtCap);
+    // Match targets to sources
+    Map<String, Map<String, Object>> result = new LinkedHashMap<>(targetList.size() * 4 / 3 + 1);
 
-    for (Map<String, Object> tgt : targetList) {
-        // Build lowercase index once for this row
-        Map<String, Object> tgtLower = new HashMap<>((int) (tgt.size() / 0.75f) + 1);
-        for (Map.Entry<String, Object> e : tgt.entrySet()) {
-            String kk = e.getKey();
-            if (kk != null) tgtLower.put(kk.toLowerCase(LOCALE), e.getValue());
+    for (Map<String, Object> tgt : normalizedTargets) {
+        // Cache values to avoid double-lookup
+        Object[] values = new Object[lowerJoinKeys.size()];
+        StringBuilder lookupKey = new StringBuilder();
+
+        for (int i = 0; i < lowerJoinKeys.size(); i++) {
+            values[i] = tgt.get(lowerJoinKeys.get(i));  // plain get()!
+            lookupKey.append(values[i] == null ? "" : values[i].toString());
+            if (i < lowerJoinKeys.size() - 1) lookupKey.append('\0');
         }
-
-        // Build lookupKey + jsonKey in one pass
-        StringBuilder lookupKey = new StringBuilder(k * 16);
-        StringBuilder jsonKey = new StringBuilder(k * 24 + 2).append('{');
-
-        for (int i = 0; i < k; i++) {
-            String col = tgtKeys[i];
-            Object v = tgtLower.get(tgtKeysLower[i]);
-
-            if (v != null) lookupKey.append(v);
-            if (i < k - 1) lookupKey.append('_');
-
-            jsonKey.append('"').append(col).append("\":\"");
-            if (v != null) jsonKey.append(v);
-            jsonKey.append('"');
-            if (i < k - 1) jsonKey.append(',');
-        }
-        jsonKey.append('}');
 
         Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
         if (matched != null) {
+            // Reuse cached values for the JSON key
+            StringBuilder jsonKey = new StringBuilder("{");
+            for (int i = 0; i < joinKeys.size(); i++) {
+                jsonKey.append("\"").append(joinKeys.get(i)).append("\":\"")
+                       .append(values[i] == null ? "" : values[i].toString())
+                       .append("\"");
+                if (i < joinKeys.size() - 1) jsonKey.append(",");
+            }
+            jsonKey.append("}");
             result.put(jsonKey.toString(), matched);
         }
     }
@@ -288,6 +473,60 @@ public class SharedLogic {
 
     @out(name = "result", type = Object.class, desc = "")
     public static Set<String> fnMergeSrcTrgKeys(
+        List<Map<String, Object>> rs1,
+        List<Map<String, Object>> rs2) {
+
+    // Fix #1: Use null char to avoid delimiter collision
+    final String DELIMITER = "\0";
+
+    // Fix #2: Single pass — collect keys and gather all rows at once
+    SortedSet<String> keyNames = new TreeSet<>();
+    List<Map<String, Object>> allRows = new ArrayList<>();
+
+    for (List<Map<String, Object>> rs : new List[]{rs1, rs2}) {
+        if (rs == null) continue;
+        for (Map<String, Object> row : rs) {
+            if (row == null) continue;
+            keyNames.addAll(row.keySet());
+            allRows.add(row);
+        }
+    }
+
+    if (keyNames.isEmpty()) {
+        return Collections.emptySet();
+    }
+
+    List<String> orderedKeys = new ArrayList<>(keyNames);
+
+    // Fix #3: Pre-size the result set
+    Set<String> result = new LinkedHashSet<>(allRows.size() * 4 / 3 + 1);
+
+    for (Map<String, Object> row : allRows) {
+        // Fix #4: Pre-size StringBuilder
+        StringBuilder sb = new StringBuilder(orderedKeys.size() * 16);
+        boolean valid = true;
+
+        for (int i = 0; i < orderedKeys.size(); i++) {
+            Object val = row.get(orderedKeys.get(i));
+
+            // Original behavior: missing key → skip entire row
+            if (val == null) {
+                valid = false;
+                break;
+            }
+
+            if (i > 0) sb.append(DELIMITER);
+            sb.append(val.toString());
+        }
+
+        if (valid) {
+            result.add(sb.toString());
+        }
+    }
+
+    return result;
+}
+   /* public static Set<String> fnMergeSrcTrgKeys(
             List<Map<String, Object>> rs1,
             List<Map<String, Object>> rs2) {
 
@@ -351,5 +590,5 @@ public class SharedLogic {
             }
         }
         return result;
-    }
+    } */
 }

@@ -6,9 +6,8 @@
     <PortNum>5432</PortNum>
     <DataBase>postgres</DataBase>
     <UserId>k2verify_prod_12_solutions</UserId>
-    <Password>k2verify_prod_12_solutions</Password>
+    <Password>~encs2~GccSg8zlQVw+83OYWEbaCcoacOEHy6qgOaYKdbQKwz0KVQmTrGgaHEqc5+/WkmqMHPWF/W5+0776Vw==</Password>
     <ConnectionStringServerSide>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype=unspecified</ConnectionStringServerSide>
-    <MinConnectionsNumber>0</MinConnectionsNumber>
     <MaxConnectionsNumber>60</MaxConnectionsNumber>
     <UseSelectAsteriskInAutoCreatedQueries>true</UseSelectAsteriskInAutoCreatedQueries>
     <AutomaticMetadataLoading>false</AutomaticMetadataLoading>
@@ -16,6 +15,7 @@
     <CommandList></CommandList>
     <ConnectionProperties></ConnectionProperties>
     <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
+    <MinConnectionsNumber>20</MinConnectionsNumber>
     <Certificate></Certificate>
     <SchemaFilter></SchemaFilter>
 </DBConn>

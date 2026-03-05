@@ -37,13 +37,13 @@ stages:
         in:
           key:
             const: K2VERIFY_LOG_PASS
-      Now13 - ts1:
+      tsBwVerifySnTData:
         parent: Now
       ToString1:
         parent: ToString
         in:
           value:
-            link: Now13 - ts1/date
+            link: tsBwVerifySnTData/date
   Table config:
     actors:
       IID:
@@ -165,6 +165,8 @@ stages:
             link: SEPERATOR/variableValue
           string:
             link: CustomizedKey/value
+      Now2:
+        parent: Now
   Prep Data Queries:
     actors:
       bwGenerateSelectStmt1:
@@ -227,6 +229,15 @@ stages:
             schema: '#ref'
           sql:
             schema: string
+      Now3:
+        parent: Now
+      DateDuration1:
+        parent: DateDuration
+        in:
+          from:
+            link: Now2/date
+          to:
+            link: Now3/date
       bwGenerateSelectStmt11:
         parent: InnerFlow
         in:
@@ -290,6 +301,15 @@ stages:
   Exctract comparison keys:
     transactional: false
     actors:
+      Now4:
+        parent: Now
+      DateDuration2:
+        parent: DateDuration
+        in:
+          from:
+            link: Now3/date
+          to:
+            link: Now4/date
       GetBucketKeysList:
         parent: InnerFlow
         in:
@@ -368,11 +388,18 @@ stages:
         out:
           keys_list:
             schema: '#ref'
-  after_keys_extract:
+  After keys extract:
     transactional: false
     actors:
-      Now2:
+      tsBeforePrepareKeysGroup:
         parent: Now
+      DateDuration3:
+        parent: DateDuration
+        in:
+          from:
+            link: Now4/date
+          to:
+            link: tsBeforePrepareKeysGroup/date
   Num of records to compare:
     transactional: false
     actors:
@@ -472,20 +499,20 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now9:
+      'tsAfterPrepareKeysGroup : ':
         parent: Now
-      DateDuration1:
+      PrepareKeysGroupDuration:
         parent: DateDuration
         in:
           from:
-            link: Now2/date
+            link: tsBeforePrepareKeysGroup/date
           to:
-            link: Now9/date
-      ts2:
+            link: 'tsAfterPrepareKeysGroup : /date'
+      tsBeforKeysGroupLoop:
         parent: ToString
         in:
           value:
-            link: Now9/date
+            link: 'tsAfterPrepareKeysGroup : /date'
   For each group of keys:
     transactional: true
     actors:
@@ -540,7 +567,7 @@ stages:
   Stage 2:
     transactional: true
     actors:
-      Now3:
+      tsBeforeSelectFromSource:
         parent: Now
   Execute Query - Source:
     transactional: true
@@ -569,21 +596,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now4:
+      tsAfterSelectFromSource:
         parent: Now
-      DateDuration7:
+      selectFromSourceDuration:
         parent: DateDuration
         in:
           from:
-            link: Now3/date
+            link: tsBeforeSelectFromSource/date
           to:
-            link: Now4/date
-      Aggregate2:
+            link: tsAfterSelectFromSource/date
+      selectAllRecordsFromSourceDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration7/millis
+              path: selectFromSourceDuration/millis
               pos: 0
   Stage 8:
     transactional: true
@@ -643,21 +670,21 @@ stages:
   Stage 11:
     transactional: true
     actors:
-      Now13:
+      tsAfterSrcTransformation:
         parent: Now
-      DateDuration8:
+      srcTransformationDuration:
         parent: DateDuration
         in:
           from:
-            link: Now4/date
+            link: tsAfterSelectFromSource/date
           to:
-            link: Now13/date
-      Aggregate1:
+            link: tsAfterSrcTransformation/date
+      allSRCTransformationDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration8/millis
+              path: srcTransformationDuration/millis
               pos: 0
   Execute Query - Target:
     transactional: true
@@ -686,21 +713,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now14:
+      tsAfterSelectFromTarget:
         parent: Now
-      DateDuration9:
+      selectFromTargertDuration:
         parent: DateDuration
         in:
           from:
-            link: Now13/date
+            link: tsAfterSrcTransformation/date
           to:
-            link: Now14/date
-      Aggregate6:
+            link: tsAfterSelectFromTarget/date
+      selectAllRecordsFromTartgetDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration9/millis
+              path: selectFromTargertDuration/millis
               pos: 0
   Stage 10:
     transactional: true
@@ -760,21 +787,21 @@ stages:
   Stage 13:
     transactional: true
     actors:
-      Now15:
+      tsAfterTARTransformation:
         parent: Now
-      DateDuration10:
+      tarTransformationDuration:
         parent: DateDuration
         in:
           from:
-            link: Now14/date
+            link: tsAfterSelectFromTarget/date
           to:
-            link: Now15/date
-      Aggregate7:
+            link: tsAfterTARTransformation/date
+      allTARTransformationDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration10/millis
+              path: tarTransformationDuration/millis
               pos: 0
   Extract Row:
     transactional: true
@@ -809,21 +836,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now16:
+      tsAfterSrcRecordsMap:
         parent: Now
-      DateDuration11:
+      srcRecordsMapDuration:
         parent: DateDuration
         in:
           from:
-            link: Now15/date
+            link: tsAfterTARTransformation/date
           to:
-            link: Now16/date
-      Aggregate8:
+            link: tsAfterSrcRecordsMap/date
+      allSrcRecordsMapDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration11/millis
+              path: srcRecordsMapDuration/millis
               pos: 0
   Stage 14:
     transactional: true
@@ -858,21 +885,21 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now17:
+      tsAfterTarRecordsMap:
         parent: Now
-      DateDuration12:
+      tarRecordsMapDuration:
         parent: DateDuration
         in:
           from:
-            link: Now16/date
+            link: tsAfterSrcRecordsMap/date
           to:
-            link: Now17/date
-      Aggregate9:
+            link: tsAfterTarRecordsMap/date
+      allTarRecordsMapDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration12/millis
+              path: tarRecordsMapDuration/millis
               pos: 0
   Keys arrays and maps:
     transactional: true
@@ -995,7 +1022,7 @@ stages:
         out:
           result:
             schema: '#ref'
-      Now7:
+      tsBeforeVerifyKeysExists:
         parent: Now
   Stage 4:
     transactional: true
@@ -1078,23 +1105,23 @@ stages:
   Stage 5:
     transactional: true
     actors:
-      Now8:
+      tsAfterVerifyKeysExists:
         parent: Now
-      DateDuration3:
+      verifyKeysExistsDuration:
         parent: DateDuration
         in:
           from:
-            link: Now7/date
+            link: tsBeforeVerifyKeysExists/date
           to:
-            link: Now8/date
-      Aggregate3:
+            link: tsAfterVerifyKeysExists/date
+      verifyAllKeysExistsDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration3/millis
+              path: verifyKeysExistsDuration/millis
               pos: 0
-      Now5:
+      tsBeforeVerifyRecordData:
         parent: Now
   Record exists->verify data:
     transactional: true
@@ -1227,21 +1254,21 @@ stages:
             schema: integer
           a:
             link: '# ProcessedRecords/value'
-      Now6:
+      tsAfterVerifyRecordData:
         parent: Now
-      DateDuration4:
+      verifyRecordDataDuration:
         parent: DateDuration
         in:
           from:
-            link: Now5/date
+            link: tsBeforeVerifyRecordData/date
           to:
-            link: Now6/date
-      Aggregate4:
+            link: tsAfterVerifyRecordData/date
+      verifyAllRecordsDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration4/millis
+              path: verifyRecordDataDuration/millis
               pos: 0
   Write each 1000:
     transactional: true
@@ -1296,21 +1323,21 @@ stages:
             schema: integer
             mandatory: false
             createdBy: sql
-      Now10:
+      tsAfterUpdate1000ProcessedRecords:
         parent: Now
-      DateDuration5:
+      update1000RecordsDuration:
         parent: DateDuration
         in:
           from:
-            link: Now6/date
+            link: tsAfterVerifyRecordData/date
           to:
-            link: Now10/date
-      Aggregate5:
+            link: tsAfterUpdate1000ProcessedRecords/date
+      updateNx1000RecordsDuration:
         parent: Aggregate
         in:
           input:
             link:
-              path: DateDuration5/millis
+              path: update1000RecordsDuration/millis
               pos: 0
     split: '--------------------'
   Stage 39:
@@ -1336,7 +1363,7 @@ stages:
         in:
           value:
             link: Now1/date
-      Now12:
+      tsEndOfProcess:
         parent: Now
       DateDuration6:
         parent: DateDuration
@@ -1344,12 +1371,12 @@ stages:
           from:
             link: Now11/date
           to:
-            link: Now12/date
+            link: tsEndOfProcess/date
       ToString2:
         parent: ToString
         in:
           value:
-            link: Now12/date
+            link: tsEndOfProcess/date
   Bucket Verify Completed:
     transactional: false
     actors:
@@ -1362,10 +1389,10 @@ stages:
           sql:
             const: |-
               update ${@schema}.task_execution_buckets set processed_records = ${processed_records}, end_time=${end_time},
-              status='Completed' , duration_1=${duration_1} ,duration_2=0, duration_3=${duration_3} ,
-              duration_4=${duration_4}, duration_5=${duration_5},duration_6=${duration_6}, duration_7=${duration_7},
-              duration_8=${duration_8},duration_9=${duration_9}, duration_10=${duration_10},duration_11=${duration_11},duration_12=${duration_12},
-              ts1=${ts1},ts2=${ts2},ts3=${ts3}
+              status='Completed' , prepare_keys_group_duration=${prepare_keys_group_duration} , verify_all_keys_exists_duration=${verify_all_keys_exists_duration} ,
+              verify_all_records_duration=${verify_all_records_duration}, update_nx1000_records_duration=${update_nx1000_records_duration},duration_6=${duration_6}, select_all_records_from_source_duration=${select_all_records_from_source_duration},
+              all_src_transformation_duration=${all_src_transformation_duration},select_all_records_from_tartget_duration=${select_all_records_from_tartget_duration}, all_tar_transformation_duration=${all_tar_transformation_duration},all_src_records_map_duration=${all_src_records_map_duration},all_tar_records_map_duration=${all_tar_records_map_duration},
+              verify_source_target_data_start=${verify_source_target_data_start},keys_group_loop_start=${keys_group_loop_start},end_of_process=${end_of_process},create_src_statement_duration=${create_src_statement_duration},create_tar_statement_duration=${create_tar_statement_duration},get_bucket_key_list_duration=${get_bucket_key_list_duration}
               where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
@@ -1402,76 +1429,93 @@ stages:
             schema: string
             mandatory: false
             createdBy: sql
-          duration_1:
-            link: DateDuration1/millis
-            schema: any
-            mandatory: false
-            createdBy: sql
-          duration_4:
-            link: Aggregate4/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
-          duration_3:
-            link: Aggregate3/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
           duration_6:
             link: DateDuration6/millis
             schema: any
             mandatory: false
             createdBy: sql
-          duration_5:
-            link: Aggregate5/sum
+          prepare_keys_group_duration:
+            link: PrepareKeysGroupDuration/millis
             schema: any
             mandatory: false
             createdBy: sql
-          ts1:
+          verify_all_records_duration:
+            link: verifyAllRecordsDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          verify_all_keys_exists_duration:
+            link: verifyAllKeysExistsDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          update_nx1000_records_duration:
+            link: updateNx1000RecordsDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          select_all_records_from_source_duration:
+            link: selectAllRecordsFromSourceDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          all_src_transformation_duration:
+            link: allSRCTransformationDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          select_all_records_from_tartget_duration:
+            link: selectAllRecordsFromTartgetDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          all_tar_transformation_duration:
+            link: allTARTransformationDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          all_src_records_map_duration:
+            link: allSrcRecordsMapDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          all_tar_records_map_duration:
+            link: allTarRecordsMapDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          verify_source_target_data_start:
             link: ToString1/string
             schema: any
             mandatory: false
             createdBy: sql
-          ts2:
-            link: ts2/string
+          keys_group_loop_start:
+            link: tsBeforKeysGroupLoop/string
             schema: any
             mandatory: false
             createdBy: sql
-          ts3:
+          end_of_process:
             link: ToString2/string
             schema: any
             mandatory: false
             createdBy: sql
-          duration_7:
-            link: Aggregate2/sum
+          create_src_statement_duration:
+            link: DateDuration1/millis
             schema: any
             mandatory: false
             createdBy: sql
-          duration_8:
-            link: Aggregate1/sum
+          create_tar_statement_duration:
+            link: DateDuration2/millis
             schema: any
             mandatory: false
             createdBy: sql
-          duration_9:
-            link: Aggregate6/sum
+          get_bucket_key_list_duration:
+            link: DateDuration3/millis
             schema: any
             mandatory: false
             createdBy: sql
-          duration_10:
-            link: Aggregate7/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
-          duration_11:
-            link: Aggregate8/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
-          duration_12:
-            link: Aggregate9/sum
-            schema: any
-            mandatory: false
-            createdBy: sql
+  Stage 15:
+    transactional: false
 schemas:
   bwGenerateSelectStmt1.out.columns:
     type: array

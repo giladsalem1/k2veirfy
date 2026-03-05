@@ -6,5 +6,9 @@
     {
         "name": "Admin",
         "appId": "admin"
+    },
+        {
+        "name": "Statistics",
+        "appId": "status"
     }
 ]
