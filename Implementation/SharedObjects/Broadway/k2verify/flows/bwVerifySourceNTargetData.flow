@@ -388,6 +388,12 @@ stages:
         out:
           keys_list:
             schema: '#ref'
+          srcBucketRowsDuration:
+            schema: integer
+          tarBucketRowsDuration:
+            schema: integer
+          luFunctionDuration:
+            schema: integer
   After keys extract:
     transactional: false
     actors:
@@ -1392,7 +1398,8 @@ stages:
               status='Completed' , prepare_keys_group_duration=${prepare_keys_group_duration} , verify_all_keys_exists_duration=${verify_all_keys_exists_duration} ,
               verify_all_records_duration=${verify_all_records_duration}, update_nx1000_records_duration=${update_nx1000_records_duration},duration_6=${duration_6}, select_all_records_from_source_duration=${select_all_records_from_source_duration},
               all_src_transformation_duration=${all_src_transformation_duration},select_all_records_from_tartget_duration=${select_all_records_from_tartget_duration}, all_tar_transformation_duration=${all_tar_transformation_duration},all_src_records_map_duration=${all_src_records_map_duration},all_tar_records_map_duration=${all_tar_records_map_duration},
-              verify_source_target_data_start=${verify_source_target_data_start},keys_group_loop_start=${keys_group_loop_start},end_of_process=${end_of_process},create_src_statement_duration=${create_src_statement_duration},create_tar_statement_duration=${create_tar_statement_duration},get_bucket_key_list_duration=${get_bucket_key_list_duration}
+              verify_source_target_data_start=${verify_source_target_data_start},keys_group_loop_start=${keys_group_loop_start},end_of_process=${end_of_process},create_src_statement_duration=${create_src_statement_duration},create_tar_statement_duration=${create_tar_statement_duration},get_bucket_key_list_duration=${get_bucket_key_list_duration},
+              src_bucket_rows_duration=${src_bucket_rows_duration},tar_bucket_rows_duration=${tar_bucket_rows_duration},lu_function_duration=${lu_function_duration}
               where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
@@ -1511,6 +1518,21 @@ stages:
             createdBy: sql
           get_bucket_key_list_duration:
             link: DateDuration3/millis
+            schema: any
+            mandatory: false
+            createdBy: sql
+          tar_bucket_rows_duration:
+            link: GetBucketKeysList/tarBucketRowsDuration
+            schema: any
+            mandatory: false
+            createdBy: sql
+          src_bucket_rows_duration:
+            link: GetBucketKeysList/srcBucketRowsDuration
+            schema: any
+            mandatory: false
+            createdBy: sql
+          lu_function_duration:
+            link: GetBucketKeysList/luFunctionDuration
             schema: any
             mandatory: false
             createdBy: sql

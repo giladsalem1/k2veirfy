@@ -151,6 +151,8 @@ stages:
             link: SEPERATOR/variableValue
           input:
             link: bwGetColsForSelectStmt1/columns
+      Now1:
+        parent: Now
   Stage 5:
     transactional: false
     actors:
@@ -199,6 +201,18 @@ stages:
         out:
           bucketRows:
             schema: '#ref'
+      Now2:
+        parent: Now
+      DateDuration1:
+        parent: DateDuration
+        in:
+          from:
+            link: Now1/date
+          to:
+            link: Now2/date
+        out:
+          millis:
+            external: srcBucketRowsDuration
       TAR BuketRows:
         parent: InnerFlow
         in:
@@ -247,6 +261,18 @@ stages:
   Stage 7:
     transactional: false
     actors:
+      Now3:
+        parent: Now
+      DateDuration2:
+        parent: DateDuration
+        in:
+          from:
+            link: Now2/date
+          to:
+            link: Now3/date
+        out:
+          millis:
+            external: tarBucketRowsDuration
       LuFunction1:
         parent: LuFunction
         in:
@@ -266,6 +292,8 @@ stages:
           result:
             external: keys_list
             schema: '#ref'
+      Now4:
+        parent: Now
   Deep Copy Keys:
     actors:
       DeepCopyKeysRS:
@@ -275,6 +303,18 @@ stages:
           value:
             external: keys_list
             schema: '#ref'
+      DateDuration3:
+        parent: DateDuration
+        in:
+          from:
+            link: Now3/date
+          to:
+            link: Now4/date
+        out:
+          millis:
+            external: luFunctionDuration
+  Stage 3: {
+    }
 schemas:
   bwGetColsForSelectStmt1.in.select_columns:
     type: array
