@@ -24,7 +24,7 @@
           <dbUser>k2verify_prod_12_solutions</dbUser>
           <dbPasswordEncrypted>~encs2~gLsPjWkdq1bTSZqpkznxSEs5CNfGOSgXjormq6cL+PmJWAdo1TPzfUctyTlOXY1pz6r5k1/lj0PGuw&#x3D;&#x3D;</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
-          <minConnectionsNumber>0</minConnectionsNumber>
+          <minConnectionsNumber>100</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
