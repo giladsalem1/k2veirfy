@@ -12,7 +12,7 @@
           <dbUser>k2verify_prod_12_solutions</dbUser>
           <dbPasswordEncrypted>~encs2~Qq62bbrVgvsP3LH70h3cq+JnQHrFzhxl5ooYIuDEO9Hj8b6Hjp+95td2qoCWrZ5E3bBXzyIULYkAug&#x3D;&#x3D;</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
-          <minConnectionsNumber>40</minConnectionsNumber>
+          <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
@@ -24,7 +24,7 @@
           <dbUser>k2verify_prod_12_solutions</dbUser>
           <dbPasswordEncrypted>~encs2~gLsPjWkdq1bTSZqpkznxSEs5CNfGOSgXjormq6cL+PmJWAdo1TPzfUctyTlOXY1pz6r5k1/lj0PGuw&#x3D;&#x3D;</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
-          <minConnectionsNumber>40</minConnectionsNumber>
+          <minConnectionsNumber>0</minConnectionsNumber>
           <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
@@ -36,7 +36,7 @@
           <dbUser>k2verify_prod_12_solutions</dbUser>
           <dbPasswordEncrypted>~encs2~NBzILgD1Lp6RMiGknbu6eMoskH8KfmJZApqkPXtoFD6DZOYkEyRNlwKWFuTh+igMJyvtlTImzg7sTA&#x3D;&#x3D;</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
-          <minConnectionsNumber>40</minConnectionsNumber>
+          <minConnectionsNumber>00</minConnectionsNumber>
           <maxConnectionsNumber>60</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
