@@ -71,7 +71,7 @@ public class pgCopy extends FabricAbstractActor {
                 tableName,
                 cols,
                 header ? "true" : "false");
-       // Class.forName("org.postgresql.Driver");
+        Class.forName("org.postgresql.Driver");
         try (Connection conn = DriverManager.getConnection(url, user, pass)) {
             // COPY must not run inside a transaction
             if (!conn.getAutoCommit())
