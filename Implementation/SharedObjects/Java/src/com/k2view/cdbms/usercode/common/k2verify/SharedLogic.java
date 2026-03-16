@@ -53,7 +53,8 @@ public class SharedLogic {
     static {
         DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
     }
-    /* 
+
+    // Original version, before US session changes
     @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap,
             Map<String, Object> targetMap,
@@ -169,8 +170,9 @@ public class SharedLogic {
         }
         return compareResult;
     }
-        */
-
+        
+   //US Sessions version for perf
+   /*
    @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(
         Map<String, Object> sourceMap,
@@ -289,6 +291,7 @@ public class SharedLogic {
 
     return compareResult;
 }
+    */
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
             throws ReflectiveOperationException, InterruptedException, SQLException {
@@ -323,7 +326,7 @@ public class SharedLogic {
         return null;
     }
 
-   /* 
+   // Original version, before US session perf changes
    public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
@@ -386,7 +389,7 @@ public class SharedLogic {
 
         return result;
     }
-    */
+    
     
     private static Map<String, Object> toLowerCaseKeys(Map<String, Object> original) {
         Map<String, Object> normalized = new HashMap<>(original.size() * 4 / 3 + 1);
@@ -473,7 +476,8 @@ public class SharedLogic {
     return result;
 }*/
 
-
+    //Improvement #1 ( US  sessions ) --> after bug fix
+    /*
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
@@ -495,11 +499,11 @@ public class SharedLogic {
             prefixedKeys.add(envPrefixLower + "_" + key);
         }
 
-        /*
-        * Build source lookup using a normalized helper map for fast lookup,
-        * but store the ORIGINAL source map as the lookup value.
-        * This preserves downstream expectations about original key casing.
-        */
+        
+        //* Build source lookup using a normalized helper map for fast lookup,
+        //* but store the ORIGINAL source map as the lookup value.
+        //* This preserves downstream expectations about original key casing.
+        
         Map<String, Map<String, Object>> sourceLookup =
                 new HashMap<>(sourceList.size() * 4 / 3 + 1);
 
@@ -519,11 +523,11 @@ public class SharedLogic {
             sourceLookup.put(keyBuilder.toString(), srcOriginal);
         }
 
-        /*
-        * Match targets to sources.
-        * Normalize each target map once for fast lookup,
-        * but do not return normalized maps downstream.
-        */
+        
+        //* Match targets to sources.
+        //* Normalize each target map once for fast lookup,
+        //* but do not return normalized maps downstream.
+        
         Map<String, Map<String, Object>> result =
                 new LinkedHashMap<>(targetList.size() * 4 / 3 + 1);
 
@@ -562,7 +566,9 @@ public class SharedLogic {
 
         return result;
     }
+   */
 
+    
     @out(name = "result", type = Object.class, desc = "")
     public static Set<String> fnMergeSrcTrgKeys(
         List<Map<String, Object>> rs1,
