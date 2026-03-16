@@ -396,6 +396,8 @@ public class SharedLogic {
         return normalized;
     }
 
+    //Improvement #1 ( US  sessions )
+    /*
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
         List<Map<String, Object>> targetList,
         List<Map<String, Object>> sourceList,
@@ -469,7 +471,97 @@ public class SharedLogic {
     }
 
     return result;
-}
+}*/
+
+
+    public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
+            List<Map<String, Object>> targetList,
+            List<Map<String, Object>> sourceList,
+            List<String> joinKeys,
+            String env_prefix) {
+
+        final int keyCount = joinKeys.size();
+        final String envPrefixLower = env_prefix.toLowerCase(Locale.ROOT);
+
+        // Lowercase the join keys once
+        List<String> lowerJoinKeys = new ArrayList<>(keyCount);
+        for (String key : joinKeys) {
+            lowerJoinKeys.add(key.toLowerCase(Locale.ROOT));
+        }
+
+        // Precompute source-side prefixed join keys once: e.g. src_customer_id
+        List<String> prefixedKeys = new ArrayList<>(keyCount);
+        for (String key : lowerJoinKeys) {
+            prefixedKeys.add(envPrefixLower + "_" + key);
+        }
+
+        /*
+        * Build source lookup using a normalized helper map for fast lookup,
+        * but store the ORIGINAL source map as the lookup value.
+        * This preserves downstream expectations about original key casing.
+        */
+        Map<String, Map<String, Object>> sourceLookup =
+                new HashMap<>(sourceList.size() * 4 / 3 + 1);
+
+        for (Map<String, Object> srcOriginal : sourceList) {
+            Map<String, Object> srcNormalized = toLowerCaseKeys(srcOriginal);
+
+            StringBuilder keyBuilder = new StringBuilder();
+            for (int i = 0; i < keyCount; i++) {
+                Object value = srcNormalized.get(prefixedKeys.get(i));
+                keyBuilder.append(value == null ? "" : value.toString());
+                if (i < keyCount - 1) {
+                    keyBuilder.append('\0');
+                }
+            }
+
+            // Store ORIGINAL map, not normalized map
+            sourceLookup.put(keyBuilder.toString(), srcOriginal);
+        }
+
+        /*
+        * Match targets to sources.
+        * Normalize each target map once for fast lookup,
+        * but do not return normalized maps downstream.
+        */
+        Map<String, Map<String, Object>> result =
+                new LinkedHashMap<>(targetList.size() * 4 / 3 + 1);
+
+        for (Map<String, Object> tgtOriginal : targetList) {
+            Map<String, Object> tgtNormalized = toLowerCaseKeys(tgtOriginal);
+
+            Object[] values = new Object[keyCount];
+            StringBuilder lookupKey = new StringBuilder();
+
+            for (int i = 0; i < keyCount; i++) {
+                values[i] = tgtNormalized.get(lowerJoinKeys.get(i));
+                lookupKey.append(values[i] == null ? "" : values[i].toString());
+                if (i < keyCount - 1) {
+                    lookupKey.append('\0');
+                }
+            }
+
+            Map<String, Object> matchedSourceOriginal = sourceLookup.get(lookupKey.toString());
+            if (matchedSourceOriginal != null) {
+                StringBuilder jsonKey = new StringBuilder("{");
+                for (int i = 0; i < keyCount; i++) {
+                    jsonKey.append("\"")
+                        .append(joinKeys.get(i))
+                        .append("\":\"")
+                        .append(values[i] == null ? "" : values[i].toString())
+                        .append("\"");
+                    if (i < keyCount - 1) {
+                        jsonKey.append(",");
+                    }
+                }
+                jsonKey.append("}");
+
+                result.put(jsonKey.toString(), matchedSourceOriginal);
+            }
+        }
+
+        return result;
+    }
 
     @out(name = "result", type = Object.class, desc = "")
     public static Set<String> fnMergeSrcTrgKeys(
