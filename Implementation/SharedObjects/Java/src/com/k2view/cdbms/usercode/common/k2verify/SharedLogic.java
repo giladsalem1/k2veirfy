@@ -55,6 +55,7 @@ public class SharedLogic {
     }
 
     // Original version, before US session changes
+    /*
     @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap,
             Map<String, Object> targetMap,
@@ -170,9 +171,9 @@ public class SharedLogic {
         }
         return compareResult;
     }
-        
-   //US Sessions version for perf
-   /*
+    */
+
+   //US Sessions version for perf   
    @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(
         Map<String, Object> sourceMap,
@@ -291,7 +292,7 @@ public class SharedLogic {
 
     return compareResult;
 }
-    */
+    
 
     private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
             throws ReflectiveOperationException, InterruptedException, SQLException {
@@ -327,6 +328,7 @@ public class SharedLogic {
     }
 
    // Original version, before US session perf changes
+   /*
    public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
@@ -389,7 +391,7 @@ public class SharedLogic {
 
         return result;
     }
-    
+    */
     
     private static Map<String, Object> toLowerCaseKeys(Map<String, Object> original) {
         Map<String, Object> normalized = new HashMap<>(original.size() * 4 / 3 + 1);
@@ -476,8 +478,7 @@ public class SharedLogic {
     return result;
 }*/
 
-    //Improvement #1 ( US  sessions ) --> after bug fix
-    /*
+    // Bug fix for Improvement #1 ( US  sessions )     
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
@@ -566,7 +567,7 @@ public class SharedLogic {
 
         return result;
     }
-   */
+   
 
     
     @out(name = "result", type = Object.class, desc = "")
