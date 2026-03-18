@@ -11,12 +11,14 @@ import java.sql.*;
 
 import com.k2view.cdbms.interfaces.FabricInterface;
 import com.k2view.cdbms.interfaces.InterfacesUtils;
+import com.k2view.cdbms.jobs.JobExecutor;
 import com.k2view.cdbms.shared.*;
 import com.k2view.cdbms.lut.*;
 import com.k2view.cdbms.shared.utils.UserCodeDescribe.*;
 import com.k2view.fabric.common.ClusterUtil;
 import com.k2view.fabric.common.io.basic.IoSimpleRow;
-
+import com.k2view.fabric.common.mtable.MTable;
+import com.k2view.fabric.common.mtable.MTables;
 import static com.k2view.cdbms.shared.user.UserCode.*;
 import java.math.*;
 import java.nio.file.Files;
@@ -35,7 +37,7 @@ import com.k2view.fabric.fabricdb.datachange.TableDataChange;
 import static com.k2view.cdbms.shared.user.ProductFunctions.*;
 import static com.k2view.cdbms.shared.utils.UserCodeDescribe.FunctionType.*;
 import static com.k2view.cdbms.usercode.common.SharedGlobals.*;
-
+import java.nio.ByteBuffer;
 import org.postgresql.PGConnection;
 import org.postgresql.copy.CopyManager;
 
@@ -44,34 +46,33 @@ import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-
 @SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class SharedLogic {
 
     // Added Below Line to split based on the Global Delimitter
-    static String DELIMITTER;
-    static {
-        DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
-    }
+    private static String DELIMITTER = '\\' + getLuType().ludbGlobals.get("K2VERIFY_CONF_SEPARATOR");
 
-    // Original version, before US session changes
-    /*
+    private static final String CATALOG_SCHEMA = "schema";
+    private static final String CATALOG_TABLE = "dataset";
+    private static final String CATALOG_FIELD  = "field";
+
     @out(name = "result", type = Object.class, desc = "")
     public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(Map<String, Object> sourceMap,
             Map<String, Object> targetMap,
-            String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String sourceEnv,
-            String targetEnv, String pii_columns, String execution_id, String source_table_name,
+            String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String pii_columns,
+            String execution_id, String source_table_name,
             String target_table_name, String customized_key_values, String log_pass)
             throws Exception {
 
-        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
-        List<String> piiCols = Arrays.asList(pii_columns.split(DELIMITTER));
+        ArrayList<Map<String, Object>> compareResult = new ArrayList<>();        
+        Set<String> piiCols = new HashSet<>(Arrays.asList(pii_columns.split(DELIMITTER)));
+
         LUType luType = getLuType();
-        List<String> tctin = new ArrayList<>();
+        Set<String> tctin = new HashSet<>();
         for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
             tctin.add(column.toUpperCase());
         }
-        List<String> sctin = new ArrayList<>();
+        Set<String> sctin = new HashSet<>();
         for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
             sctin.add(column.toUpperCase());
         }
@@ -102,20 +103,43 @@ public class SharedLogic {
 
             final boolean tarIgnoreNullForCol = tctin.contains(colNameUpper);
             final boolean srcIgnoreNullForCol = sctin.contains(colNameUpper);
-
-            final boolean equal = (srcTrans == tarTrans) ||
-                    (srcTrans != null && srcTrans.equals(tarTrans));
-
+            final boolean equal;
+            if (srcTrans instanceof byte[] && tarTrans instanceof byte[]) {
+                equal = Arrays.equals((byte[]) srcTrans, (byte[]) tarTrans);
+            } else if (srcTrans instanceof Blob && tarTrans instanceof Blob) {
+                equal = compareBlobs((Blob) srcTrans, (Blob) tarTrans);
+            } else if (srcTrans instanceof Clob && tarTrans instanceof Clob) {
+                equal = compareClobs((Clob) srcTrans, (Clob) tarTrans);
+            } else if (srcTrans instanceof ByteBuffer && tarTrans instanceof ByteBuffer) {
+                ByteBuffer b1 = ((ByteBuffer) srcTrans).duplicate();
+                ByteBuffer b2 = ((ByteBuffer) tarTrans).duplicate();
+                if (b1.remaining() != b2.remaining()) {
+                    equal = false;
+                } else {
+                    equal = b1.equals(b2);
+                }
+            } else {
+                equal = (srcTrans == tarTrans) ||
+                        (srcTrans != null && srcTrans.equals(tarTrans));
+            }
             final boolean treatedAsEqual = equal
                     || (srcTrans != null && tarValue == null && tarIgnoreNullForCol)
                     || (srcTrans == null && tarValue != null && srcIgnoreNullForCol);
 
             final String matchResult;
             final String targetSecured;
+            String is_source_env_masked = fabric().fetch("set K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA").firstValue()
+                    .toString();
+            String is_target_env_masked = fabric().fetch("set K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA").firstValue()
+                    .toString();
 
-            // Apply your logic, but avoid overwriting TARGET_VALUE_SECURED incorrectly
+            boolean bothEnvironmentsMaskedOrNot = (is_source_env_masked.equalsIgnoreCase("true")
+                    && is_target_env_masked.equalsIgnoreCase("true"))
+                    || (is_source_env_masked.equalsIgnoreCase("false")
+                            && is_target_env_masked.equalsIgnoreCase("false"));
+
             if (treatedAsEqual) {
-                if (piiCol) {
+                if (piiCol && !bothEnvironmentsMaskedOrNot) {
                     matchResult = "NOT PASSED";
                     targetSecured = "false";
                     srcValue = "*";
@@ -125,7 +149,7 @@ public class SharedLogic {
                     targetSecured = "true";
                 }
             } else {
-                if (piiCol) {
+                if (piiCol && !bothEnvironmentsMaskedOrNot) {
                     matchResult = "PASSED";
                     targetSecured = "true";
                     srcValue = "*";
@@ -135,25 +159,17 @@ public class SharedLogic {
                     targetSecured = "false";
                 }
             }
-            if ("false".equals(log_pass)) {
-                if ("NOT PASSED".equals(matchResult)) {
-                    Map<String, Object> columnResult = new HashMap<>();
-                    columnResult.put("EXECUTION_ID", execution_id);
-                    columnResult.put("IID", 0);
-                    columnResult.put("SOURCE_TABLE_NAME", source_table_name);
-                    columnResult.put("TARGET_TABLE_NAME", target_table_name);
-                    columnResult.put("CUSTOMIZED_KEY", customized_key_values);
-                    columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
-                    columnResult.put("TARGET_COLUMN_VALUE_TRANS", tarTrans);
-                    columnResult.put("COLUMN_NAME", colName);
-                    columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
-                    columnResult.put("TARGET_COLUMN_VALUE", tarValue);
-                    columnResult.put("MATCH_RESULT", matchResult);
-                    columnResult.put("TARGET_VALUE_SECURED", targetSecured);
-                    compareResult.add(columnResult);
+
+            boolean shouldLog = "true".equalsIgnoreCase(log_pass) || "NOT PASSED".equals(matchResult);
+            if (shouldLog) {                
+                Map<String, Object> columnResult = new HashMap<>(16);
+                if (tarValue == null) {
+                    tarValue = "\\N";
                 }
-            } else {
-                Map<String, Object> columnResult = new HashMap<>();
+                if (srcValue == null) {
+                    srcValue = "\\N";
+                }
+
                 columnResult.put("EXECUTION_ID", execution_id);
                 columnResult.put("IID", 0);
                 columnResult.put("SOURCE_TABLE_NAME", source_table_name);
@@ -171,141 +187,160 @@ public class SharedLogic {
         }
         return compareResult;
     }
-    */
 
-   //US Sessions version for perf   
-   @out(name = "result", type = Object.class, desc = "")
-    public static ArrayList<Map<String, Object>> fnVerifySourceNTarget(
-        Map<String, Object> sourceMap,
-        Map<String, Object> targetMap,
-        String source_columns_to_Ignore_null,
-        String target_columns_to_Ignore_null,
-        String sourceEnv,
-        String targetEnv,
-        String pii_columns,
-        String execution_id,
-        String source_table_name,
-        String target_table_name,
-        String customized_key_values,
-        String log_pass)
-        throws Exception {
+    private static byte[] blobToBytesSafe(Blob blob) throws Exception {
+        try (InputStream is = blob.getBinaryStream();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 
-    ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
-
-    Set<String> piiCols = new HashSet<>(Arrays.asList(pii_columns.split(DELIMITTER)));
-
-
-    Set<String> tctin = new HashSet<>();
-    for (String column : target_columns_to_Ignore_null.split(DELIMITTER)) {
-        tctin.add(column.toUpperCase());
-    }
-
-    Set<String> sctin = new HashSet<>();
-    for (String column : source_columns_to_Ignore_null.split(DELIMITTER)) {
-        sctin.add(column.toUpperCase());
-    }
-
-
-    final Integer ZERO = 0;
-    final boolean logPassOnly = "false".equals(log_pass);
-
-    for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
-        final String key = entry.getKey();
-
-        if (key.endsWith("_ORIG") || !key.startsWith("SRC_")) {
-            continue;
-        }
-
-        final String colName = key.substring(4);
-        final String colNameUpper = colName.toUpperCase();
-        final boolean piiCol = piiCols.contains(colNameUpper);
-
-        final String tarKey = "TAR_" + colName;
-        final String srcOrigKey = key + "_ORIG";
-        final String tarOrigKey = tarKey + "_ORIG";
-
-        Object srcValue = entry.getValue();
-        Object tarValue = targetMap.get(tarKey);
-        Object srcTrans = srcValue;
-        Object tarTrans = tarValue;
-
-        if (sourceMap.get(srcOrigKey) != null) {
-            srcValue = sourceMap.get(srcOrigKey);
-        }
-        if (targetMap.get(tarOrigKey) != null) {
-            tarValue = targetMap.get(tarOrigKey);
-        }
-
-        final boolean tarIgnoreNullForCol = tctin.contains(colNameUpper);
-        final boolean srcIgnoreNullForCol = sctin.contains(colNameUpper);
-
-        final boolean equal = (srcTrans == tarTrans) ||
-                (srcTrans != null && srcTrans.equals(tarTrans));
-
-        final boolean treatedAsEqual = equal
-                || (srcTrans != null && tarValue == null && tarIgnoreNullForCol)
-                || (srcTrans == null && tarValue != null && srcIgnoreNullForCol);
-
-        final String matchResult;
-        final String targetSecured;
-
-        if (treatedAsEqual) {
-            if (piiCol) {
-                matchResult = "NOT PASSED";
-                targetSecured = "false";
-                srcValue = "*";
-                tarValue = "*";
-            } else {
-                matchResult = "PASSED";
-                targetSecured = "true";
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                bos.write(buffer, 0, read);
             }
-        } else {
-            if (piiCol) {
-                matchResult = "PASSED";
-                targetSecured = "true";
-                srcValue = "*";
-            } else {
-                matchResult = "NOT PASSED";
-                targetSecured = "false";
+            return bos.toByteArray();
+        }
+    }
+
+    private static String clobToStringSafe(Clob clob) throws Exception {
+        try (Reader r = clob.getCharacterStream();
+                StringWriter w = new StringWriter()) {
+
+            char[] buffer = new char[8192];
+            int read;
+            while ((read = r.read(buffer)) != -1) {
+                w.write(buffer, 0, read);
+            }
+            return w.toString();
+        }
+    }
+
+
+    private static Object convertForVarchar(Object value) {
+        try {
+            if (value instanceof Blob) {
+                Blob blob = (Blob) value;
+                byte[] bytes = blob.getBytes(1, (int) blob.length());
+                return Arrays.toString(bytes);
+            }
+
+            if (value instanceof byte[]) {
+                return Arrays.toString((byte[]) value);
+            }
+
+            if (value instanceof Clob) {
+                Clob clob = (Clob) value;
+                return clob.getSubString(1, (int) clob.length());
+            }
+            if (value instanceof java.nio.ByteBuffer) {
+                return byteBufferToHex((ByteBuffer) value);
+            }
+
+            return value;
+
+        } catch (Exception e) {
+            return "[LOB_READ_ERROR]";
+        }
+    }
+
+    public static String byteBufferToHex(ByteBuffer buffer) {
+
+        if (buffer == null)
+            return null;
+
+        ByteBuffer duplicate = buffer.duplicate();
+
+        StringBuilder hex = new StringBuilder("0x");
+
+        while (duplicate.hasRemaining()) {
+            hex.append(String.format("%02x", duplicate.get()));
+        }
+
+        return hex.toString();
+    }
+
+    private static boolean compareBlobs(Blob b1, Blob b2) throws Exception {
+        if (b1 == b2)
+            return true;
+        if (b1 == null || b2 == null)
+            return false;
+        if (b1.length() != b2.length()) {
+            return false;
+        }
+        try (InputStream is1 = b1.getBinaryStream();
+                InputStream is2 = b2.getBinaryStream()) {
+
+            byte[] buffer1 = new byte[8192];
+            byte[] buffer2 = new byte[8192];
+            int read1, read2;
+            while ((read1 = is1.read(buffer1)) != -1) {
+                read2 = is2.read(buffer2);
+
+                if (read1 != read2)
+                    return false;
+
+                for (int i = 0; i < read1; i++) {
+                    if (buffer1[i] != buffer2[i]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean compareClobs(Clob c1, Clob c2) throws Exception {
+        if (c1 == c2)
+            return true;
+        if (c1 == null || c2 == null)
+            return false;
+        if (c1.length() != c2.length()) {
+            return false;
+        }
+        try (Reader r1 = c1.getCharacterStream();
+                Reader r2 = c2.getCharacterStream()) {
+
+            char[] buffer1 = new char[8192];
+            char[] buffer2 = new char[8192];
+
+            int read1, read2;
+
+            while ((read1 = r1.read(buffer1)) != -1) {
+                read2 = r2.read(buffer2);
+
+                if (read1 != read2)
+                    return false;
+
+                for (int i = 0; i < read1; i++) {
+                    if (buffer1[i] != buffer2[i]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @desc("Get Resporce FIle of LU fnhandleComplexDBColumns")
+    @out(name = "convertedColType", type = Object.class, desc = "")
+    public static Object fnhandleComplexDBColumns(String columnName,
+            String dbType,
+            String columnType) {
+
+        if (dbType != null && dbType.equalsIgnoreCase("DB2 (Db)")) {
+
+            if (columnType != null &&
+                    (columnType.equalsIgnoreCase("BLOB")
+                            || columnType.equalsIgnoreCase("CLOB"))) {
+
+                // Return DB2 SHA-256 hash expression
+                return "HASH(" + columnName + ", 2)";
             }
         }
 
-        boolean shouldLog = !logPassOnly || "NOT PASSED".equals(matchResult);
-
-        if (shouldLog) {
-            Map<String, Object> columnResult = new HashMap<>(16);
-            columnResult.put("EXECUTION_ID", execution_id);
-            columnResult.put("IID", ZERO);
-            columnResult.put("SOURCE_TABLE_NAME", source_table_name);
-            columnResult.put("TARGET_TABLE_NAME", target_table_name);
-            columnResult.put("CUSTOMIZED_KEY", customized_key_values);
-            columnResult.put("SOURCE_COLUMN_VALUE_TRANS", srcTrans);
-            columnResult.put("TARGET_COLUMN_VALUE_TRANS", tarTrans);
-            columnResult.put("COLUMN_NAME", colName);
-            columnResult.put("SOURCE_COLUMN_VALUE", srcValue);
-            columnResult.put("TARGET_COLUMN_VALUE", tarValue);
-            columnResult.put("MATCH_RESULT", matchResult);
-            columnResult.put("TARGET_VALUE_SECURED", targetSecured);
-            compareResult.add(columnResult);
-        }
+        // For normal columns return as is
+        return columnName;
     }
 
-    return compareResult;
-}
-    
-
-    private static Object getTransformedValue(String customFunctionName, LUType luType, Object columnValue)
-            throws ReflectiveOperationException, InterruptedException, SQLException {
-        String luName = getLuType().luName;
-        if (customFunctionName != null) {
-            Db.Row row = fabric()
-                    .fetch(String.format("Broadway %s.%s value=?", luName, customFunctionName), columnValue).firstRow();
-            columnValue = row.get("value");
-            // columnValue = luType.invokeFunction(customFunctionName, null, new
-            // Object[]{columnValue});
-        }
-        return columnValue == null ? null : columnValue.toString();
-    }
 
     @desc("Get Resporce FIle of LU")
     @out(name = "result", type = Object.class, desc = "")
@@ -327,72 +362,6 @@ public class SharedLogic {
         return null;
     }
 
-   // Original version, before US session perf changes
-   /*
-   public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
-            List<Map<String, Object>> targetList,
-            List<Map<String, Object>> sourceList,
-            List<String> joinKeys,
-            String env_prefix) {
-
-        Map<String, Map<String, Object>> sourceLookup = new HashMap<>();
-
-        // Build lookup for source
-        for (Map<String, Object> src : sourceList) {
-            StringBuilder keyBuilder = new StringBuilder();
-
-            for (int i = 0; i < joinKeys.size(); i++) {
-                String logicalKey = env_prefix + "_" + joinKeys.get(i);
-                Object value = getIgnoreCase(src, logicalKey);
-
-                keyBuilder.append(value == null ? "" : value.toString());
-                if (i < joinKeys.size() - 1)
-                    keyBuilder.append("_");
-            }
-
-            sourceLookup.put(keyBuilder.toString(), src);
-        }
-
-        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
-
-        for (Map<String, Object> tgt : targetList) {
-            StringBuilder lookupKey = new StringBuilder();
-
-            for (int i = 0; i < joinKeys.size(); i++) {
-                Object value = getIgnoreCase(tgt, joinKeys.get(i));
-                lookupKey.append(value == null ? "" : value.toString());
-                if (i < joinKeys.size() - 1)
-                    lookupKey.append("_");
-            }
-
-            Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
-            if (matched != null) {
-
-                // Build JSON-style key
-                StringBuilder jsonKey = new StringBuilder("{");
-                for (int i = 0; i < joinKeys.size(); i++) {
-                    String k = joinKeys.get(i);
-                    Object value = getIgnoreCase(tgt, k);
-
-                    jsonKey.append("\"")
-                            .append(k)
-                            .append("\":\"")
-                            .append(value == null ? "" : value.toString())
-                            .append("\"");
-
-                    if (i < joinKeys.size() - 1)
-                        jsonKey.append(",");
-                }
-                jsonKey.append("}");
-
-                result.put(jsonKey.toString(), matched);
-            }
-        }
-
-        return result;
-    }
-    */
-    
     private static Map<String, Object> toLowerCaseKeys(Map<String, Object> original) {
         Map<String, Object> normalized = new HashMap<>(original.size() * 4 / 3 + 1);
         for (Map.Entry<String, Object> entry : original.entrySet()) {
@@ -401,84 +370,7 @@ public class SharedLogic {
         return normalized;
     }
 
-    //Improvement #1 ( US  sessions )
-    /*
-    public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
-        List<Map<String, Object>> targetList,
-        List<Map<String, Object>> sourceList,
-        List<String> joinKeys,
-        String env_prefix) {
-
-    // Lowercase the join keys once
-    List<String> lowerJoinKeys = new ArrayList<>(joinKeys.size());
-    for (String key : joinKeys) {
-        lowerJoinKeys.add(key.toLowerCase());
-    }
-
-    // Pre-compute prefixed keys once (instead of inside the loop)
-    List<String> prefixedKeys = new ArrayList<>(lowerJoinKeys.size());
-    for (String key : lowerJoinKeys) {
-        prefixedKeys.add(env_prefix.toLowerCase() + "_" + key);
-    }
-
-    // Normalize all source maps once
-    List<Map<String, Object>> normalizedSources = new ArrayList<>(sourceList.size());
-    for (Map<String, Object> src : sourceList) {
-        normalizedSources.add(toLowerCaseKeys(src));
-    }
-
-    // Normalize all target maps once
-    List<Map<String, Object>> normalizedTargets = new ArrayList<>(targetList.size());
-    for (Map<String, Object> tgt : targetList) {
-        normalizedTargets.add(toLowerCaseKeys(tgt));
-    }
-
-    // Build source lookup — now using plain .get()
-    Map<String, Map<String, Object>> sourceLookup = new HashMap<>(sourceList.size() * 4 / 3 + 1);
-
-    for (Map<String, Object> src : normalizedSources) {
-        StringBuilder keyBuilder = new StringBuilder();
-        for (int i = 0; i < prefixedKeys.size(); i++) {
-            Object value = src.get(prefixedKeys.get(i));  // plain get()!
-            keyBuilder.append(value == null ? "" : value.toString());
-            if (i < prefixedKeys.size() - 1) keyBuilder.append('\0');
-        }
-        sourceLookup.put(keyBuilder.toString(), src);
-    }
-
-    // Match targets to sources
-    Map<String, Map<String, Object>> result = new LinkedHashMap<>(targetList.size() * 4 / 3 + 1);
-
-    for (Map<String, Object> tgt : normalizedTargets) {
-        // Cache values to avoid double-lookup
-        Object[] values = new Object[lowerJoinKeys.size()];
-        StringBuilder lookupKey = new StringBuilder();
-
-        for (int i = 0; i < lowerJoinKeys.size(); i++) {
-            values[i] = tgt.get(lowerJoinKeys.get(i));  // plain get()!
-            lookupKey.append(values[i] == null ? "" : values[i].toString());
-            if (i < lowerJoinKeys.size() - 1) lookupKey.append('\0');
-        }
-
-        Map<String, Object> matched = sourceLookup.get(lookupKey.toString());
-        if (matched != null) {
-            // Reuse cached values for the JSON key
-            StringBuilder jsonKey = new StringBuilder("{");
-            for (int i = 0; i < joinKeys.size(); i++) {
-                jsonKey.append("\"").append(joinKeys.get(i)).append("\":\"")
-                       .append(values[i] == null ? "" : values[i].toString())
-                       .append("\"");
-                if (i < joinKeys.size() - 1) jsonKey.append(",");
-            }
-            jsonKey.append("}");
-            result.put(jsonKey.toString(), matched);
-        }
-    }
-
-    return result;
-}*/
-
-    // Bug fix for Improvement #1 ( US  sessions )     
+   
     public static Map<String, Map<String, Object>> fnMergeValuesNdKeysArray(
             List<Map<String, Object>> targetList,
             List<Map<String, Object>> sourceList,
@@ -569,83 +461,22 @@ public class SharedLogic {
     }
    
 
-    
     @out(name = "result", type = Object.class, desc = "")
     public static Set<String> fnMergeSrcTrgKeys(
         List<Map<String, Object>> rs1,
         List<Map<String, Object>> rs2) {
-
-    // Fix #1: Use null char to avoid delimiter collision
-    final String DELIMITER = "\0";
-
-    // Fix #2: Single pass — collect keys and gather all rows at once
-    SortedSet<String> keyNames = new TreeSet<>();
-    List<Map<String, Object>> allRows = new ArrayList<>();
-
-    for (List<Map<String, Object>> rs : new List[]{rs1, rs2}) {
-        if (rs == null) continue;
-        for (Map<String, Object> row : rs) {
-            if (row == null) continue;
-            keyNames.addAll(row.keySet());
-            allRows.add(row);
-        }
-    }
-
-    if (keyNames.isEmpty()) {
-        return Collections.emptySet();
-    }
-
-    List<String> orderedKeys = new ArrayList<>(keyNames);
-
-    // Fix #3: Pre-size the result set
-    Set<String> result = new LinkedHashSet<>(allRows.size() * 4 / 3 + 1);
-
-    for (Map<String, Object> row : allRows) {
-        // Fix #4: Pre-size StringBuilder
-        StringBuilder sb = new StringBuilder(orderedKeys.size() * 16);
-        boolean valid = true;
-
-        for (int i = 0; i < orderedKeys.size(); i++) {
-            Object val = row.get(orderedKeys.get(i));
-
-            // Original behavior: missing key → skip entire row
-            if (val == null) {
-                valid = false;
-                break;
-            }
-
-            if (i > 0) sb.append(DELIMITER);
-            sb.append(val.toString());
-        }
-
-        if (valid) {
-            result.add(sb.toString());
-        }
-    }
-
-    return result;
-}
-   /* public static Set<String> fnMergeSrcTrgKeys(
-            List<Map<String, Object>> rs1,
-            List<Map<String, Object>> rs2) {
-
+    
         final String DELIMITER = "|";
-
-        // 1) Collect all key names (deterministic ordering)
+        
         SortedSet<String> keyNames = new TreeSet<>();
-        if (rs1 != null) {
-            for (Map<String, Object> row : rs1) {
-                if (row != null) {
-                    keyNames.addAll(row.keySet());
-                }
-            }
-        }
+        List<Map<String, Object>> allRows = new ArrayList<>();
 
-        if (rs2 != null) {
-            for (Map<String, Object> row : rs2) {
-                if (row != null) {
-                    keyNames.addAll(row.keySet());
-                }
+        for (List<Map<String, Object>> rs : new List[]{rs1, rs2}) {
+            if (rs == null) continue;
+            for (Map<String, Object> row : rs) {
+                if (row == null) continue;
+                keyNames.addAll(row.keySet());
+                allRows.add(row);
             }
         }
 
@@ -654,40 +485,418 @@ public class SharedLogic {
         }
 
         List<String> orderedKeys = new ArrayList<>(keyNames);
+        
+        Set<String> result = new LinkedHashSet<>(allRows.size() * 4 / 3 + 1);
 
-        // 2) Build composite keys and dedupe
-        Set<String> result = new LinkedHashSet<>();
+        for (Map<String, Object> row : allRows) {
+            StringBuilder sb = new StringBuilder(orderedKeys.size() * 16);
+            boolean valid = true;
 
-        for (List<Map<String, Object>> rs : new List[] { rs1, rs2 }) {
-            if (rs == null)
-                continue;
+            for (int i = 0; i < orderedKeys.size(); i++) {
+                Object val = row.get(orderedKeys.get(i));
 
-            for (Map<String, Object> row : rs) {
-                if (row == null)
-                    continue;
-
-                StringBuilder sb = new StringBuilder();
-                boolean valid = true;
-
-                for (int i = 0; i < orderedKeys.size(); i++) {
-                    String key = orderedKeys.get(i);
-                    Object val = row.get(key);
-
-                    if (val == null) {
-                        valid = false; // strict mode: missing key → skip row
-                        break;
-                    }
-
-                    if (i > 0)
-                        sb.append(DELIMITER);
-                    sb.append(val.toString());
+                // Original behavior: missing key → skip entire row
+                if (val == null) {
+                    valid = false;
+                    break;
                 }
 
-                if (valid) {
-                    result.add(sb.toString());
+                if (i > 0) sb.append(DELIMITER);
+                sb.append(val.toString());
+            }
+
+            if (valid) {
+                result.add(sb.toString());
+            }
+        }
+        
+        return result;
+    }
+
+    public static List<String> getTableFieldsByJDBC(String dbInterfaceName, String schemaName,
+            String tableName) throws SQLException {
+        List<String> result = new ArrayList<>();
+        DatabaseMetaData metaData = getConnection(dbInterfaceName).getMetaData();
+        ResultSet primaryKeys = metaData.getPrimaryKeys(null, schemaName, tableName);
+        while (primaryKeys.next()) {
+            HashMap<String, String> map = new HashMap<>();
+            result.add(primaryKeys.getString("COLUMN_NAME"));
+        }
+        if (primaryKeys != null) {
+            primaryKeys.close();
+        }
+        return result;
+    }
+
+    public static List<String> getTableNamesByInterfaceAndSchema(
+            String interfaceName,
+            String schemaName,
+            String envName) throws Exception {
+
+        String env = normalizeOrDefault(envName, "_dev");
+        String schemaFilter = normalizeRequired(schemaName, "schemaName");
+        String ifaceName = normalizeRequired(interfaceName, "interfaceName");
+
+        com.k2view.cdbms.shared.user.UserCode.fabric()
+                .execute("set environment='" + env + "';");
+
+        FabricInterface iface = InterfacesManager.getInstance().getInterface(ifaceName, env);
+
+        if (iface == null) {
+            throw new RuntimeException("Interface '" + ifaceName + "' not found in environment '" + env + "'");
+        }
+        if (!iface.getActiveMode()) {
+            throw new RuntimeException("Interface '" + ifaceName + "' is not active in environment '" + env + "'");
+        }
+
+        String interfaceType = iface.getTypeName();
+
+        // 1) Try catalog first
+        List<String> fromCatalog = getTableNamesFromCatalog(ifaceName, schemaFilter);
+        if (!fromCatalog.isEmpty())
+            return fromCatalog;
+
+        // 2) Fallback to JDBC if DATABASE
+        if ("DATABASE".equalsIgnoreCase(interfaceType)) {
+            return getTableNamesFromJDBC(ifaceName, schemaFilter);
+        }
+
+        return Collections.emptyList();
+    }
+
+    private static List<String> getTableNamesFromCatalog(String interfaceName, String schemaFilter) throws Exception {
+
+        Map<String, Object> key = new HashMap<>();
+        key.put("dataPlatform", interfaceName);
+
+        // If catalog_field_info is keyed by schema, this speeds it up.
+        // If it isn't, mapsByKey may return empty; we still filter below in-code.
+        key.put("schema", schemaFilter);
+
+        List<Map<String, Object>> rows = MtableLookups("catalog_field_info", key, MTable.Feature.caseInsensitive);
+
+        if (rows == null || rows.isEmpty())
+            return Collections.emptyList();
+
+        Set<String> tables = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Map<String, Object> r : rows) {
+            String schema = String.valueOf(r.get(CATALOG_SCHEMA));
+            String table = String.valueOf(r.get(CATALOG_TABLE));
+
+            if (schema == null || "null".equalsIgnoreCase(schema))
+                continue;
+            if (table == null || "null".equalsIgnoreCase(table) || table.isBlank())
+                continue;
+
+            if (schema.equalsIgnoreCase(schemaFilter)) {
+                tables.add(table);
+            }
+        }
+
+        return new ArrayList<>(tables);
+    }
+
+    // -------------------------------
+    // JDBC path: DatabaseMetaData.getTables
+    // -------------------------------
+    private static List<String> getTableNamesFromJDBC(String interfaceName, String schemaFilter) throws Exception {
+
+        Set<String> tables = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        try (Connection conn = com.k2view.cdbms.shared.user.UserCode.getConnection(interfaceName)) {
+            DatabaseMetaData md = conn.getMetaData();
+
+            try (ResultSet rs = md.getTables(null, schemaFilter, "%", new String[] { "TABLE" })) {
+                while (rs.next()) {
+                    String schema = rs.getString("TABLE_SCHEM");
+                    String table = rs.getString("TABLE_NAME");
+
+                    if (table == null || table.isBlank())
+                        continue;
+
+                    // Defensive filtering for drivers that ignore schema param
+                    if (schemaFilter != null && schema != null && !schema.equalsIgnoreCase(schemaFilter)) {
+                        continue;
+                    }
+
+                    tables.add(table);
                 }
             }
         }
-        return result;
-    } */
+
+        return new ArrayList<>(tables);
+    }
+
+    // -------------------------------
+    // MTable lookup helper (yours)
+    // -------------------------------
+    public static List<Map<String, Object>> MtableLookups(
+            String name,
+            Map<String, Object> key,
+            MTable.Feature... features) throws Exception {
+        MTable mtable;
+        try {
+            mtable = MTables.get(name);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+        List<Map<String, Object>> rows = mtable.mapsByKey(key, features);
+        return rows == null ? Collections.emptyList() : rows;
+    }
+
+    // -------------------------------
+    // Helpers
+    // -------------------------------
+    private static String normalizeOrDefault(String value, String def) {
+        if (value == null)
+            return def;
+        String s = value.trim();
+        return s.isEmpty() ? def : s;
+    }
+
+    private static String normalizeRequired(String value, String name) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new RuntimeException(name + " is required");
+        }
+        return value.trim();
+    }
+
+
+    public static List<String> fnFetchColumns(String iface, String schema, String table, String environment) throws Exception{
+        List<String> columns = fnFetchColumnsFromCatalog(iface, schema, table);
+        if (columns == null || columns.size() == 0 ){
+            columns = fnFetchColumnsFromJDBC(iface, schema, table, environment);
+        }
+        return columns; 
+    }
+
+    public static List<String> fnFetchColumnsFromCatalog(String iface, String schema, String table) throws Exception{
+        List<String> columns = new ArrayList<>();
+        Map<String, Object> key = new HashMap<>();
+        key.put("dataPlatform", iface);
+        // If catalog_field_info is keyed by schema, this speeds it up.
+        // If it isn't, mapsByKey may return empty; we still filter below in-code.
+        key.put("schema", schema);
+        key.put("dataset", table);
+        List<Map<String, Object>> rows =
+            MtableLookups("catalog_field_info", key, MTable.Feature.caseInsensitive);
+        if (rows == null || rows.isEmpty()) return Collections.emptyList();
+        Set<String> tables = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for (Map<String, Object> r : rows) {
+            String _schema = String.valueOf(r.get(CATALOG_SCHEMA));
+            String _table  = String.valueOf(r.get(CATALOG_TABLE));
+            String _field  = String.valueOf(r.get(CATALOG_FIELD));
+            if (_schema == null || "null".equalsIgnoreCase(_schema)) continue;
+            if (_table == null  || "null".equalsIgnoreCase(_table)  || _table.isBlank()) continue;
+            columns.add(_field.toUpperCase());
+        }
+        return columns;
+    }
+ 
+    public static List<String> fnFetchColumnsFromJDBC(String iface, String schema, String table, String environment) throws Exception{
+        fabric().execute("set environment='" + environment + "';");
+        DatabaseMetaData meta = getConnection(iface).getMetaData();
+        List<String> columns = new ArrayList<>();
+        try (ResultSet rs = meta.getColumns(null, schema, table, "%")) {
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                columns.add(colName.toUpperCase());
+            }
+        }
+        return columns;
+    }
+ 
+    
+    public static List<Map<String, Integer>> fnValidateSchema(String iface, String schema, String environment) throws Exception{
+ 
+            fabric().execute("set environment='" + environment + "';");
+            DatabaseMetaData meta = getConnection(iface).getMetaData();
+            try (ResultSet rs = meta.getSchemas()) {
+                while (rs.next()) {
+                    String s = rs.getString("TABLE_SCHEM");
+                    if (s != null && s.equalsIgnoreCase(schema)) {
+                        Map<String, Integer> row = new HashMap<>();
+                        row.put("?column?", 1);
+                        List<Map<String, Integer>> result = new ArrayList<>();
+                        result.add(row);
+                        return result;
+                    }
+                }
+            }
+            List<String> schemaList = new ArrayList<>();
+            ResultSet catalogs = meta.getCatalogs();
+            while (catalogs.next()) {
+                String st = catalogs.getString("TABLE_CAT");
+                if (st != null && st.equalsIgnoreCase(schema)) {
+                   Map<String, Integer> row = new HashMap<>();
+                   row.put("?column?", 1);
+                   List<Map<String, Integer>> result = new ArrayList<>();
+                   result.add(row);
+                   return result;
+            }
+        }
+        if (catalogs != null) {
+            catalogs.close();
+        }
+
+            return null; // not found
+    }
+    public static List<Map<String, Integer>> fnValidateTable(String iface, String schema, String table, String environment) throws Exception{    
+        fabric().execute("set environment='" + environment + "';");
+        DatabaseMetaData meta = getConnection(iface).getMetaData();
+        try (ResultSet rs = meta.getTables(null, schema, table, new String[] { "TABLE" })) {
+            if (rs.next()) {
+                Map<String, Integer> row = new HashMap<>();
+                row.put("?column?", 1);
+                List<Map<String, Integer>> result = new ArrayList<>();
+                result.add(row);
+                return result;
+            }
+        }
+        return null; // not found
+    }
+    public static List<Map<String, Integer>> fnValidateColumn(String iface, String schema, String table, String column, String environment) throws Exception{ 
+        fabric().execute("set environment='" + environment + "';");
+        DatabaseMetaData meta = getConnection(iface).getMetaData();
+        try (ResultSet rs = meta.getColumns(null, schema, table, column.toLowerCase())) {
+            if (rs.next()) {
+                // Column exists
+                Map<String, Integer> row = new HashMap<>();
+                row.put("?column?", 1);
+                List<Map<String, Integer>> result = new ArrayList<>();
+                result.add(row);
+                return result;
+            }
+        }
+        return null; // Column not found
+    }
+
+    
+    public static List<String> getSchemaNamesByInterfaceAndEnv(
+            String interfaceName,
+            String envName) throws Exception {
+
+        String env = normalizeOrDefault(envName, "_dev");
+        String ifaceName = normalizeRequired(interfaceName, "interfaceName");
+
+        com.k2view.cdbms.shared.user.UserCode.fabric()
+                .execute("set environment='" + env + "';");
+
+        FabricInterface iface = InterfacesManager.getInstance().getInterface(ifaceName, env);
+
+        if (iface == null) {
+            throw new RuntimeException("Interface '" + ifaceName + "' not found in environment '" + env + "'");
+        }
+        if (!iface.getActiveMode()) {
+            throw new RuntimeException("Interface '" + ifaceName + "' is not active in environment '" + env + "'");
+        }
+
+        String interfaceType = iface.getTypeName();
+
+        // 1) Try catalog first
+        List<String> fromCatalog = getSchemaNamesFromCatalog(ifaceName);
+        if (!fromCatalog.isEmpty())
+            return fromCatalog;
+
+        // 2) Fallback to JDBC if DATABASE
+        if ("DATABASE".equalsIgnoreCase(interfaceType)) {
+            return getSchemaNamesFromJDBC(ifaceName);
+        }
+
+        return Collections.emptyList();
+    }
+
+    // -------------------------------
+    // Catalog path: catalog_field_info (distinct schema)
+    // -------------------------------
+
+    private static List<String> getSchemaNamesFromCatalog(String interfaceName) throws Exception {
+
+        Map<String, Object> key = new HashMap<>();
+        key.put("dataPlatform", interfaceName);
+
+        List<Map<String, Object>> rows = MtableLookups("catalog_field_info", key, MTable.Feature.caseInsensitive);
+
+        if (rows == null || rows.isEmpty())
+            return Collections.emptyList();
+
+        Set<String> schemas = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Map<String, Object> r : rows) {
+            Object sObj = r.get(CATALOG_SCHEMA);
+            if (sObj == null)
+                continue;
+
+            String schema = String.valueOf(sObj);
+            if (schema == null || schema.isBlank() || "null".equalsIgnoreCase(schema))
+                continue;
+
+            schemas.add(schema);
+        }
+
+        return new ArrayList<>(schemas);
+    }
+
+    // -------------------------------
+    // JDBC path: DatabaseMetaData.getSchemas
+    // -------------------------------
+
+    private static List<String> getSchemaNamesFromJDBC(String dbInterfaceName) throws Exception {
+        ResultSet rs = null;
+        String[] types = { "TABLE" };
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try {
+            DatabaseMetaData md = getConnection(dbInterfaceName).getMetaData();
+            ResultSet schemas = md.getSchemas();
+
+            List<String> schemaList = new ArrayList<>();
+            List<String> catalogList = new ArrayList<>();
+
+            while (schemas.next()) {
+                schemaList.add(schemas.getString("TABLE_SCHEM"));
+            }
+
+            if (schemaList.size() == 0) {
+                ResultSet catalogs = md.getCatalogs();
+                while (catalogs.next()) {
+                    schemaList.add(catalogs.getString("TABLE_CAT"));
+                }
+                if (catalogs != null) {
+                    catalogs.close();
+                }
+            }
+
+            if (schemas != null) {
+                schemas.close();
+            }
+
+            return schemaList;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to get Meta Data of Interface " + dbInterfaceName
+                    + ", with Error Message: " + e.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+        }
+    }
+
+    public static List<String> fnFetchColumsFromIMS(String interface_name, String schema, String table)
+            throws SQLException {
+        Connection conn = getConnection(interface_name);
+        List<String> columnsList = RocketImsMetadata.listColumns(conn, schema, table);
+        return columnsList;
+    }
+
+    @desc("Fails the current job execution without retry")
+    @out(name = "failureReason", type = String.class, desc = "")
+    public static void failJobWithoutRetry(String errorMessage) {
+    if(errorMessage!= null && !"".equals(errorMessage)){
+        JobExecutor.failJob(new Exception(errorMessage), JobExecutor.FailAnd.noRetry);
+        }
+    }
 }

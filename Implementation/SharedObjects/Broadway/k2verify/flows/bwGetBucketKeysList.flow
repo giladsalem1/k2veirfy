@@ -38,6 +38,16 @@ stages:
         out:
           value:
             schema: string
+      K2VERIFY_SOURCE_ENV:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SOURCE_ENV
+      K2VERIFY_TARGET_ENV:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TARGET_ENV
   Tables details:
     actors:
       SRC DB Interface:
@@ -140,6 +150,16 @@ stages:
             schema: string
           columns:
             schema: '#ref'
+      ToNumber1:
+        parent: ToNumber
+        in:
+          value:
+            link: IID/value
+      ToNumber2:
+        parent: ToNumber
+        in:
+          value:
+            external: bucketsNum
   Stage 2:
     transactional: false
     actors:
@@ -175,11 +195,11 @@ stages:
             schema: string
             mandatory: false
           bucketsNum:
-            external: bucketsNum
+            link: ToNumber2/number
             schema: string
             mandatory: false
           bucketID:
-            link: IID/value
+            link: ToNumber1/number
             schema: string
             mandatory: false
           customizedKey:
@@ -196,6 +216,10 @@ stages:
             mandatory: false
           interfaceType:
             external: interfaceType
+            schema: string
+            mandatory: false
+          environment:
+            link: K2VERIFY_SOURCE_ENV/result
             schema: string
             mandatory: false
         out:
@@ -232,11 +256,11 @@ stages:
             schema: string
             mandatory: false
           bucketsNum:
-            external: bucketsNum
+            link: ToNumber2/number
             schema: string
             mandatory: false
           bucketID:
-            link: IID/value
+            link: ToNumber1/number
             schema: string
             mandatory: false
           customizedKey:
@@ -253,6 +277,10 @@ stages:
             mandatory: false
           interfaceType:
             external: interfaceType
+            schema: string
+            mandatory: false
+          environment:
+            link: K2VERIFY_TARGET_ENV/result
             schema: string
             mandatory: false
         out:
@@ -299,6 +327,9 @@ stages:
       DeepCopyKeysRS:
         parent: DeepCopy
         disabled: true
+        in:
+          value:
+            link: LuFunction1/result
         out:
           value:
             external: keys_list
@@ -313,8 +344,6 @@ stages:
         out:
           millis:
             external: luFunctionDuration
-  Stage 3: {
-    }
 schemas:
   bwGetColsForSelectStmt1.in.select_columns:
     type: array
