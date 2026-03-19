@@ -94,6 +94,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
+          is_source_env_masked:
+            external: is_source_env_masked
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          is_target_env_masked:
+            external: is_target_env_masked
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'

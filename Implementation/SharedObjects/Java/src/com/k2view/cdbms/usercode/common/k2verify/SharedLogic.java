@@ -61,7 +61,7 @@ public class SharedLogic {
             Map<String, Object> targetMap,
             String source_columns_to_Ignore_null, String target_columns_to_Ignore_null, String pii_columns,
             String execution_id, String source_table_name,
-            String target_table_name, String customized_key_values, String log_pass)
+            String target_table_name, String customized_key_values, String log_pass, String is_source_env_masked, String is_target_env_masked)
             throws Exception {
 
         ArrayList<Map<String, Object>> compareResult = new ArrayList<>();        
@@ -128,10 +128,10 @@ public class SharedLogic {
 
             final String matchResult;
             final String targetSecured;
-            String is_source_env_masked = fabric().fetch("set K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA").firstValue()
-                    .toString();
-            String is_target_env_masked = fabric().fetch("set K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA").firstValue()
-                    .toString();
+            //String is_source_env_masked = fabric().fetch("set K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA").firstValue()
+            //        .toString();
+            //String is_target_env_masked = fabric().fetch("set K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA").firstValue()
+            //        .toString();
 
             boolean bothEnvironmentsMaskedOrNot = (is_source_env_masked.equalsIgnoreCase("true")
                     && is_target_env_masked.equalsIgnoreCase("true"))

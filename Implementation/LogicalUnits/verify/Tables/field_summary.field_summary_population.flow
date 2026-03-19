@@ -84,6 +84,16 @@ stages:
         in:
           key:
             const: verify.K2VERIFY_OPERATIONAL_SCHEMA
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA
   Stage 1:
     actors:
       DUMMY GET:
@@ -536,12 +546,12 @@ stages:
             createdBy: flowName
           source_columns_to_Ignore_null:
             link: Row Info/value/source_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
             link: Row Info/value/target_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           bucketMethod:
@@ -588,6 +598,14 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          k2verify_src_contains_sensitive_data:
+            link: K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA/result
+            schema: any
+            mandatory: false
+          k2verify_tar_contains_sensitive_data:
+            link: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA/result
+            schema: any
+            mandatory: false
   Tme befor PG Copy:
     actors:
       TmeBeforPGCopy:

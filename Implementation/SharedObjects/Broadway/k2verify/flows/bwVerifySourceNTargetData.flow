@@ -1325,12 +1325,12 @@ stages:
             link: RESULT_INTERFACE/variableValue
             schema: string
             editor:
-              id: com.k2view.interface
               interfaceType:
               - database
               - CassandraLoader
               interfaces:
               - fabric
+              id: com.k2view.interface
             mandatory: false
             createdBy: flowName
           source_table_name:
@@ -1397,6 +1397,16 @@ stages:
           file_name:
             external: result_file_name
             schema: string
+            mandatory: false
+            createdBy: flowName
+          is_source_env_masked:
+            external: k2verify_src_contains_sensitive_data
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          is_target_env_masked:
+            external: k2verify_trg_contains_sensitive_data
+            schema: any
             mandatory: false
             createdBy: flowName
     split: '--------------------'
