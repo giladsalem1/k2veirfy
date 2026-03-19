@@ -24,8 +24,8 @@
           <dbUser>k2verify_prod_12_solutions</dbUser>
           <dbPasswordEncrypted>~encs2~gLsPjWkdq1bTSZqpkznxSEs5CNfGOSgXjormq6cL+PmJWAdo1TPzfUctyTlOXY1pz6r5k1/lj0PGuw&#x3D;&#x3D;</dbPasswordEncrypted>
           <connString>jdbc:postgresql://10.126.161.14:5432/postgres?stringtype&#x3D;unspecified</connString>
-          <minConnectionsNumber>60</minConnectionsNumber>
-          <maxConnectionsNumber>60</maxConnectionsNumber>
+          <minConnectionsNumber>100</minConnectionsNumber>
+          <maxConnectionsNumber>1200</maxConnectionsNumber>
           <JdbcDriverName>PostgreSQL</JdbcDriverName>
           <IsCustomConnectionStringServerSide>false</IsCustomConnectionStringServerSide>
         </DbInterface>
@@ -81,6 +81,30 @@
         </Global>
         <Global name="K2VERIFY_RESULT_FILES_PATH" luName="">
           <Value>/opt/apps/fabric/workspace/verify</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="K2VERIFY_MAX_EXECUTIONS_TO_KEEP" luName="">
+          <Value>1</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MAX_COMPARISON_FAILURE_PCT" luName="">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MAX_RECORD_MISMATCH_PCT" luName="">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MAX_SLIDING_WINDOW_FAILURE_PCT" luName="">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MIN_PROCESSED_THRESHOLD_PCT" luName="">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="PARTITION_SIZE" luName="">
+          <Value>10000</Value>
           <Comment></Comment>
         </Global>
       </GlobalsList>
