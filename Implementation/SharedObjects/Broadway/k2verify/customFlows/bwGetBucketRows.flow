@@ -1,4 +1,4 @@
-tags: D2D,k2verify
+tags: D2D,k2verify,testing
 stages:
   Inputs:
     actors:
@@ -50,7 +50,17 @@ stages:
         out:
           value:
             schema: string
-  Prepare keys:
+      environment:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: environment
+            schema: string
+        out:
+          value:
+            schema: string
+  Prepare data:
     actors:
       strKeys:
         parent: Replace
@@ -72,6 +82,36 @@ stages:
             const: ' || '
           string:
             link: CustomKey/value
+      Replace1:
+        parent: Replace
+        in:
+          search:
+            const: null
+            link: Delim/value
+          replace:
+            const: ' || ''|'' || '
+          string:
+            link: CustomKey/value
+      exclude clause for single bucket:
+        parent: StringFormat
+        in:
+          format:
+            const: 'where ${where} '
+          where:
+            link: Exclude Condition/value
+            schema: string
+            mandatory: false
+            createdBy: format
+      IfElse2:
+        parent: IfElse
+        in:
+          test:
+            link: Exclude Condition/value
+          a:
+            link: exclude clause for single bucket/string
+        out:
+          result:
+            schema: string
       Exclude Clause:
         parent: StringFormat
         in:
@@ -91,20 +131,116 @@ stages:
         out:
           result:
             schema: string
-      Replace1:
-        parent: Replace
+      SET ENVIRONMENT:
+        parent: FabricSet
         in:
-          search:
-            const: null
-            link: Delim/value
-          replace:
-            const: ' || ''|'' || '
-          string:
-            link: CustomKey/value
-  'Execute filteirng query ':
-    dependsOn: Prepare keys
+          key:
+            const: ENVIRONMENT
+          value:
+            link: environment/value
+  '# Buckets is 1':
+    dependsOn: Prepare data
     actors:
-      Oracle DB:
+      =1:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: '1'
+            schema: string
+          a:
+            external: bucketsNum
+    split: '--------------------'
+  Else:
+    else: true
+    dependsOn: Prepare data
+  Cass DB query for 1 bucket:
+    else: false
+    dependsOn: '# Buckets is 1'
+    actors:
+      CASS DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: Cassandra (Db)
+            schema: string
+          a:
+            external: interfaceType
+      DbCommand4:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: RESULT_INTERFACE/variableValue
+          sql:
+            const: select org_key as "${@keysAlias}" from ${@keysTableSchema}.${@keysTable}
+          keysTableSchema:
+            link: LOAD_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysTable:
+            link: KEYS_TABLE_NAME/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: Replace1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: bucketRows
+            schema: '#ref'
+    split: '--------------------'
+  Stage 1:
+    else: true
+    dependsOn: '# Buckets is 1'
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} ${@where}
+          key:
+            link: Replace1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          where:
+            link: IfElse2/result
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: bucketRows
+            schema: '#ref'
+    split: '--------------------'
+  Execute filtering query:
+    dependsOn: Else
+    actors:
+      Oracle DB1:
         parent: EqualsIgnoreCase
         condition: result
         in:
@@ -113,17 +249,17 @@ stages:
             schema: string
           a:
             external: interfaceType
-      DbCommand1:
+      DbCommand9:
         parent: DbCommand
         in:
           interface:
             const: null
             external: interface
           sql:
-            const: SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ORA_HASH(${@concatKey}),
-              ${@bucketsNum}) = ${@bucketID} ${@and}
+            const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} WHERE
+              MOD(ORA_HASH(${@concatKey}), ${@bucketsNum}) = ${@bucketID} ${@and}
           key:
-            link: strKeys/string
+            link: Replace1/string
             schema: string
             mandatory: false
             createdBy: sql
@@ -157,15 +293,21 @@ stages:
             schema: string
             mandatory: false
             createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
         out:
           result:
+            external: bucketRows
             schema: '#ref'
     split: '--------------------'
-  Stage 5:
+  Stage 10:
     else: true
-    dependsOn: Prepare keys
+    dependsOn: Else
     actors:
-      DB2 DB:
+      DB2 DB1:
         parent: EqualsIgnoreCase
         condition: result
         in:
@@ -174,26 +316,17 @@ stages:
             schema: string
           a:
             external: interfaceType
-      DbCommand2:
+      DbCommand5:
         parent: DbCommand
         in:
           interface:
             const: null
             external: interface
           sql:
-            const: |-
-              SELECT ${@key} FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})), ${@bucketsNum}) = ${@bucketID} ${@and}
-
-
-              SELECT ${@key} as  FROM ${@schema}.${@table} WHERE MOD(ABS(HASH8(${@concatKey})), ${@bucketsNum}) = ${@bucketID} ${@and}
-              [
-                {
-                  "customer_id|ssn": "3000001|000-00-0001"
-                },
-
-                select (customer_id | "|" | ssn) as "customer_id|ssn"
+            const: SELECT ${@key} as "${@keysAlias}" FROM ${@schema}.${@table} WHERE
+              MOD(ABS(HASH8(${@concatKey})), ${@bucketsNum}) = ${@bucketID} ${@and}
           key:
-            link: strKeys/string
+            link: Replace1/string
             schema: string
             mandatory: false
             createdBy: sql
@@ -227,15 +360,21 @@ stages:
             schema: any
             mandatory: false
             createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
         out:
           result:
+            external: bucketRows
             schema: '#ref'
     split: '--------------------'
-  Stage 4:
+  Stage 11:
     else: true
-    dependsOn: Prepare keys
+    dependsOn: Else
     actors:
-      PG DB:
+      PG DB1:
         parent: EqualsIgnoreCase
         condition: result
         in:
@@ -244,7 +383,7 @@ stages:
             schema: string
           a:
             external: interfaceType
-      DbCommand3:
+      DbCommand6:
         parent: DbCommand
         in:
           interface:
@@ -298,11 +437,59 @@ stages:
             external: bucketRows
             schema: '#ref'
     split: '--------------------'
-  Stage 6:
+  Stage 12:
     else: true
-    dependsOn: Prepare keys
+    dependsOn: Else
     actors:
-      CASS DB:
+      Sqlite DB:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: sqlite (Db)
+            schema: string
+          a:
+            external: interfaceType
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: |-
+              SELECT ${@key} AS "${@keysAlias}"
+              FROM ${@schema}.${@table}
+          key:
+            link: Replace1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: bucketRows
+            schema: '#ref'
+    split: '--------------------'
+  Stage 4:
+    else: true
+    dependsOn: Else
+    actors:
+      CASS DB1:
         parent: EqualsIgnoreCase
         condition: result
         in:
@@ -311,15 +498,15 @@ stages:
             schema: string
           a:
             external: interfaceType
-      DbCommand4:
+      DbCommand7:
         parent: DbCommand
         in:
           interface:
             const: null
             link: RESULT_INTERFACE/variableValue
           sql:
-            const: select org_key from ${@keysTableSchema}.${@keysTable} where group_id='${@bucketID}'
-              ${@and}
+            const: select org_key as "${@keysAlias}" from ${@keysTableSchema}.${@keysTable}
+              where group_id='${@bucketID}' ${@and}
           keysTableSchema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -340,58 +527,189 @@ stages:
             schema: any
             mandatory: false
             createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
         out:
           result:
-            schema: '#ref'
-  Stage 1:
-    actors:
-      Concat1:
-        parent: Concat
-        height: 674
-        in:
-          delimiter:
-            const: null
-            link: Delim/value
-          elements:
-            link:
-            - path: DbCommand1/result
-              iterate: Iterate
-            - path: DbCommand2/result
-              iterate: Iterate
-            - path: DbCommand4/result
-              iterate: Iterate
-  Stage 2:
-    actors:
-      ArrayToMap1:
-        parent: ArrayToMap
-        in:
-          keys:
-            const: null
-            link:
-              path: CustomKey/value
-              pos: 0
-          values:
-            link:
-              path: Concat1/string
-              pos: 0
-        out:
-          map:
-            schema: '#ref'
-  Stage 3:
-    actors:
-      ArrayBuilder1:
-        parent: ArrayBuilder
-        in:
-          input:
-            link:
-              path: ArrayToMap1/map
-              pos: 0
-        out:
-          array:
             external: bucketRows
             schema: '#ref'
+    split: '--------------------'
+  Stage 2:
+    else: true
+    dependsOn: Else
+    actors:
+      Mysql:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: Mysql (Db)
+            schema: string
+          a:
+            external: interfaceType
+      DbCommand2 - MySQL:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} WHERE
+              MOD(CAST(CRC32(${@concatKey}) AS UNSIGNED), ${@bucketsNum}) = ${@bucketID}
+              ${@and}
+          key:
+            link: Replace1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          concatKey:
+            link: concatKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: bucketRows
+            schema: '#ref'
+    split: '--------------------'
+  Stage 5:
+    else: true
+    dependsOn: Else
+    actors:
+      vsam (Db):
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: vsam (Db)
+            schema: string
+          a:
+            external: interfaceType
+      DbCommand3:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: interface
+          sql:
+            const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} WHERE
+              MOD(CAST(${@concatKey} AS INTEGER),  ${@bucketsNum}) = ${@bucketID}
+              ${@and}
+          key:
+            link: Replace1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          table:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: sql
+          concatKey:
+            link: concatKeys/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketsNum:
+            external: bucketsNum
+            schema: string
+            mandatory: false
+            createdBy: sql
+          bucketID:
+            external: bucketID
+            schema: string
+            mandatory: false
+            createdBy: sql
+          and:
+            link: IfElse1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keysAlias:
+            link: CustomKey/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: bucketRows
+            schema: '#ref'
+  Stage 3: {
+    }
 schemas:
+  DbCommand4.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        org_key:
+          type: string
   DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand9.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand5.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+  DbCommand6.out.result:
     type: array
     items:
       type: object
@@ -407,9 +725,14 @@ schemas:
       properties:
         CUSTOMER_ID:
           type: string
-        SSN:
+  DbCommand7.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        org_key:
           type: string
-  DbCommand3.out.result:
+  DbCommand2 - MySQL.out.result:
     type: array
     items:
       type: object
@@ -418,22 +741,10 @@ schemas:
           type: string
         SSN:
           type: string
-  DbCommand4.out.result:
+  DbCommand3.out.result:
     type: array
     items:
       type: object
       properties:
-        org_key:
-          type: string
-  ArrayToMap1.out.map:
-    type: object
-    properties:
-      CUSTOMER_ID|SSN:
-        type: string
-  ArrayBuilder1.out.array:
-    type: array
-    items:
-      type: object
-      properties:
-        CUSTOMER_ID|SSN:
+        AM_GEN_ORG_CODE:
           type: string

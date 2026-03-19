@@ -1,0 +1,337 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      FileRead1:
+        parent: FileRead
+        in:
+          interface:
+            const: null
+            external: interface
+          path:
+            external: fileName
+      CustomizedKey:
+        parent: Replace
+        in:
+          search:
+            const: null
+            external: delim
+          replace:
+            const: ','
+          string:
+            external: customized_key
+  Stage 4:
+    actors:
+      CsvParser1:
+        parent: CsvParser
+        in:
+          stream:
+            link: FileRead1/stream
+        out:
+          object:
+            schema: '#ref'
+      FileName:
+        parent: Replace
+        in:
+          search:
+            const: .csv
+          string:
+            external: fileName
+  Stage 13:
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: row.keySet();
+          row:
+            link:
+              path: CsvParser1/object
+              iterate: First
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      StringFormat2:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName} Text
+          columnName:
+            link:
+              path: JavaScript1/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: '?'
+            schema: string
+        out:
+          value:
+            schema: string
+      StringFormat5:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName}
+          columnName:
+            link:
+              path: JavaScript1/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+      StringFormat3:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName} = ?
+          columnName:
+            link:
+              path: JavaScript1/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 9:
+    last: 1
+    actors:
+      StringBuild1:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: StringFormat2/string
+              pos: 0
+      StringBuild2:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: Const1/value
+              pos: 0
+      StringBuild3:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: StringFormat5/string
+              pos: 0
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: StringFormat5/string
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+      StringBuild4:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: StringFormat3/string
+              pos: 0
+  Stage 6:
+    actors:
+      StringFormat1:
+        parent: StringFormat
+        height: 205
+        in:
+          format:
+            const: "/*sqlite*/CREATE TABLE IF NOT EXISTS verify.${env}_${fileName}\
+              \ (\r\n${columns},\r\nPRIMARY KEY (${pk})\r\n);"
+          columns:
+            link: StringBuild1/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          pk:
+            link: CustomizedKey/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          env:
+            external: env
+            schema: string
+            mandatory: false
+            createdBy: format
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 12:
+    transactional: false
+    actors:
+      StringFormat4:
+        parent: StringFormat
+        in:
+          format:
+            const: /*sqlite*/insert into verify.${env}_${fileName} (${columns}) values
+              (${qMarks}) on conflict (${pk}) do update set ${setClause};
+          qMarks:
+            link: StringBuild2/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          columns:
+            link: StringBuild3/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          env:
+            external: env
+            schema: string
+            mandatory: false
+            createdBy: format
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          pk:
+            link: CustomizedKey/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          setClause:
+            link: StringBuild4/string
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 7:
+    transactional: false
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: null
+            link: StringFormat1/string
+      StringFormat6:
+        parent: StringFormat
+        in:
+          format:
+            const: ${env}_${fileName}
+          env:
+            external: env
+            schema: string
+            mandatory: false
+            createdBy: format
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 15:
+    transactional: false
+    actors:
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CsvParser1/object
+        out:
+          value:
+            schema: '#ref'
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            external: delim
+          string:
+            external: customized_key
+  Stage 3:
+    transactional: false
+    actors:
+      LoopIndex1:
+        parent: LoopIndex
+        out:
+          value:
+            schema: integer
+  Stage 2:
+    transactional: false
+    actors:
+      GreaterThan1:
+        parent: GreaterThan
+        condition: result
+        in:
+          b:
+            const: 0
+          a:
+            link: LoopIndex1/value
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: fabric
+          command:
+            const: upsert
+          schema:
+            const: verify
+          table:
+            const: null
+            link: StringFormat6/string
+          fields:
+            const: null
+            link: ArrayBuilder1/array
+          keys:
+            const: null
+            link: Split1/strings
+          dialect:
+            const: sqlite
+          params:
+            link:
+              path: Const4/value
+              iterate: Iterate
+schemas:
+  CsvParser1.out.object:
+    type: array
+    items:
+      type: object
+      properties:
+        CUSTOMER_ID:
+          type: string
+        SSN:
+          type: string
+        FIRST_NAME:
+          type: string
+        LAST_NAME:
+          type: string
+  JavaScript1.in.row:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+      FIRST_NAME:
+        type: string
+      LAST_NAME:
+        type: string
+  JavaScript1.out.result:
+    type: array
+    items:
+      type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: string
+  Const4.out.value:
+    type: array
+    items:
+      type: string

@@ -12,17 +12,104 @@ stages:
         out:
           value:
             schema: '#ref'
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 1:
+    actors:
+      Source Schema:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(dataSource.indexOf(".") > -1){
+                  dataSource.split(".")[0];
+              }else{
+                  dataSource;
+              }
+          dataSource:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
+              iterate: Iterate
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+      Source Table:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(dataSource.indexOf(".") > -1){
+                  dataSource.split(".")[1];
+              }else{
+                  dataSource;
+              }
+          dataSource:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
+              iterate: Iterate
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+      Target Table:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(dataSource.indexOf(".") > -1){
+                  dataSource.split(".")[1];
+              }else{
+                  dataSource;
+              }
+          dataSource:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/tar
+              iterate: Iterate
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+      Target Schema:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(dataSource.indexOf(".") > -1){
+                  dataSource.split(".")[0];
+              }else{
+                  dataSource;
+              }
+          dataSource:
+            link:
+              path: TaskProperties/value/K2VERIFY_TABLE_LIST/tar
+              iterate: Iterate
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
   Mtable params:
     actors:
       MTableLookup1:
         parent: MTableLookup
+        disabled: true
         in:
           mtable:
             const: k2verify_config
           Source_Table_Name:
-            link:
-              path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
-              iterate: Iterate
+            link: Source Table/result
             schema: string
             editor:
               id: com.k2view.mTableKey
@@ -36,16 +123,14 @@ stages:
             mandatory: false
             createdBy: mtable
           Source_Schema:
-            link: TaskProperties/value/K2VERIFY_SCHEMA_SRC
+            link: Source Schema/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
             createdBy: mtable
           Target_Table_Name:
-            link:
-              path: TaskProperties/value/K2VERIFY_TABLE_LIST/tar
-              iterate: Iterate
+            link: Target Table/result
             schema: string
             editor:
               id: com.k2view.mTableKey
@@ -59,12 +144,79 @@ stages:
             mandatory: false
             createdBy: mtable
           Target_Schema:
-            link: TaskProperties/value/K2VERIFY_SCHEMA_TAR
+            link: Target Schema/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
             createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+      DbFetchFirstRow1:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |2-
+               select
+              active as "Active",
+              partitions_count as "Buckets",
+              column_name_mapping as  "Column_Mapping",
+              comparison_keys as "Customized_Key_Comparison",
+              excluded_columns_names as "Excluded_Columns_Names",
+              partitions_assignment_method as "Buckets_Method",
+              pii_column_names as "Pii_Columns",
+              rows_filter_condition as "Excluded_Rows_Sql",
+              source_ignore_null_columns as "source_columns_to_Ignore_null",
+              source_interface as "Source_Interface",
+              source_schema as "Source_Schema",
+              source_table_name as "Source_Table_Name",
+              source_transformation_flow as "Source_Transformation_Function_Name",
+              target_ignore_null_columns  as "target_columns_to_Ignore_null",
+              target_interface as "Target_Interface",
+              target_schema as "Target_Schema",
+              target_table_name as "Target_Table_Name",
+              target_transformation_flow as "Target_Transformation_Function_Name"
+              from ${@schema}.verify_configuration where  source_interface=${source_interface} and source_schema=${source_schema} and source_table_name=${source_table_name} and
+              target_interface= ${target_interface} and target_schema=${target_schema} and target_table_name=${target_table_name}
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_interface:
+            link: TaskProperties/value/K2VERIFY_INTERFACE_SRC
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_schema:
+            link: Source Schema/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_table_name:
+            link: Source Table/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_interface:
+            link: TaskProperties/value/K2VERIFY_INTERFACE_TAR
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_schema:
+            link: Target Schema/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_table_name:
+            link: Target Table/result
+            schema: string
+            mandatory: false
+            createdBy: sql
         out:
           result:
             schema: '#ref'
@@ -75,9 +227,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Source_Interface
-              iterate: First
+            link: DbFetchFirstRow1/result/Source_Interface
         out:
           value:
             schema: string
@@ -86,9 +236,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Source_Schema
-              iterate: First
+            link: DbFetchFirstRow1/result/Source_Schema
         out:
           value:
             schema: string
@@ -97,9 +245,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Source_Table_Name
-              iterate: First
+            link: DbFetchFirstRow1/result/Source_Table_Name
         out:
           value:
             schema: string
@@ -108,9 +254,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Target_Interface
-              iterate: First
+            link: DbFetchFirstRow1/result/Target_Interface
         out:
           value:
             schema: string
@@ -119,9 +263,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Target_Schema
-              iterate: First
+            link: DbFetchFirstRow1/result/Target_Schema
         out:
           value:
             schema: string
@@ -130,9 +272,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Target_Table_Name
-              iterate: First
+            link: DbFetchFirstRow1/result/Target_Table_Name
         out:
           value:
             schema: string
@@ -141,9 +281,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Buckets
-              iterate: First
+            link: DbFetchFirstRow1/result/Buckets
         out:
           value:
             schema: string
@@ -152,14 +290,18 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result/Buckets_Method
-              iterate: First
+            link: DbFetchFirstRow1/result/Buckets_Method
         out:
           value:
             schema: string
   Validate interfaces:
     actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: SRC Interface/value
       Validate SRC Interface:
         parent: InnerFlow
         in:
@@ -167,6 +309,11 @@ stages:
             const: bwCheckDBType
           interface:
             link: SRC Interface/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          envName:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
             schema: string
             mandatory: false
             createdBy: flowName
@@ -193,6 +340,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          envName:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
         out:
           type:
             schema: string
@@ -206,50 +358,30 @@ stages:
             const: Please provice a valid target DB interface name
           actual:
             link: Validate TAR Interface/type
-  Validation queries:
-    actors:
-      SRC Validation SQL:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetMetadataValidationSql
-          interface:
-            link: SRC Interface/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          sql:
-            schema: '#ref'
-      TAR Validation SQL:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetMetadataValidationSql
-          interface:
-            link: TAR Interface/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          sql:
-            schema: '#ref'
+  Validation queries: {
+    }
   Validate schemas:
     actors:
-      Validate src schema:
-        parent: DbCommand
+      Validate Source Schema:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnValidateSchema
+          iface:
             link: SRC Interface/value
-          sql:
-            const: null
-            link: SRC Validation SQL/sql/schema
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             link: SRC Schema/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -260,22 +392,28 @@ stages:
             const: Please provice a valid source schema name
           object:
             link:
-              path: Validate src schema/result
+              path: Validate Source Schema/result
               iterate: First
-      Validate tar schema:
-        parent: DbCommand
+      Validate Target Schema:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnValidateSchema
+          iface:
             link: TAR Interface/value
-          sql:
-            const: null
-            link: TAR Validation SQL/sql/schema
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             link: TAR Schema/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -286,29 +424,35 @@ stages:
             const: Please provice a valid target schema name
           object:
             link:
-              path: Validate tar schema/result
+              path: Validate Target Schema/result
               iterate: First
   Validate tables:
     actors:
-      Validate src table:
-        parent: DbCommand
+      Validate Source Table:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnValidateTable
+          iface:
             link: SRC Interface/value
-          sql:
-            const: null
-            link: SRC Validation SQL/sql/table
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             link: SRC Schema/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
           table:
             link: SRC Table/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -319,27 +463,33 @@ stages:
             const: Please provice a valid source table name
           object:
             link:
-              path: Validate src table/result
+              path: Validate Source Table/result
               iterate: First
-      Validate tar table:
-        parent: DbCommand
+      Validate Target Table:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnValidateTable
+          iface:
             link: TAR Interface/value
-          sql:
-            const: null
-            link: TAR Validation SQL/sql/table
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             link: TAR Schema/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
           table:
             link: TAR Table/value
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -350,7 +500,7 @@ stages:
             const: Please provice a valid target table name
           object:
             link:
-              path: Validate tar table/result
+              path: Validate Target Table/result
               iterate: First
   Validate buckets:
     actors:
@@ -447,9 +597,7 @@ stages:
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -478,16 +626,12 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link:
-              path: MTableLookup1/result/Customized_Key_Comparison
-              iterate: First
+            link: DbFetchFirstRow1/result/Customized_Key_Comparison
             schema: string
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -541,16 +685,12 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link:
-              path: MTableLookup1/result/Pii_Columns
-              iterate: First
+            link: DbFetchFirstRow1/result/Pii_Columns
             schema: string
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -604,16 +744,12 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link:
-              path: MTableLookup1/result/Excluded_Columns_Names
-              iterate: First
+            link: DbFetchFirstRow1/result/Excluded_Columns_Names
             schema: string
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -667,16 +803,12 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link:
-              path: MTableLookup1/result/source_columns_to_Ignore_null
-              iterate: First
+            link: DbFetchFirstRow1/result/source_columns_to_Ignore_null
             schema: string
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -726,16 +858,12 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link:
-              path: MTableLookup1/result/target_columns_to_Ignore_null
-              iterate: First
+            link: DbFetchFirstRow1/result/target_columns_to_Ignore_null
             schema: string
             mandatory: false
             createdBy: flowName
           column_mapping:
-            link:
-              path: MTableLookup1/result/Column_Mapping
-              iterate: First
+            link: DbFetchFirstRow1/result/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
@@ -772,9 +900,7 @@ stages:
           flowName:
             const: bwValidateTransformationFunc
           src_trn_fun:
-            link:
-              path: MTableLookup1/result/Source_Transformation_Function_Name
-              iterate: First
+            link: DbFetchFirstRow1/result/Source_Transformation_Function_Name
             schema: string
             mandatory: false
             createdBy: flowName
@@ -809,10 +935,8 @@ stages:
             mandatory: false
             createdBy: flowName
           tar_trn_fun:
-            link:
-              path: MTableLookup1/result/Target_Transformation_Function_Name
-              iterate: First
-            schema: any
+            link: DbFetchFirstRow1/result/Target_Transformation_Function_Name
+            schema: string
             mandatory: false
             createdBy: flowName
 schemas:
@@ -827,10 +951,28 @@ schemas:
         type: string
       K2VERIFY_INTERFACE_TAR:
         type: string
-      K2VERIFY_SCHEMA_SRC:
+      K2VERIFY_ENV_SRC:
         type: string
-      K2VERIFY_SCHEMA_TAR:
+      K2VERIFY_ENV_TAR:
         type: string
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_PRE_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_POST_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
       K2VERIFY_TABLE_LIST:
         type: array
         items:
@@ -840,12 +982,8 @@ schemas:
               type: string
             tar:
               type: string
-      K2VERIFY_MAXWORKERSPERNODE: {
-        }
-      K2VERIFY_LOGPASS:
-        type: boolean
-      K2VERIFY_PII_ONLY_COMPARISON:
-        type: boolean
+            buckets:
+              type: string
   MTableLookup1.out.result:
     type: array
     items:
@@ -889,55 +1027,72 @@ schemas:
           type: string
         Buckets_Method:
           type: string
-  SRC Validation SQL.out.sql:
+  DbFetchFirstRow1.out.result:
     type: object
     properties:
-      schema:
+      Active:
+        type: boolean
+      Buckets:
+        type: integer
+      Column_Mapping:
         type: string
-      table:
+      Customized_Key_Comparison:
         type: string
-      column:
+      Excluded_Columns_Names:
         type: string
-      column_ci:
+      Buckets_Method:
         type: string
-  TAR Validation SQL.out.sql:
-    type: object
-    properties:
-      schema:
+      Pii_Columns:
         type: string
-      table:
+      Excluded_Rows_Sql:
         type: string
-      column:
+      source_columns_to_Ignore_null:
         type: string
-      column_ci:
+      Source_Interface:
         type: string
-  Validate src schema.out.result:
+      Source_Schema:
+        type: string
+      Source_Table_Name:
+        type: string
+      Source_Transformation_Function_Name:
+        type: string
+      target_columns_to_Ignore_null:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Table_Name:
+        type: string
+      Target_Transformation_Function_Name:
+        type: string
+  Validate Source Schema.out.result:
     type: array
     items:
       type: object
       properties:
-        '1':
+        ?column?:
           type: integer
-  Validate tar schema.out.result:
+  Validate Target Schema.out.result:
     type: array
     items:
       type: object
       properties:
-        '1':
+        ?column?:
           type: integer
-  Validate src table.out.result:
+  Validate Source Table.out.result:
     type: array
     items:
       type: object
       properties:
-        '1':
+        ?column?:
           type: integer
-  Validate tar table.out.result:
+  Validate Target Table.out.result:
     type: array
     items:
       type: object
       properties:
-        '1':
+        ?column?:
           type: integer
   BucketsMethodExists.out.result:
     type: array

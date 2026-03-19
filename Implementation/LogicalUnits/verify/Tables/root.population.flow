@@ -9,6 +9,9 @@ stages:
             external: IID
             schema: any
             mandatory: false
+        out:
+          parent_rows:
+            schema: '#ref'
       SRC TABLE:
         parent: FabricSetRead
         in:
@@ -45,28 +48,12 @@ stages:
         in:
           value:
             link: Now/date
-  Source:
-    actors:
-      SplitIID:
-        parent: Split
+      K2VERIFY_INTERFACE_SRC_TYPE:
+        parent: FabricSetRead
         in:
-          delimiter:
-            const: _@_
-          string:
-            link: PopulationArgs/iid
-      IID:
-        parent: JavaScript
-        in:
-          script:
-            const: arr[1]
-          arr:
-            link: SplitIID/strings
-            schema: any
-            mandatory: false
-        out:
-          result:
-            schema: string
-  LU Table:
+          key:
+            const: K2VERIFY_INTERFACE_SRC_TYPE
+  Stage 4:
     actors:
       d2d_root:
         parent: DbLoad
@@ -86,16 +73,108 @@ stages:
             const: sqlite
           IID:
             link: PopulationArgs/iid
+            schema: string
+  Stage 3:
+    actors:
+      DUMMY GET:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_DUMMY_GET
+        out:
+          result:
+            schema: '#ref'
+  Source:
+    actors:
+      NotEquals1:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            link:
+              path: DUMMY GET/result/value
+              iterate: First
+      SplitIID:
+        parent: Split
+        in:
+          delimiter:
+            const: _@_
+          string:
+            link: PopulationArgs/iid
+  Stage 5:
+    actors:
+      DUMMY GET1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_CSV_MODE;
+        out:
+          result:
+            schema: '#ref'
+  LU Table:
+    dependsOn: Stage 5
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            link:
+              path: DUMMY GET1/result/value
+              iterate: First
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: PopulationArgs/iid
+    split: '--------------------'
+  Stage 6:
+    else: true
+    dependsOn: Stage 5
+    actors:
+      IID:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: SplitIID/strings
             schema: any
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 2:
+    actors:
+      SRC Table:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_TABLE_SRC
+        out:
+          result:
+            schema: '#ref'
   Post Load:
     actors:
       DbLoad1:
         parent: DbLoad
         in:
           interface:
-            const: DATA_ASSURANCE
+            const: null
             link: K2VERIFY_INTERFACE/variableValue
-            default: true
           schema:
             const: null
             link: K2VERIFY_SCHEMA/variableValue
@@ -133,12 +212,16 @@ stages:
             mandatory: false
             createdBy: table
           table_name:
-            link: SRC TABLE/result
+            link:
+              path: SRC Table/result/value
+              iterate: First
             schema: string
             mandatory: false
             createdBy: table
           bucket_id:
-            link: IID/result
+            link:
+            - Const1/value
+            - IID/result
             schema: string
             mandatory: false
             createdBy: table
@@ -147,31 +230,39 @@ stages:
             schema: string
             mandatory: false
             createdBy: table
-          total_records:
-            schema: any
-            mandatory: false
-            createdBy: table
-          processed_records:
-            schema: any
-            mandatory: false
-            createdBy: table
-          failed_records:
-            const: 0
-            schema: integer
-            mandatory: false
-            createdBy: table
           start_time:
             link: START_TIME/string
             schema: string
             mandatory: false
             createdBy: table
-          end_time:
-            schema: any
-            mandatory: false
-            createdBy: table
-          error_info:
-            schema: any
-            mandatory: false
-            createdBy: table
   Stage 1: {
     }
+schemas:
+  PopulationArgs.out.parent_rows:
+    type: array
+    items:
+      type: object
+      properties:
+        IID:
+          type: string
+  DUMMY GET.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        value:
+          type: string
+  DUMMY GET1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        value:
+          type: string
+  SRC Table.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        value:
+          type: string

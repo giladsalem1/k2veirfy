@@ -1,0 +1,167 @@
+tags: k2verify
+stages:
+  list of bf according to tag:
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      list bf:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: list bf lu_name=${luName} tag = ${tag}
+          luName:
+            external: luName
+            schema: string
+            mandatory: false
+            createdBy: sql
+          tag:
+            external: tag
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  return empty array if no tagged processes:
+    dependsOn: list of bf according to tag
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: true
+            schema: boolean
+          a:
+            link: ErrorHandler1/result
+      ArrayBuilder2:
+        parent: ArrayBuilder
+        in:
+          input:
+            const: [
+              ]
+        out:
+          array:
+            external: process_list
+            schema: '#ref'
+    split: '--------------------'
+  result const:
+    else: true
+    dependsOn: list of bf according to tag
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: list bf/result
+        out:
+          value:
+            schema: '#ref'
+  .:
+    dependsOn: return empty array if no tagged processes
+    split: '--------------------'
+  create map to store process name and type:
+    dependsOn: result const
+    actors:
+      MapCreate1:
+        parent: MapCreate
+        in:
+          Process_name:
+            link:
+              path: Const1/value/Flow
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          Process_type:
+            external: tag
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+  Stage 1:
+    dependsOn: .
+    split: '--------------------'
+  return array of objects:
+    dependsOn: create map to store process name and type
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: MapCreate1/map
+        out:
+          array:
+            external: process_list
+            schema: '#ref'
+schemas:
+  list bf.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        LUType:
+          type: string
+        Flow:
+          type: string
+        Input Params:
+          type: string
+        Output Params:
+          type: string
+        Tags: {
+          }
+        Description:
+          type: string
+  ArrayBuilder2.out.array:
+    type: array
+    items:
+      type: string
+  Const1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        LUType:
+          type: string
+        Flow:
+          type: string
+        Input Params:
+          type: string
+        Output Params:
+          type: string
+        Tags: {
+          }
+        Description:
+          type: string
+  MapCreate1.out.map:
+    type: object
+    properties:
+      Process_name: {
+        }
+      Process_type: {
+        }
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        Process_name: {
+          }
+        Process_type: {
+          }

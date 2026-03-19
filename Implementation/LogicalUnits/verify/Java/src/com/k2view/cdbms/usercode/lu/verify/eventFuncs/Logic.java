@@ -29,37 +29,68 @@ import static com.k2view.cdbms.shared.user.ProductFunctions.*;
 import static com.k2view.cdbms.usercode.common.SharedLogic.*;
 import static com.k2view.cdbms.usercode.lu.verify.Globals.*;
 
-@SuppressWarnings({"unused", "DefaultAnnotationParam"})
+@SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class Logic extends UserCode {
-	@type(EventFunction)
+    @type(EventFunction)
     public static void fnReportBucketCompleted(EventDataContext eventDataContext) throws Exception {
+        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_DUMMY_GET").firstValue() + "");
+        if (dummyGet)
+            return;
         String operationalInterface = getGlobal("K2VERIFY_OPERATIONAL_INTERFACE", "verify") + "";
         String operationalSchema = getGlobal("K2VERIFY_OPERATIONAL_SCHEMA", "verify") + "";
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = now.format(formatter);
+        Integer executionId = Integer.valueOf(getGlobal("K2VERIFY_EXEC_ID", "verify") + "");
+        Integer taskId = Integer.valueOf(getGlobal("K2VERIFY_TASK_ID", "verify") + "");
+        Boolean isCsvMode = Boolean.valueOf(fabric().fetch("set K2VERIFY_CSV_MODE").firstValue() + "");
+        String tableName = getGlobal("K2VERIFY_TABLE_SRC", "verify");
+        String IID = eventDataContext.getInstanceId().split("_@_")[1];
+        if (isCsvMode) {
+            IID = eventDataContext.getInstanceId();
+            tableName = db(operationalInterface).fetch(
+                    "select table_name from " + operationalSchema
+                            + ".task_execution_buckets where task_id=? and execution_id=? and bucket_id=?",
+                    taskId, executionId, IID).firstValue() + "";
+        }
+        fabric().execute("broadway verify.bwRemoveResultFile bucket_id=?, execution_id=?, table_name=?", eventDataContext.getInstanceId(), executionId, tableName);
         db(operationalInterface).execute(
-                "update "+operationalSchema+".task_execution_buckets set status='Completed' , end_time =? where task_id=? and execution_id=? and table_name=? and bucket_id=?"
-                , formattedDateTime, Integer.valueOf(getGlobal("K2VERIFY_TASK_ID", "verify")+""),
-                Integer.valueOf(getGlobal("K2VERIFY_EXEC_ID", "verify")+""), getGlobal("K2VERIFY_TABLE_SRC", "verify"),
-                eventDataContext.getInstanceId().split("_@_")[1]);
+                "update " + operationalSchema
+                        + ".task_execution_buckets set status='Completed' , end_time =? where task_id=? and execution_id=? and table_name=? and bucket_id=?",
+                formattedDateTime, taskId, executionId, tableName, IID);
 
     }
 
     @type(EventFunction)
     public static void fnReportBucketFailed(EventDataContext eventDataContext) throws Exception {
+        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_DUMMY_GET").firstValue() + "");
+        if (dummyGet)
+            return;
         String operationalInterface = getGlobal("K2VERIFY_OPERATIONAL_INTERFACE", "verify") + "";
         String operationalSchema = getGlobal("K2VERIFY_OPERATIONAL_SCHEMA", "verify") + "";
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = now.format(formatter);
+        Integer executionId = Integer.valueOf(getGlobal("K2VERIFY_EXEC_ID", "verify") + "");
+        Integer taskId = Integer.valueOf(getGlobal("K2VERIFY_TASK_ID", "verify") + "");
+        Boolean isCsvMode = Boolean.valueOf(fabric().fetch("set K2VERIFY_CSV_MODE").firstValue() + "");
+        String tableName = getGlobal("K2VERIFY_TABLE_SRC", "verify");
+        String IID = eventDataContext.getInstanceId().split("_@_")[1];
+        if (isCsvMode) {
+            IID = eventDataContext.getInstanceId();
+            tableName = db(operationalInterface).fetch(
+                    "select table_name from " + operationalSchema
+                            + ".task_execution_buckets where task_id=? and execution_id=? and bucket_id=?",
+                    taskId, executionId, IID).firstValue() + "";
+        }
+        fabric().execute("broadway verify.bwRemoveResultFile bucket_id=?, execution_id=?, table_name=?", eventDataContext.getInstanceId(), executionId, tableName);
         db(operationalInterface).execute(
                 "update " + operationalSchema
                         + ".task_execution_buckets set status='Failed' , end_time=?, error_info=?, total_records=?, failed_records=? where task_id=? and execution_id=? and table_name=? and bucket_id=?",
-                formattedDateTime, eventDataContext.getLastException().getMessage(), null, null, Integer.valueOf(getGlobal("K2VERIFY_TASK_ID", "verify") + ""),
-                Integer.valueOf(getGlobal("K2VERIFY_EXEC_ID", "verify") + ""), getGlobal("K2VERIFY_TABLE_SRC", "verify"),
-                eventDataContext.getInstanceId().split("_@_")[1]);
+                formattedDateTime, eventDataContext.getLastException().getMessage(), null, null, taskId,
+                executionId, tableName,
+                IID);
+        
     }
 
-    
 }

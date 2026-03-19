@@ -41,6 +41,19 @@
                                 "inputs": [],
                                 "outputs": []
                             }
+                        },
+                        {
+                            "name": "Const1",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
+                            }
                         }
                     ]
                 }
@@ -90,20 +103,20 @@
                     "remark": "Tables comparison custom configurations are stored in k2verify_config mtable. This actor retrieves those configurations from the mtable.",
                     "actors": [
                         {
-                            "name": "MTableLookup",
+                            "name": "bwGetTableParams11",
                             "actorType": {
-                                "parentType": "MTableLookup",
+                                "parentType": "InnerFlow",
                                 "inputs": [
                                     {
-                                        "name": "mtable",
-                                        "const": "k2verify_config"
+                                        "name": "flowName",
+                                        "const": "bwGetTableParams"
                                     },
                                     {
                                         "name": "Source_Table_Name",
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
@@ -114,7 +127,7 @@
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
@@ -125,7 +138,7 @@
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
@@ -136,7 +149,7 @@
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
@@ -147,7 +160,7 @@
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
@@ -158,62 +171,65 @@
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "mtable",
+                                        "createdBy": "flowName",
                                         "editor": {
                                             "id": "com.k2view.mTableKey"
                                         },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Buckets",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "flowName",
                                         "mandatory": false
                                     }
                                 ],
                                 "outputs": [
                                     {
-                                        "name": "result",
+                                        "name": "tableParams",
                                         "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "Source_Table_Name": {
-                                                        "type": "string"
-                                                    },
-                                                    "Source_Interface": {
-                                                        "type": "string"
-                                                    },
-                                                    "Source_Schema": {
-                                                        "type": "string"
-                                                    },
-                                                    "Source_Transformation_Function_Name": {},
-                                                    "source_columns_to_Ignore_null": {},
-                                                    "Target_Table_Name": {
-                                                        "type": "string"
-                                                    },
-                                                    "Target_Interface": {
-                                                        "type": "string"
-                                                    },
-                                                    "Target_Schema": {
-                                                        "type": "string"
-                                                    },
-                                                    "Target_Transformation_Function_Name": {},
-                                                    "target_columns_to_Ignore_null": {},
-                                                    "Customized_Key_Comparison": {
-                                                        "type": "string"
-                                                    },
-                                                    "Pii_Columns": {
-                                                        "type": "string"
-                                                    },
-                                                    "Excluded_Columns_Names": {},
-                                                    "Active": {
-                                                        "type": "string"
-                                                    },
-                                                    "Mode": {},
-                                                    "Excluded_Rows_Sql": {},
-                                                    "Column_Mapping": {},
-                                                    "Buckets": {
-                                                        "type": "string"
-                                                    },
-                                                    "Buckets_Method": {
-                                                        "type": "string"
-                                                    }
+                                            "type": "object",
+                                            "properties": {
+                                                "Source_Table_Name": {
+                                                    "type": "string"
+                                                },
+                                                "Source_Interface": {
+                                                    "type": "string"
+                                                },
+                                                "Source_Schema": {
+                                                    "type": "string"
+                                                },
+                                                "Source_Transformation_Function_Name": {},
+                                                "source_columns_to_Ignore_null": {},
+                                                "Target_Table_Name": {
+                                                    "type": "string"
+                                                },
+                                                "Target_Interface": {
+                                                    "type": "string"
+                                                },
+                                                "Target_Schema": {
+                                                    "type": "string"
+                                                },
+                                                "Target_Transformation_Function_Name": {},
+                                                "target_columns_to_Ignore_null": {},
+                                                "Customized_Key_Comparison": {
+                                                    "type": "string"
+                                                },
+                                                "Pii_Columns": {},
+                                                "Excluded_Columns_Names": {},
+                                                "Active": {
+                                                    "type": "string"
+                                                },
+                                                "Mode": {},
+                                                "Excluded_Rows_Sql": {},
+                                                "Column_Mapping": {},
+                                                "Buckets": {
+                                                    "type": "string"
+                                                },
+                                                "Buckets_Method": {
+                                                    "type": "string"
                                                 }
                                             }
                                         }
@@ -231,15 +247,6 @@
                     "name": "Update table verify started",
                     "dependsOnList": [],
                     "actors": [
-                        {
-                            "name": "NotNull1",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "NotNull",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
                         {
                             "name": "StartedTableVerify",
                             "actorType": {
@@ -335,34 +342,6 @@
                                     }
                                 ],
                                 "outputs": []
-                            }
-                        },
-                        {
-                            "name": "InterfaceType",
-                            "actorType": {
-                                "parentType": "InnerFlow",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwCheckDBType"
-                                    },
-                                    {
-                                        "name": "interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "type",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
                             }
                         }
                     ]
@@ -601,6 +580,123 @@
                                     },
                                     {
                                         "name": "compare_only_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "BUCKETS NUM",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_TABLE_BUCKETS_NUM=?"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "SOURCE ENV",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_SOURCE_ENV='${@source_environment}'"
+                                    },
+                                    {
+                                        "name": "source_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TARGET ENV",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_TARGET_ENV='${@target_environment}'"
+                                    },
+                                    {
+                                        "name": "target_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "SOURCE ENV IS PII",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA='${@source_environment_is_pii}'"
+                                    },
+                                    {
+                                        "name": "source_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TARGET ENV IS PII",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA='${@target_environment_is_pii}'"
+                                    },
+                                    {
+                                        "name": "target_environment_is_pii",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -978,25 +1074,7 @@
                             "actorType": {
                                 "parentType": "ErrorFields",
                                 "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "inputs",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "batchId": {
-                                                    "type": "string"
-                                                },
-                                                "waitForSeconds": {
-                                                    "type": "string"
-                                                },
-                                                "interface": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
+                                "outputs": []
                             }
                         },
                         {
@@ -1651,293 +1729,19 @@
         },
         {
             "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCancelled",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCancelled",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "NotNull1",
+                "actor": "Const1",
                 "name": "value"
             },
-            "iterate": "First"
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
             "rightPort": {
-                "actor": "FormatBatchSql",
-                "name": "table_name"
-            },
-            "iterate": "First",
-            "path": [
-                "Source_Table_Name"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "FormatBatchSql",
-                "name": "groupsCnt"
-            },
-            "iterate": "First",
-            "path": [
-                "Buckets"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "SRC Table",
+                "actor": "SRC Interface Type",
                 "name": "params"
             },
-            "iterate": "First",
-            "path": [
-                "Source_Table_Name"
-            ],
             "arrayPosition": 0
         },
         {
             "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "SRC Interface",
-                "name": "params"
-            },
-            "iterate": "First",
-            "path": [
-                "Source_Interface"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "SRC Schema",
-                "name": "params"
-            },
-            "iterate": "First",
-            "path": [
-                "Source_Schema"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TAR Table",
-                "name": "params"
-            },
-            "iterate": "First",
-            "path": [
-                "Target_Table_Name"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TAR Interface",
-                "name": "params"
-            },
-            "iterate": "First",
-            "path": [
-                "Target_Interface"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TAR Schema",
-                "name": "params"
-            },
-            "iterate": "First",
-            "path": [
-                "Target_Schema"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "bucket_count"
-            },
-            "iterate": "First",
-            "path": [
-                "Buckets"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "InterfaceType",
-                "name": "interface"
-            },
-            "iterate": "First",
-            "path": [
-                "Source_Interface"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ExtractKeysFromCassTable",
-                "name": "customized_key"
-            },
-            "iterate": "First",
-            "path": [
-                "Customized_Key_Comparison"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "MTableLookup",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ExtractKeysFromCassTable",
-                "name": "buckets_count"
-            },
-            "iterate": "First",
-            "path": [
-                "Buckets"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "InterfaceType",
-                "name": "type"
+                "actor": "Const1",
+                "name": "value"
             },
             "rightPort": {
                 "actor": "CassandraInterface",
@@ -1946,13 +1750,265 @@
         },
         {
             "leftPort": {
-                "actor": "InterfaceType",
-                "name": "type"
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
             },
             "rightPort": {
-                "actor": "SRC Interface Type",
+                "actor": "StartedTableVerify",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyInProgress",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCompleted",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCancelled",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyFailed",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "StartedTableVerify",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyInProgress",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCompleted",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCancelled",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyFailed",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "SRC Table",
                 "name": "params"
             },
+            "path": [
+                "Source_Table_Name"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "FormatBatchSql",
+                "name": "table_name"
+            },
+            "path": [
+                "Source_Table_Name"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "SRC Interface",
+                "name": "params"
+            },
+            "path": [
+                "Source_Interface"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "SRC Schema",
+                "name": "params"
+            },
+            "path": [
+                "Source_Schema"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "TAR Schema",
+                "name": "params"
+            },
+            "path": [
+                "Target_Schema"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "TAR Table",
+                "name": "params"
+            },
+            "path": [
+                "Target_Table_Name"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "TAR Interface",
+                "name": "params"
+            },
+            "path": [
+                "Target_Interface"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "ExtractKeysFromCassTable",
+                "name": "customized_key"
+            },
+            "path": [
+                "Customized_Key_Comparison"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "StartedTableVerify",
+                "name": "bucket_count"
+            },
+            "path": [
+                "Buckets"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "FormatBatchSql",
+                "name": "groupsCnt"
+            },
+            "path": [
+                "Buckets"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "ExtractKeysFromCassTable",
+                "name": "buckets_count"
+            },
+            "path": [
+                "Buckets"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "bwGetTableParams11",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "BUCKETS NUM",
+                "name": "params"
+            },
+            "path": [
+                "Buckets"
+            ],
             "arrayPosition": 0
         },
         {
@@ -2168,10 +2224,20 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
+                "name": "interfaceType"
+            },
+            "rightPort": {
+                "actor": "Const1",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Source_Table_Name"
             }
         },
@@ -2181,7 +2247,7 @@
                 "name": "Source_Interface"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Source_Interface"
             }
         },
@@ -2191,7 +2257,7 @@
                 "name": "Source_Schema"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Source_Schema"
             }
         },
@@ -2201,7 +2267,7 @@
                 "name": "Target_Table_Name"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Target_Table_Name"
             }
         },
@@ -2211,7 +2277,7 @@
                 "name": "Target_Interface"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Target_Interface"
             }
         },
@@ -2221,8 +2287,18 @@
                 "name": "Target_Schema"
             },
             "rightPort": {
-                "actor": "MTableLookup",
+                "actor": "bwGetTableParams11",
                 "name": "Target_Schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "Buckets"
+            },
+            "rightPort": {
+                "actor": "bwGetTableParams11",
+                "name": "Buckets"
             }
         },
         {
@@ -2293,6 +2369,46 @@
             "rightPort": {
                 "actor": "COMPARE ONLY PII",
                 "name": "compare_only_pii"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "source_environment"
+            },
+            "rightPort": {
+                "actor": "SOURCE ENV",
+                "name": "source_environment"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "target_environment"
+            },
+            "rightPort": {
+                "actor": "TARGET ENV",
+                "name": "target_environment"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "source_environment_is_pii"
+            },
+            "rightPort": {
+                "actor": "SOURCE ENV IS PII",
+                "name": "source_environment_is_pii"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "target_environment_is_pii"
+            },
+            "rightPort": {
+                "actor": "TARGET ENV IS PII",
+                "name": "target_environment_is_pii"
             }
         },
         {

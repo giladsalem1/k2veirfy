@@ -2,59 +2,329 @@ tags: D2D,k2verify
 stages:
   Stage 1:
     actors:
-      MTableLookup1:
-        parent: MTableLookup
+      FabricSetRead1:
+        parent: FabricSetRead
         in:
-          mtable:
-            const: k2verify_config
-          Active:
-            const: 'TRUE'
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      FabricSetRead2:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: FabricSetRead1/result
+          sql:
+            const: select * from ${@schema}.verify_configuration
+          schema:
+            link: FabricSetRead2/result
+            schema: any
             mandatory: false
-            createdBy: mtable
+            createdBy: sql
         out:
           result:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: DbCommand2/result
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Stage 4:
+    actors:
+      MapCreate1:
+        parent: MapCreate
+        in:
+          Active:
+            link: Const3/value/active
+            schema: '#ref'
+            mandatory: false
+          Buckets:
+            link: Const3/value/partitions_count
+            schema: '#ref'
+            mandatory: false
+          Buckets_Method:
+            link: Const3/value/partitions_assignment_method
+            schema: string
+            mandatory: false
+          Column_Mapping:
+            link: Const3/value/column_name_mapping
+            schema: string
+            mandatory: false
+          Customized_Key_Comparison:
+            link: Const3/value/comparison_keys
+            schema: string
+            mandatory: false
+          Excluded_Columns_Names:
+            link: Const3/value/excluded_columns_names
+            schema: string
+            mandatory: false
+          Excluded_Rows_Sql:
+            link: Const3/value/rows_filter_condition
+            schema: string
+            mandatory: false
+          Mode:
+            schema: any
+            mandatory: false
+          Pii_Columns:
+            link: Const3/value/pii_column_names
+            schema: string
+            mandatory: false
+          source_columns_to_Ignore_null:
+            link: Const3/value/source_ignore_null_columns
+            schema: string
+            mandatory: false
+          Source_Interface:
+            link: Const3/value/source_interface
+            schema: '#ref'
+            mandatory: false
+          Source_Schema:
+            link: Const3/value/source_schema
+            schema: string
+            mandatory: false
+          Source_Table_Name:
+            link: Const3/value/source_table_name
+            schema: string
+            mandatory: false
+          Source_Transformation_Function_Name:
+            link: Const3/value/source_transformation_flow
+            schema: string
+            mandatory: false
+          target_columns_to_Ignore_null:
+            link: Const3/value/target_ignore_null_columns
+            schema: string
+            mandatory: false
+          Target_Interface:
+            link: Const3/value/target_interface
+            schema: string
+            mandatory: false
+          Target_Schema:
+            link: Const3/value/target_schema
+            schema: string
+            mandatory: false
+          Target_Table_Name:
+            link: Const3/value/target_table_name
+            schema: string
+            mandatory: false
+          Target_Transformation_Function_Name:
+            link: Const3/value/target_transformation_flow
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: MapCreate1/map
+        out:
+          array:
             external: result
             schema: '#ref'
-          Source_Table_Name:
-            schema: any
-          Target_Table_Name:
-            schema: any
-  Stage 2: {
-    }
 schemas:
-  MTableLookup1.out.result:
+  DbCommand2.out.result:
     type: array
     items:
       type: object
       properties:
-        Lu_Name:
+        source_environment:
           type: string
-        Source_Table_Name:
+        source_interface:
           type: string
-        Source_Transformation_Function_Name: {
-          }
-        source_columns_to_Ignore_null: {
-          }
-        Target_Table_Name:
+        source_table_name:
           type: string
-        Target_Transformation_Function_Name: {
-          }
-        target_columns_to_Ignore_null: {
-          }
-        Customized_Key_Comparison:
+        source_schema:
           type: string
-        Mismatch_Columns: {
+        source_transformation_flow:
+          type: string
+        source_ignore_null_columns:
+          type: string
+        target_environment:
+          type: string
+        target_interface:
+          type: string
+        target_table_name:
+          type: string
+        target_schema:
+          type: string
+        target_transformation_flow:
+          type: string
+        target_ignore_null_columns:
+          type: string
+        comparison_keys:
+          type: string
+        pii_column_names:
+          type: string
+        excluded_columns_names:
+          type: string
+        active:
+          type: boolean
+        rows_filter_condition:
+          type: string
+        column_name_mapping:
+          type: string
+        partitions_count:
+          type: integer
+        partitions_assignment_method:
+          type: string
+  Const3.out.value:
+    type: object
+    properties:
+      source_environment:
+        type: string
+      source_interface:
+        type: string
+      source_table_name:
+        type: string
+      source_schema:
+        type: string
+      source_transformation_flow:
+        type: string
+      source_ignore_null_columns:
+        type: string
+      target_environment:
+        type: string
+      target_interface:
+        type: string
+      target_table_name:
+        type: string
+      target_schema:
+        type: string
+      target_transformation_flow:
+        type: string
+      target_ignore_null_columns:
+        type: string
+      comparison_keys:
+        type: string
+      pii_column_names:
+        type: string
+      excluded_columns_names:
+        type: string
+      active:
+        type: boolean
+      rows_filter_condition:
+        type: string
+      column_name_mapping:
+        type: string
+      partitions_count:
+        type: integer
+      partitions_assignment_method:
+        type: string
+  MapCreate1.in.Active:
+    type: array
+    items:
+      type: boolean
+  MapCreate1.in.Buckets:
+    type: array
+    items:
+      type: integer
+  MapCreate1.in.Source_Interface:
+    type: array
+    items:
+      type: string
+  MapCreate1.out.map:
+    type: object
+    properties:
+      Active: {
+        }
+      Buckets: {
+        }
+      Buckets_Method: {
+        }
+      Column_Mapping: {
+        }
+      Customized_Key_Comparison: {
+        }
+      Excluded_Columns_Names: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Mode: {
+        }
+      Pii_Columns: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Source_Interface:
+        type: array
+        items:
+          type: string
+      Source_Schema: {
+        }
+      Source_Table_Name:
+        type: array
+        items:
+          type: string
+      Source_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Target_Interface: {
+        }
+      Target_Schema: {
+        }
+      Target_Table_Name: {
+        }
+      Target_Transformation_Function_Name: {
+        }
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        Active: {
+          }
+        Buckets: {
+          }
+        Buckets_Method: {
+          }
+        Column_Mapping: {
+          }
+        Customized_Key_Comparison: {
           }
         Excluded_Columns_Names: {
           }
-        Active:
-          type: string
-        Mode:
-          type: string
         Excluded_Rows_Sql: {
           }
-        Column_Mapping: {
+        Mode: {
+          }
+        Pii_Columns: {
+          }
+        source_columns_to_Ignore_null: {
+          }
+        Source_Interface:
+          type: array
+          items:
+            type: string
+        Source_Schema: {
+          }
+        Source_Table_Name:
+          type: array
+          items:
+            type: string
+        Source_Transformation_Function_Name: {
+          }
+        target_columns_to_Ignore_null: {
+          }
+        Target_Interface: {
+          }
+        Target_Schema: {
+          }
+        Target_Table_Name: {
+          }
+        Target_Transformation_Function_Name: {
           }

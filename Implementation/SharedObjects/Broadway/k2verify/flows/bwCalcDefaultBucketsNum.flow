@@ -1,0 +1,996 @@
+tags: k2verify
+stages:
+  Normalize Inputs:
+    actors:
+      DefaultPartitionSize:
+        parent: Const
+        in:
+          value:
+            const: 1000000
+            schema: integer
+        out:
+          value:
+            schema: integer
+      HasPartitionSize:
+        parent: NotNull
+        in:
+          value:
+            external: partition_size
+      PartitionSizeOrDefault:
+        parent: IfElse
+        in:
+          b:
+            link: DefaultPartitionSize/value
+          test:
+            link: HasPartitionSize/result
+          a:
+            external: partition_size
+        out:
+          result:
+            schema: integer
+      ParseBucketsConfig:
+        parent: JavaScript
+        in:
+          script:
+            const: |
+              var s = buckets_config;
+
+              if (s && s.length) s = s[0];
+
+              var n = parseInt(("" + s).trim(), 10);
+              if (isNaN(n) || n <= 0) n = 0;
+
+              n;
+          buckets_config:
+            external: buckets_config
+            schema: integer
+            mandatory: false
+        out:
+          result:
+            schema: integer
+      LUName:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+  Stage 18:
+    dependsOn: Normalize Inputs
+    actors:
+      GreaterThan1:
+        parent: GreaterThan
+        condition: result
+        in:
+          b:
+            const: 0
+          a:
+            link: ParseBucketsConfig/result
+      ReturnManualBucketCount:
+        parent: Const
+        height: 77
+        in:
+          value:
+            const: null
+            link: ParseBucketsConfig/result
+            schema: integer
+        out:
+          value:
+            external: bucket_count
+            schema: integer
+    split: '--------------------'
+  Stage 1:
+    else: true
+    dependsOn: Normalize Inputs
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      OperationalInterface:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      OperationalSchema:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      BuildCacheLookupParams:
+        parent: JavaScript
+        in:
+          script:
+            const: '[Source_Interface, Source_Schema, Source_Table];'
+          Source_Interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 17:
+    dependsOn: Stage 18
+    split: '--------------------'
+  Stage 2:
+    dependsOn: Stage 1
+    actors:
+      DbFetchFirstRow1:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: null
+            link: OperationalInterface/variableValue
+          sql:
+            const: |-
+              SELECT (
+              SELECT bucket_count
+              FROM k2verify.k2verify_table_count
+              WHERE source_interface = ?
+                AND source_schema = ?
+                AND source_table = ?
+              ) AS bucket_count;
+          params:
+            link: BuildCacheLookupParams/result
+        out:
+          result:
+            schema: '#ref'
+      DbFetchField2:
+        parent: DbFetchField
+        disabled: true
+        in:
+          interface:
+            const: null
+            link: OperationalInterface/variableValue
+          sql:
+            const: |-
+              SELECT (
+              SELECT bucket_count
+              FROM k2verify.k2verify_table_count
+              WHERE source_interface = ?
+                AND source_schema = ?
+                AND source_table = ?
+              ) AS bucket_count;
+          params:
+            link: BuildCacheLookupParams/result
+        out:
+          result:
+            schema: integer
+  Stage 22:
+    dependsOn: Stage 17
+    split: '--------------------'
+  Stage 3:
+    dependsOn: Stage 2
+    actors:
+      NotNull2:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: DbFetchFirstRow1/result/bucket_count
+      ReturnLookUpBucketCount:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+            - DbFetchFirstRow1/result/bucket_count
+            - DbFetchField2/result
+        out:
+          value:
+            external: bucket_count
+            schema: '#ref'
+    split: '--------------------'
+  Stage 4:
+    else: true
+    dependsOn: Stage 2
+    actors:
+      InterfaceType:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckDBType
+          interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          type:
+            schema: string
+  Stage 24:
+    dependsOn: Stage 22
+    split: '--------------------'
+  Stage 6:
+    dependsOn: Stage 3
+    split: '--------------------'
+  Stage 7:
+    dependsOn: Stage 4
+    actors:
+      CassandraInterface:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: Cassandra (Db)
+            schema: string
+          a:
+            link: InterfaceType/type
+      ErrorFields2:
+        parent: ErrorFields
+        error: message
+      ExtractKeysFromCassTable:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwExtractKeyFromCassTable
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            const: 1
+            schema: integer
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: LUName/lu_name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Stage 14:
+    else: true
+    dependsOn: Stage 4
+    actors:
+      ErrorHandler2:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: com.k2view.fabric.common.io.basic.exception.StandardSqlException
+              conditions:
+                standardType: UNIQUE_CONSTRAINT
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      BuildEstRowsSql:
+        parent: JavaScript
+        in:
+          script:
+            const: |
+              var t = (db_type || "").toUpperCase();
+              var sql = null;
+
+              if (t.indexOf("POSTGRES") >= 0) {
+                sql =
+                  "SELECT COALESCE(c.reltuples::bigint, 0) " +
+                  "FROM pg_class c " +
+                  "JOIN pg_namespace n ON n.oid = c.relnamespace " +
+                  "WHERE n.nspname = ? AND c.relname = ?" ;
+                  /* sql =
+                  "SELECT COALESCE(c.reltuples::bigint, 0) " +
+                  "FROM pg_class c " +
+                  "JOIN pg_namespace n ON n.oid = c.relnamespace " +
+                  "WHERE false" ;*/
+              }
+              else if (t.indexOf("ORACLE") >= 0) {
+                sql =
+                  "SELECT COALESCE(num_rows, 0) " +
+                  "FROM all_tables " +
+                  "WHERE owner = ? AND table_name = ?";
+              }
+              else if (t.indexOf("DB2") >= 0) {
+                sql =
+                  "SELECT COALESCE(card, 0) " +
+                  "FROM syscat.tables " +
+                  "WHERE tabschema = ? AND tabname = ?";
+              }
+
+              sql;
+          db_type:
+            link: InterfaceType/type
+            schema: string
+            mandatory: false
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+      BuildParams:
+        parent: JavaScript
+        in:
+          script:
+            const: '[ Source_Schema, Source_Table ];'
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Fetch Est Rows:
+    dependsOn: Stage 24
+    split: '--------------------'
+  Stage 9:
+    dependsOn: Stage 6
+    split: '--------------------'
+  Stage 12:
+    else: false
+    dependsOn: Stage 7
+    actors:
+      HasCountResult1:
+        parent: NotNull
+        condition: result
+      Now2:
+        parent: Now
+      Updated_At2:
+        parent: ToString
+    split: '--------------------'
+  Stage 50:
+    else: true
+    dependsOn: Stage 7
+    actors:
+      default1:
+        parent: Const
+        in:
+          value:
+            const: 1
+            schema: integer
+        out:
+          value:
+            external: bucket_count
+            schema: integer
+    split: '--------------------'
+  Stage 19:
+    dependsOn: Stage 14
+    actors:
+      DbFetchFirstRow2:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: null
+            external: Source_Interface
+          sql:
+            const: null
+            link: BuildEstRowsSql/result
+          params:
+            link: BuildParams/result
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    dependsOn: Fetch Est Rows
+    split: '--------------------'
+  Stage 20:
+    dependsOn: Stage 9
+    split: '--------------------'
+  Stage 21:
+    dependsOn: Stage 12
+    actors:
+      CalcBucketCount11:
+        parent: JavaScript
+        in:
+          script:
+            const: |
+              var rows = rows_count;
+              var ps = partition_size;
+
+              if (rows === null || rows === undefined) rows = 0;
+              if (ps === null || ps === undefined || ps <= 0) ps = 1000000;
+
+              rows = Math.floor(Number(rows));
+              ps = Math.floor(Number(ps));
+
+              var bc = Math.ceil(rows / ps);
+              if (!isFinite(bc) || bc < 1) bc = 1;
+
+              bc;
+          rows_count:
+            schema: integer
+            mandatory: false
+          partition_size:
+            schema: integer
+            mandatory: false
+        out:
+          result:
+            external: bucket_count
+            schema: integer
+      BuildParams11:
+        parent: JavaScript
+        in:
+          script:
+            const: '[ Source_Schema, Source_Table ];'
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 56:
+    dependsOn: Stage 50
+    split: '--------------------'
+  Stage 23:
+    dependsOn: Stage 19
+    actors:
+      NotEquals1:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: -1
+            schema: object
+          a:
+            link: DbFetchFirstRow2/result/coalesce
+      Now:
+        parent: Now
+      Updated_At:
+        parent: ToString
+        in:
+          value:
+            link: Now/date
+    split: '--------------------'
+  Stage 43:
+    else: true
+    transactional: false
+    dependsOn: Stage 19
+    actors:
+      ErrorFields1:
+        parent: ErrorFields
+        error: message
+        out:
+          inputs:
+            schema: '#ref'
+      CountRows:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCountRowsTimed
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Source_Interface:
+            external: Source_Interface
+            schema: string
+            editor:
+              interfaceType:
+              - database
+              - CassandraLoader
+              interfaces:
+              - fabric
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+        out:
+          row_count:
+            schema: integer
+  Stage 13:
+    dependsOn: Stage 5
+    split: '--------------------'
+  Stage 25:
+    dependsOn: Stage 20
+    split: '--------------------'
+  Stage 26:
+    dependsOn: Stage 21
+    actors:
+      UpsertCacheRow11:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            default: true
+          command:
+            const: upsert
+          schema:
+            const: null
+          table:
+            const: k2verify_table_count
+          fields:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+            - db_type
+            - est_rows
+            - bucket_count
+            - updated_at
+          keys:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+          dialect:
+            const: postgres
+          source_interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+            createdBy: schema
+          db_type:
+            schema: string
+            mandatory: false
+            createdBy: schema
+          est_rows:
+            schema: integer
+            mandatory: false
+            createdBy: schema
+          bucket_count:
+            schema: integer
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            schema: string
+            mandatory: false
+            createdBy: schema
+    split: '--------------------'
+  Stage 57:
+    dependsOn: Stage 56
+    split: '--------------------'
+  Stage 27:
+    dependsOn: Stage 23
+    actors:
+      ErrorHandler4:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      CalcBucketCount:
+        parent: JavaScript
+        in:
+          script:
+            const: |
+              var rows = est_rows;
+              var ps = partition_size;
+
+              if (rows === null || rows === undefined) rows = 0;
+              if (ps === null || ps === undefined || ps <= 0) ps = 1000000;
+
+              rows = Math.floor(Number(rows));
+              ps = Math.floor(Number(ps));
+
+              var bc = Math.ceil(rows / ps);
+              if (!isFinite(bc) || bc < 1) bc = 1;
+
+              bc;
+          est_rows:
+            link: DbFetchFirstRow2/result/coalesce
+            schema: integer
+            mandatory: false
+          partition_size:
+            link: PartitionSizeOrDefault/result
+            schema: integer
+            mandatory: false
+        out:
+          result:
+            schema: integer
+      UpsertCacheRow:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: OperationalInterface/variableValue
+            default: true
+          command:
+            const: upsert
+          schema:
+            const: null
+            link: OperationalSchema/variableValue
+          table:
+            const: k2verify_table_count
+          fields:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+            - db_type
+            - est_rows
+            - bucket_count
+            - updated_at
+          keys:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+          dialect:
+            const: postgres
+          source_interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+            createdBy: schema
+          db_type:
+            link: InterfaceType/type
+            schema: string
+            mandatory: false
+            createdBy: schema
+          est_rows:
+            link: DbFetchFirstRow2/result/coalesce
+            schema: integer
+            mandatory: false
+            createdBy: schema
+          bucket_count:
+            link: CalcBucketCount/result
+            schema: any
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            link: Updated_At/string
+            schema: string
+            mandatory: false
+            createdBy: schema
+    split: '--------------------'
+  Stage 44:
+    dependsOn: Stage 43
+    actors:
+      HasCountResult:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: CountRows/row_count
+      Now1:
+        parent: Now
+      Updated_At1:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+    split: '--------------------'
+  default 1:
+    else: true
+    dependsOn: Stage 43
+    actors:
+      default:
+        parent: Const
+        in:
+          value:
+            const: 1
+            schema: integer
+        out:
+          value:
+            external: bucket_count
+            schema: integer
+  Stage 16:
+    dependsOn: Stage 13
+    split: '--------------------'
+  Stage 28:
+    dependsOn: Stage 25
+    split: '--------------------'
+  Stage 29:
+    dependsOn: Stage 26
+    split: '--------------------'
+  Stage 58:
+    dependsOn: Stage 57
+    split: '--------------------'
+  Stage 30:
+    dependsOn: Stage 27
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CalcBucketCount/result
+        out:
+          value:
+            external: bucket_count
+            schema: integer
+    split: '--------------------'
+  Stage 45:
+    dependsOn: Stage 44
+    actors:
+      CalcBucketCount1:
+        parent: JavaScript
+        in:
+          script:
+            const: |
+              var rows = rows_count;
+              var ps = partition_size;
+
+              if (rows === null || rows === undefined) rows = 0;
+              if (ps === null || ps === undefined || ps <= 0) ps = 1000000;
+
+              rows = Math.floor(Number(rows));
+              ps = Math.floor(Number(ps));
+
+              var bc = Math.ceil(rows / ps);
+              if (!isFinite(bc) || bc < 1) bc = 1;
+
+              bc;
+          rows_count:
+            link: CountRows/row_count
+            schema: integer
+            mandatory: false
+          partition_size:
+            link: PartitionSizeOrDefault/result
+            schema: integer
+            mandatory: false
+        out:
+          result:
+            external: bucket_count
+            schema: integer
+      BuildParams1:
+        parent: JavaScript
+        in:
+          script:
+            const: '[ Source_Schema, Source_Table ];'
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 51:
+    dependsOn: default 1
+  Stage 8:
+    dependsOn: Stage 16
+    split: '--------------------'
+  Stage 31:
+    dependsOn: Stage 28
+    split: '--------------------'
+  Stage 32:
+    dependsOn: Stage 29
+    split: '--------------------'
+  Stage 59:
+    dependsOn: Stage 58
+    split: '--------------------'
+  Stage 33:
+    else: false
+    dependsOn: Stage 30
+    split: '--------------------'
+  Stage 46:
+    dependsOn: Stage 45
+    actors:
+      UpsertCacheRow1:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: OperationalInterface/variableValue
+            default: true
+          command:
+            const: upsert
+          schema:
+            const: null
+            link: OperationalSchema/variableValue
+          table:
+            const: k2verify_table_count
+          fields:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+            - db_type
+            - est_rows
+            - bucket_count
+            - updated_at
+          keys:
+            const:
+            - source_interface
+            - source_schema
+            - source_table
+          dialect:
+            const: postgres
+          source_interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: schema
+          source_table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+            createdBy: schema
+          db_type:
+            link: InterfaceType/type
+            schema: string
+            mandatory: false
+            createdBy: schema
+          est_rows:
+            link: CountRows/row_count
+            schema: integer
+            mandatory: false
+            createdBy: schema
+          bucket_count:
+            link: CalcBucketCount1/result
+            schema: integer
+            mandatory: false
+            createdBy: schema
+          updated_at:
+            link: Updated_At1/string
+            schema: string
+            mandatory: false
+            createdBy: schema
+    split: '--------------------'
+  Stage 52:
+    dependsOn: Stage 51
+  Stage 10:
+    dependsOn: Stage 8
+    split: '--------------------'
+  Stage 34:
+    dependsOn: Stage 31
+    split: '--------------------'
+  Stage 35:
+    dependsOn: Stage 32
+    split: '--------------------'
+  Stage 60:
+    dependsOn: Stage 59
+    split: '--------------------'
+  Stage 36:
+    dependsOn: Stage 33
+    split: '--------------------'
+  Stage 47:
+    dependsOn: Stage 46
+    split: '--------------------'
+  Stage 53:
+    dependsOn: Stage 52
+  Stage 11:
+    dependsOn: Stage 10
+    split: '--------------------'
+  Stage 37:
+    dependsOn: Stage 34
+    split: '--------------------'
+  Stage 38:
+    dependsOn: Stage 35
+    split: '--------------------'
+  Stage 61:
+    dependsOn: Stage 60
+    split: '--------------------'
+  Stage 39:
+    dependsOn: Stage 36
+    split: '--------------------'
+  Stage 48:
+    dependsOn: Stage 47
+    split: '--------------------'
+  Stage 54:
+    dependsOn: Stage 53
+  Stage 15:
+    dependsOn: Stage 11
+    split: '--------------------'
+  Stage 40:
+    dependsOn: Stage 37
+    split: '--------------------'
+  Stage 41:
+    dependsOn: Stage 38
+    split: '--------------------'
+  Stage 62:
+    dependsOn: Stage 61
+    split: '--------------------'
+  Stage 42:
+    dependsOn: Stage 39
+    split: '--------------------'
+  Stage 49:
+    dependsOn: Stage 48
+    split: '--------------------'
+  Stage 55:
+    dependsOn: Stage 54
+schemas:
+  BuildCacheLookupParams.out.result:
+    type: array
+    items:
+      type: string
+  DbFetchFirstRow1.out.result:
+    type: object
+    properties:
+      bucket_count:
+        type: integer
+  ReturnLookUpBucketCount.out.value:
+    type: object
+    properties: {
+      }
+  BuildParams.out.result:
+    type: array
+    items:
+      type: string
+  DbFetchFirstRow2.out.result:
+    type: object
+    properties:
+      coalesce:
+        type: integer
+  BuildParams11.out.result:
+    type: array
+    items:
+      type: string
+  ErrorFields1.out.inputs:
+    type: object
+    properties:
+      flowName:
+        type: string
+      innerFlowClose:
+        type: boolean
+      Source_Schema:
+        type: string
+      Source_Table:
+        type: string
+      Source_Interface:
+        type: string
+  BuildParams1.out.result:
+    type: array
+    items:
+      type: string

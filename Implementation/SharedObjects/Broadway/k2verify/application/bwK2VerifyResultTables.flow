@@ -47,7 +47,7 @@ stages:
                   COALESCE(SUM(krs.number_of_fields_mismatch), 0)       AS fields_mismatch,
                   COALESCE(SUM(krs.number_of_fields_only_in_source), 0) AS fields_only_in_source,
                   COALESCE(SUM(krs.number_of_fields_only_in_target), 0) AS fields_only_in_target
-                FROM ${@schema}.k2verify_record_summary krs
+                FROM ${@schema}.k2verify_record_summary_${@execution_id} krs
                 WHERE krs.execution_id = ${execution_id}
                 GROUP BY
                   krs.execution_id,

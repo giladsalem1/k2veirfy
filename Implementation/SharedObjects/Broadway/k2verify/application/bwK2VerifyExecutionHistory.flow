@@ -44,7 +44,7 @@ stages:
                   execution_id,
                   SUM(number_of_fields_match)    AS total_match_fields,
                   SUM(number_of_fields_mismatch) AS total_mismatch_fields
-                FROM ${@schema_name}.k2verify_record_summary
+                FROM ${@schema_name}.task_execution_history
                 GROUP BY 1
               )
               SELECT

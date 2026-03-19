@@ -54,16 +54,6 @@ stages:
             schema: any
             mandatory: false
             createdBy: functionName
-          sourceEnv:
-            const: SRC
-            schema: string
-            mandatory: false
-            createdBy: functionName
-          targetEnv:
-            const: TAR
-            schema: string
-            mandatory: false
-            createdBy: functionName
           pii_columns:
             external: pii_columns
             schema: string
@@ -101,7 +91,7 @@ stages:
             createdBy: functionName
           log_pass:
             external: log_pass
-            schema: any
+            schema: string
             mandatory: false
             createdBy: functionName
         out:
@@ -383,21 +373,6 @@ stages:
         out:
           value:
             schema: '#ref'
-  Stage 11:
-    transactional: true
-    actors:
-      JavaScript1:
-        parent: JavaScript
-        in:
-          script:
-            const: arr.length
-          arr:
-            link: Const5/value
-            schema: any
-            mandatory: false
-        out:
-          result:
-            external: failed_fields
   Stage 4:
     transactional: true
     actors:
@@ -405,27 +380,30 @@ stages:
         parent: StringFormat
         in:
           format:
-            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
+            const: ${verify_dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
           bucket_id:
             external: bucket_id
             schema: string
             mandatory: false
             createdBy: format
-          dir:
+          verify_dir:
             external: verify_dir
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
           source_table_name:
             external: source_table_name
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
           execution_id:
             external: execution_id
-            schema: any
+            schema: string
             mandatory: false
             createdBy: format
+  Stage 14:
+    transactional: true
+    actors:
       CsvBuilder1:
         parent: CsvBuilder
         in:
@@ -457,10 +435,10 @@ stages:
             const: file://
           append:
             const: true
-          path:
-            link: StringFormat1/string
           stream:
             link: CsvBuilder1/csv
+          path:
+            external: file_name
 schemas:
   SrcRow.out.value:
     type: object
@@ -473,6 +451,12 @@ schemas:
         type: string
       SRC_LAST_NAME:
         type: string
+      SRC_CREATED_DATE: {
+        }
+      SRC_DOCUMENT_BLOB: {
+        }
+      SRC_DOCUMENT_CLOB: {
+        }
   TarRow.out.value:
     type: object
     properties:
@@ -484,6 +468,12 @@ schemas:
         type: string
       TAR_LAST_NAME:
         type: string
+      TAR_CREATED_DATE: {
+        }
+      TAR_DOCUMENT_BLOB: {
+        }
+      TAR_DOCUMENT_CLOB: {
+        }
   LuFunction2.in.sourceMap:
     type: object
     properties:

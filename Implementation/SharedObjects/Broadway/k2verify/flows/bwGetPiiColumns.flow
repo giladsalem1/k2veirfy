@@ -7,6 +7,13 @@ stages:
         in:
           string:
             external: customized_pii
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: k2verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
   Split piis:
     dependsOn: Pii Cols
     actors:
@@ -103,7 +110,7 @@ stages:
         in:
           delimiter:
             const: null
-            external: delim
+            link: SEPERATOR/variableValue
           elements:
             link: PII From Catalog mt1/result/field
   Stage 3:

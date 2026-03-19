@@ -1,4 +1,4 @@
-tags: application
+tags: application,k2verify
 stages:
   Stage 1:
     actors:
@@ -23,7 +23,7 @@ stages:
           sql:
             const: |-
               SELECT
-                  *
+                  task_id,task_title,source_interface,target_interface,created_by,created_at,properties
               FROM ${@schema_name}.tasks where lower(task_status) <> 'inactive'
               order by task_id desc
           schema_name:

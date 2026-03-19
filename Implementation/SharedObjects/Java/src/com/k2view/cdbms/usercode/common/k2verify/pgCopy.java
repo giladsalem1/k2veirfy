@@ -67,7 +67,7 @@ public class pgCopy extends FabricAbstractActor {
 
         // COPY SQL
         String copySql = String.format(
-                "COPY %s (%s) FROM STDIN WITH (FORMAT csv, HEADER %s, NULL '')",
+                "COPY %s (%s) FROM STDIN WITH (FORMAT csv, HEADER %s, NULL '\\N')",
                 tableName,
                 cols,
                 header ? "true" : "false");

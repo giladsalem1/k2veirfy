@@ -1,0 +1,66 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      GetLUName1:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+      Const1:
+        parent: Const
+        in:
+          value:
+            const:
+            - MIN_PROCESSED_THRESHOLD_PCT
+            - MAX_COMPARISON_FAILURE_PCT
+            - MAX_RECORD_MISMATCH_PCT
+            - MAX_SLIDING_WINDOW_FAILURE_PCT
+            schema: '#ref'
+        out:
+          value:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      Get Parameter Value:
+        parent: GetLUVariable
+        in:
+          luName:
+            link: GetLUName1/lu_name
+          variableName:
+            link:
+              path: Const1/value
+              iterate: Iterate
+  Stage 3:
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            link:
+              path: Const1/value
+              iterate: Iterate
+          value:
+            link: Get Parameter Value/variableValue
+        out:
+          map:
+            external: map
+            schema: '#ref'
+schemas:
+  Const1.in.value:
+    type: array
+    items: {
+      }
+  Const1.out.value:
+    type: array
+    items:
+      type: string
+  MapBuild1.out.map:
+    type: object
+    properties:
+      MIN_PROCESSED_THRESHOLD_PCT: {
+        }
+      MAX_RECORD_MISMATCH_PCT: {
+        }
+      MAX_SLIDING_WINDOW_FAILURE_PCT: {
+        }

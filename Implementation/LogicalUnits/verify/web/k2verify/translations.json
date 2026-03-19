@@ -1,4 +1,5 @@
 {
+  "k2verify.Version":"1.1.0",
   "k2verifyHome.title": "Verify Tasks",
   "k2verifyHome.newTask": "New Task",
   "k2verifyResults.reportHeaderDescription": "Results summary of the data comparison between source and target systems, including execution outcomes and table-level discrepancies.",
@@ -9,7 +10,7 @@
   "k2verifyHome.toasts.executionFailed": "Execution failed",
   "k2verifyHome.toasts.stopFailed": "Failed to stop execution",
   "k2verifyHome.toasts.deleteFailed": "Failed to delete task",
-  "k2verifyHome.toasts.deletedOk": "Task {{taskId}} deleted",
+  "k2verifyHome.toasts.deletedOk": "Task deleted successfully.",
   "k2verifyHome.toasts.validationFailed": "Validation failed",
   "k2verifyHome.validationErrorTitle": "Validation Error",
 
@@ -24,18 +25,18 @@
   "k2verifyExecution.stopAlt": "Stop",
   "k2verifyExecution.stopTitle": "Stop Task",
 
-  "k2verifyExecution.bucketTitle": "Bucket Details for",
+  "k2verifyExecution.bucketTitle": "Partition Details for",
   "k2verifyExecution.tableLabel": "- Table:",
   "k2verifyExecution.selectRowHint": "(select a row to view details)",
-  "k2verifyExecution.selectInfoHint": "* Select the info icon to view bucket details of each table.",
+  "k2verifyExecution.selectInfoHint": "* Select the info icon to view partition details of each table.",
 
   "k2verifyExecution.toasts.missingTaskId": "Missing task id",
   "k2verifyExecution.toasts.executionFailed": "Execution failed",
-  "k2verifyExecution.toasts.stopFailedWithMsg": "Failed to stop Task #{{taskId}}: {{msg}}",
+  "k2verifyExecution.toasts.stopFailedWithMsg": "Failed to stop Task",
   "k2verifyExecution.toasts.cancelRequested": "Cancellation requested for Task #{{taskId}}",
   "k2verifyExecution.toasts.noTableName": "No table_name found for this row",
   "k2verifyExecution.toasts.fetchExecutionFailed": "Failed to fetch the execution data.",
-  "k2verifyExecution.toasts.fetchBucketFailed": "Failed to fetch bucket details for the selected table.",
+  "k2verifyExecution.toasts.fetchBucketFailed": "Failed to fetch partition details for the selected table.",
   "k2verifyResults.noDataTitle": "No data available",
   "k2verifyResults.noDataSubtitle": "This page was opened without execution context.",
 
@@ -63,10 +64,10 @@
   "k2verifyHistoryDetailed.taskIdLabel": "Task ID:",
   "k2verifyHistoryDetailed.executionIdLabel": "Execution ID:",
 
-  "k2verifyHistoryDetailed.bucketTitle": "Bucket Details -",
+  "k2verifyHistoryDetailed.bucketTitle": "Partition Details -",
   "k2verifyHistoryDetailed.tableLabel": "Table:",
   "k2verifyHistoryDetailed.noBucketRows": "No bucket rows found.",
-  "k2verifyHistoryDetailed.selectInfoHint": "* Select the info icon to view bucket details of each table.",
+  "k2verifyHistoryDetailed.selectInfoHint": "* Select the info icon to view partition details of each table.",
 
   "k2verifyHistoryDetailed.missingTitle": "Task Execution Details",
   "k2verifyHistoryDetailed.missingTaskId": "Missing task id.",
@@ -74,10 +75,12 @@
   "k2verifyHistoryDetailed.goBack": "Go Back",
 
   "k2verifyHistoryDetailed.toasts.loadHistoryFailed": "Failed to load task execution history",
-  "k2verifyHistoryDetailed.toasts.loadBucketFailed": "Failed to load bucket details",
+  "k2verifyHistoryDetailed.toasts.loadBucketFailed": "Failed to load partition details",
   "k2verifyHistoryDetailed.toasts.noTableName": "No table_name found for this row",
   "k2verifyTaskResults.title": "Verify Task Execution Results",
   "k2verifyTaskResults.toasts.loadFailed": "Failed to load task execution history",
+  "k2verifyTaskOptions.sourceEnvironmentSelectPlaceholder": "_dev",
+  "k2verifyTaskOptions.targetEnvironmentSelectPlaceholder": "_dev",
     "k2verifyTaskOptions.title": "Create Verify Task",
   
     "k2verifyTaskOptions.taskTitleLabel": "Task title",
@@ -119,10 +122,37 @@
   
     "k2verifyTaskOptions.save": "Save",
     "k2verifyTaskOptions.reset": "Reset",
-    "k2verifyTaskOptions.cancel": "Cancel"
+    "k2verifyTaskOptions.cancel": "Cancel",
 
+    "k2verifyConfiguration.title":"Configuration",
+    "k2verifyConfiguration.toasts.deleteFailed":"Failed to delete the configuration!",
+    "k2verifyConfiguration.toasts.deleteSuccess" :"Configuration deleted successfully!",
+    "k2verifyConfiguration.newConfiguration":"New Configuration ",
+    "k2verifyConfiguration.toasts.saveSuccess":"Configuration Saved successfully!",
+    "K2VerifyTaskHistoryDetailed.retry":"Retry Task",
+    "k2verifyAdvancedSettings.title":"Error Handling Parameters",
+    "k2verifyAdvancedSettings.toasts.loadFailed": "Failed to load advanced settings.",
+  "k2verifyAdvancedSettings.toasts.saveSuccess": "Advanced settings updated successfully.",
+  "k2verifyAdvancedSettings.toasts.saveFailed": "Failed to update advanced settings.",
 
-  
+  "k2verifyAdvancedSettings.columns.parameter": "Parameter",
+  "k2verifyAdvancedSettings.columns.value": "Value",
+  "k2verifyAdvancedSettings.columns.description": "Description",
+
+  "k2verifyAdvancedSettings.validation.rangeError": "{{label}} must be between 0 and 100.",
+  "k2verifyAdvancedSettings.validation.invalidNumber": "{{label}} must be a valid number between 0 and 100.",
+  "k2verifyAdvancedSettings.noChanges": "No changes to save.",
+  "k2verifyAdvancedSettings.noData": "No advanced settings found.",
+  "k2verifyAdvancedSettings.save": "Save",
+  "k2verifyAdvancedSettings.saving": "Saving...",
+
+  "k2verifyAdvancedSettings.parameters.minProcessedThresholdPct.description": "Minimum percentage of records that must be processed before evaluating other thresholds. Range: 0-100.",
+  "k2verifyAdvancedSettings.parameters.maxComparisonFailurePct.description": "Maximum allowed percentage of records where the comparison between the source and target could not be completed, for example due to missing records or processing errors. Range: 0-100.",
+  "k2verifyAdvancedSettings.parameters.maxRecordMismatchPct.description": "Maximum allowed percentage of records where the comparison succeeded, but field values differ between source and target. Range: 0-100.",
+  "k2verifyAdvancedSettings.parameters.maxSlidingWindowFailurePct.description": "Maximum allowed percentage of comparison failures within a recent sliding window of processed records. This monitors short-term failure spikes instead of a cumulative failure rate. Example: trigger if more than 30 percent failures in the last 1000 records. Range: 0-100.",
+  "k2verifyAdvancedSettings.toasts.loadFailed": "Failed to load advanced settings.",
+  "k2verifyAdvancedSettings.toasts.saveSuccess": "Advanced settings updated successfully.",
+  "k2verifyAdvancedSettings.toasts.saveFailed": "Failed to update advanced settings."
 
 
 }

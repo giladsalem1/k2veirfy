@@ -17,6 +17,13 @@ stages:
         in:
           value:
             external: execution_id
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
   Stage 2:
     actors:
       DbCommand2:
@@ -55,42 +62,125 @@ stages:
         out:
           value:
             schema: string
-      MTableLookup1:
-        parent: MTableLookup
+  Stage 14:
+    actors:
+      DbFetchFirstRow1:
+        parent: DbFetchFirstRow
         in:
-          mtable:
-            const: catalog_field_info
-          dataset:
-            link:
-              path: DbCommand2/result/source_table_name
-              iterate: Iterate
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |-
+              select
+              pii_column_names as "Pii_Columns",
+              source_interface as "Source_Interface",
+              source_schema as "Source_Schema",
+              source_table_name as "Source_Table_Name"
+              from ${@schema}.verify_configuration where  source_table_name=${source_table_name}
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_table_name:
+            link: table name/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 17:
+    actors:
+      bwGetPiiColumns:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPiiColumns
+          interface:
+            link: DbFetchFirstRow1/result/Source_Interface
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
-        out:
-          result:
-            schema: '#ref'
-          pii:
+            createdBy: flowName
+          schema:
+            link: DbFetchFirstRow1/result/Source_Schema
             schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: DbFetchFirstRow1/result/Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          customized_pii:
+            link: DbFetchFirstRow1/result/Pii_Columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          pii_columns:
+            schema: string
+  Stage 10:
+    dependsOn: Stage 17
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: bwGetPiiColumns/pii_columns
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: '|'
+          string:
+            link: bwGetPiiColumns/pii_columns
+    split: '--------------------'
+  Stage 11:
+    else: true
+    dependsOn: Stage 17
+  Stage 15:
+    dependsOn: Stage 10
+    actors:
+      Uppercase1:
+        parent: Uppercase
+        in:
+          string:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+    split: '--------------------'
+  Stage 16:
+    dependsOn: Stage 11
   Stage 8:
     last: 1
+    dependsOn: Stage 15
     actors:
       MapBuild2:
         parent: MapBuild
         in:
-          key:
-            link:
-              path: MTableLookup1/result/field
-              iterate: Iterate
           value:
-            link:
-              path: MTableLookup1/result/pii
-              iterate: Iterate
+            const: 'true'
+            schema: string
+          key:
+            link: Uppercase1/string
         out:
           map:
             schema: '#ref'
+    split: '--------------------'
+  Stage 12:
+    last: 1
+    dependsOn: Stage 16
+  Stage 13: {
+    }
   Stage 4:
     actors:
       DbCommand1:
@@ -101,8 +191,16 @@ stages:
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
           sql:
             const: |-
-              select column_name,count(*) as total_failed
-               from ${@schema}.k2verify_field_summary_${@execution_id} where execution_id =${execution_id} and match_result='NOT PASSED' and source_table_name=${source_table_name} group by column_name
+              SELECT
+                  column_name,
+                  COUNT(CASE
+                            WHEN LOWER(match_result) = 'not passed' THEN 1
+                       END) AS total_failed
+              FROM ${@schema}.k2verify_field_summary_${@execution_id}
+              WHERE execution_id = ${execution_id}
+                AND source_table_name = ${source_table_name}
+              GROUP BY column_name
+              ORDER BY column_name;
           execution_id:
             external: execution_id
             schema: string
@@ -144,7 +242,7 @@ stages:
         in:
           script:
             const: |-
-              dataMap.pii = piiMap[dataMap.column_name] === null ? false : true;
+              dataMap.pii = !!(piiMap && piiMap[dataMap.column_name] != null);
               dataMap
           dataMap:
             link:
@@ -161,20 +259,6 @@ stages:
             schema: '#ref'
   Stage 5:
     actors:
-      MapBuild1:
-        parent: MapBuild
-        disabled: true
-        in:
-          duplicateKeys:
-            const: all
-          key:
-            link: table name/value
-          value:
-            link: JavaScript1/result
-        out:
-          map:
-            external: map
-            schema: '#ref'
       CsvBuilder1:
         parent: CsvBuilder
         in:
@@ -203,6 +287,7 @@ stages:
           actorId:
             const:
             - 'MapBuild2 '
+            - CsvBuilder1
 schemas:
   DbCommand2.out.result:
     type: array
@@ -211,47 +296,17 @@ schemas:
       properties:
         source_table_name:
           type: string
-  MTableLookup1.out.result:
-    type: array
-    items:
-      type: object
-      properties:
-        dataPlatform:
-          type: string
-        schema:
-          type: string
-        dataset:
-          type: string
-        class:
-          type: string
-        field:
-          type: string
-        sqlDataType:
-          type: string
-        sourceDataType:
-          type: string
-        sourceEntityType:
-          type: string
-        sourceNullable:
-          type: string
-        columnSize:
-          type: string
-        definedBy:
-          type: string
-        ordinalPosition:
-          type: string
-        pk: {
-          }
-        pii:
-          type: string
-        classification:
-          type: string
-        encodingType: {
-          }
-        idx: {
-          }
-        V11: {
-          }
+  DbFetchFirstRow1.out.result:
+    type: object
+    properties:
+      Pii_Columns:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Table_Name:
+        type: string
   MapBuild2.out.map:
     type: object
     properties:
@@ -483,72 +538,3 @@ schemas:
         type: integer
       pii:
         type: boolean
-  MapBuild1.out.map:
-    type: object
-    properties:
-      ACTIVITY:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean
-      CUSTOMER_PROFILE:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean
-      DEVICE_INVENTORY:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean
-      SUPPORT_TICKET:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean
-      TRANSACTIONS:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean
-      USAGE:
-        type: array
-        items:
-          type: object
-          properties:
-            column_name:
-              type: string
-            total_failed:
-              type: integer
-            pii:
-              type: boolean

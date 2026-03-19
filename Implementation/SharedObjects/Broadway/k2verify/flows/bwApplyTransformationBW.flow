@@ -253,6 +253,31 @@ stages:
         out:
           value:
             schema: integer
+      StringFormat2:
+        parent: StringFormat
+        in:
+          format:
+            const: ${column}_ORIG
+          column:
+            link:
+              path: Columns/result
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: format
+      MapBuild3:
+        parent: MapBuild
+        resetOnFirstIteration: true
+        in:
+          value:
+            link:
+              path: Values/result
+              iterate: Iterate
+          key:
+            link: StringFormat2/string
+        out:
+          map:
+            schema: '#ref'
     split: '--------------------'
   Stage 14:
     else: true
@@ -269,8 +294,7 @@ stages:
         out:
           value:
             schema: string
-  Stage 15:
-    last: 1
+  Stage 19:
     actors:
       MapBuild2:
         parent: MapBuild
@@ -287,6 +311,18 @@ stages:
         out:
           map:
             schema: '#ref'
+  Stage 15:
+    last: 1
+    actors:
+      MapMerge1:
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: MapBuild3/map
+              pos: 0
+            - path: MapBuild2/map
+              pos: 1
   Stage 12:
     last: 1
     actors:
@@ -295,7 +331,7 @@ stages:
         in:
           input:
             link:
-              path: MapBuild2/map
+              path: MapMerge1/map
               pos: 0
         out:
           array:
@@ -374,6 +410,15 @@ schemas:
     type: object
     properties:
       SRC_FIRST_NAME:
+        type: string
+      SRC_SSN:
+        type: string
+  MapBuild3.out.map:
+    type: object
+    properties:
+      SRC_FIRST_NAME:
+        type: string
+      SRC_CUSTOMER_ID:
         type: string
       SRC_SSN:
         type: string

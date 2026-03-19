@@ -1,0 +1,75 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_INTERFACE1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: select * from ${@schemaName}.verify_configuration
+          schemaName:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        source_interface:
+          type: string
+        source_table_name:
+          type: string
+        source_schema:
+          type: string
+        source_transformation_function_name:
+          type: string
+        source_columns_to_ignore_null:
+          type: string
+        target_interface:
+          type: string
+        target_table_name:
+          type: string
+        target_schema:
+          type: string
+        target_transformation_function_name:
+          type: string
+        target_columns_to_ignore_null:
+          type: string
+        customized_key_comparison:
+          type: string
+        pii_columns:
+          type: string
+        excluded_columns_names:
+          type: string
+        active:
+          type: boolean
+        excluded_rows_sql:
+          type: string
+        column_mapping:
+          type: string
+        buckets:
+          type: integer
+        buckets_method:
+          type: string

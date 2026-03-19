@@ -169,6 +169,11 @@ stages:
               - file://
             mandatory: false
             createdBy: flowName
+          schema:
+            const: verify
+            schema: string
+            mandatory: false
+            createdBy: flowName
       InnerFlow2:
         parent: InnerFlow
         in:
@@ -199,13 +204,9 @@ stages:
   Stage 11:
     else: true
     dependsOn: Stage 1
-  Stage 3:
-    dependsOn: Stage 2
-    split: '--------------------'
-  Stage 10:
-    dependsOn: Stage 11
+  Stage 3: {
+    }
   Stage 9:
-    dependsOn: Stage 3
     actors:
       Concat1:
         parent: Concat
@@ -218,11 +219,7 @@ stages:
               pos: 0
             - path: File Name/result
               pos: 1
-    split: '--------------------'
-  Stage 12:
-    dependsOn: Stage 10
   Stage 4:
-    dependsOn: Stage 9
     actors:
       ArrayBuilder1:
         parent: ArrayBuilder
@@ -240,11 +237,7 @@ stages:
         out:
           array:
             schema: '#ref'
-    split: '--------------------'
-  Stage 13:
-    dependsOn: Stage 12
   Stage 5:
-    dependsOn: Stage 4
     actors:
       Exec1:
         parent: Exec
@@ -254,9 +247,6 @@ stages:
           params:
             const: null
             link: ArrayBuilder1/array
-    split: '--------------------'
-  Stage 14:
-    dependsOn: Stage 13
   Stage 6:
     actors:
       Return Path and file name:

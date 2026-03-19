@@ -1,0 +1,38 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      FabricSet1:
+        parent: FabricSet
+        in:
+          key:
+            const: environment
+          value:
+            const: null
+            external: envName
+            default: false
+  Stage 2:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: list interfaces;
+        out:
+          result:
+            external: result
+            schema: '#ref'
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        INTERFACE:
+          type: string
+        ACTIVE:
+          type: boolean
+        TYPE:
+          type: string

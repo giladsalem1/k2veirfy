@@ -1,0 +1,215 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            external: record
+        out:
+          object:
+            schema: '#ref'
+  Stage 2:
+    transactional: true
+    actors:
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          command:
+            const: upsert
+          schema:
+            const: null
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+          table:
+            const: verify_configuration
+          fields:
+            const:
+            - source_environment
+            - source_interface
+            - source_table_name
+            - source_schema
+            - source_transformation_flow
+            - source_ignore_null_columns
+            - target_environment
+            - target_interface
+            - target_table_name
+            - target_schema
+            - target_transformation_flow
+            - target_ignore_null_columns
+            - comparison_keys
+            - pii_column_names
+            - excluded_columns_names
+            - active
+            - rows_filter_condition
+            - column_name_mapping
+            - partitions_count
+            - partitions_assignment_method
+          keys:
+            const:
+            - source_table_name
+            - target_table_name
+          dialect:
+            const: postgres
+          source_environment:
+            schema: any
+            mandatory: false
+            createdBy: table
+          source_interface:
+            schema: any
+            mandatory: false
+            createdBy: table
+          source_table_name:
+            schema: any
+            mandatory: false
+            createdBy: table
+          source_schema:
+            schema: any
+            mandatory: false
+            createdBy: table
+          source_transformation_flow:
+            schema: any
+            mandatory: false
+            createdBy: table
+          source_ignore_null_columns:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_environment:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_interface:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_table_name:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_schema:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_transformation_flow:
+            schema: any
+            mandatory: false
+            createdBy: table
+          target_ignore_null_columns:
+            schema: any
+            mandatory: false
+            createdBy: table
+          comparison_keys:
+            schema: any
+            mandatory: false
+            createdBy: table
+          pii_column_names:
+            schema: any
+            mandatory: false
+            createdBy: table
+          excluded_columns_names:
+            schema: any
+            mandatory: false
+            createdBy: table
+          active:
+            schema: any
+            mandatory: false
+            createdBy: table
+          rows_filter_condition:
+            schema: any
+            mandatory: false
+            createdBy: table
+          column_name_mapping:
+            schema: any
+            mandatory: false
+            createdBy: table
+          partitions_count:
+            schema: any
+            mandatory: false
+            createdBy: table
+          partitions_assignment_method:
+            schema: any
+            mandatory: false
+            createdBy: table
+          params:
+            link: JsonParser1/object
+schemas:
+  JsonParser1.out.object:
+    type: object
+    properties:
+      id:
+        type: string
+      source_table_name:
+        type: string
+      target_table_name:
+        type: string
+      source_interface:
+        type: string
+      target_interface:
+        type: string
+      source_schema:
+        type: string
+      target_schema:
+        type: string
+      buckets:
+        type: string
+      buckets_method:
+        type: string
+      active:
+        type: boolean
+      source_transformation_function_name:
+        type: string
+      target_transformation_function_name:
+        type: string
+      source_columns_to_ignore_null:
+        type: string
+      target_columns_to_ignore_null:
+        type: string
+      customized_key_comparison:
+        type: string
+      pii_columns:
+        type: string
+      excluded_columns_names:
+        type: string
+      excluded_rows_sql:
+        type: string
+      column_mapping:
+        type: string
+      source_environment:
+        type: string
+      target_environment:
+        type: string
+      partitions_count:
+        type: integer
+      partitions_assignment_method:
+        type: string
+      source_transformation_flow:
+        type: string
+      source_ignore_null_columns:
+        type: string
+      target_transformation_flow:
+        type: string
+      target_ignore_null_columns:
+        type: string
+      comparison_keys:
+        type: string
+      pii_column_names:
+        type: string
+      rows_filter_condition:
+        type: string
+      column_name_mapping:
+        type: string

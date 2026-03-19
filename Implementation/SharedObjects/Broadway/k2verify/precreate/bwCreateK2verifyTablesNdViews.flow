@@ -107,6 +107,7 @@ stages:
     actors:
       Clean D2D Tables:
         parent: InnerFlow
+        disabled: true
         in:
           flowName:
             const: bwCleanK2verifyTables

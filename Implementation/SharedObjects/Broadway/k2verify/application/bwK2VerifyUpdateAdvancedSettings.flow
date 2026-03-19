@@ -1,0 +1,45 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      Parameters to Update:
+        parent: JsonParser
+        in:
+          stream:
+            external: update_params
+        out:
+          object:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      Update Globals:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set_global global '*.${@parameter_name}=${@parameter_value}'
+          parameter_name:
+            link:
+              path: Parameters to Update/object/parameter_name
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: sql
+          parameter_value:
+            link:
+              path: Parameters to Update/object/parameter_value
+              iterate: Iterate
+            schema: any
+            mandatory: false
+            createdBy: sql
+schemas:
+  Parameters to Update.out.object:
+    type: array
+    items:
+      type: object
+      properties:
+        parameter_name:
+          type: string
+        parameter_value:
+          type: string

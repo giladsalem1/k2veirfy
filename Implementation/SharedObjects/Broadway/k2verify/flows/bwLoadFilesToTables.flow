@@ -1,0 +1,284 @@
+tags: k2verify
+stages:
+  Stage 17:
+    actors:
+      ls1:
+        parent: ls
+        in:
+          interface:
+            const: null
+            external: srcInterface
+          pattern:
+            const: null
+            external: pattern
+          directories:
+            const: true
+        out:
+          result:
+            schema: '#ref'
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
+  Stage 18:
+    actors:
+      File:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: ls1/result
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+  Stage 19:
+    actors:
+      FileName:
+        parent: Replace
+        in:
+          search:
+            const: .csv
+          string:
+            link: File/value/name
+      LoopIndex1:
+        parent: LoopIndex
+  Stage 4:
+    actors:
+      StringFormat3:
+        parent: StringFormat
+        in:
+          format:
+            const: ${fileName}_@_${idx}
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          idx:
+            link: LoopIndex1/value
+            schema: any
+            mandatory: false
+            createdBy: format
+      MTableLookup1:
+        parent: MTableLookup
+        in:
+          mtable:
+            const: k2verify_config
+          Source_Table_Name:
+            external: pattern
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+          Source_Interface:
+            external: srcInterface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: mtable
+        out:
+          result:
+            schema: '#ref'
+  Stage 2:
+    transactional: true
+    actors:
+      DUMMY GET:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_DUMMY_GET='true';
+  Stage 3:
+    transactional: true
+    actors:
+      FabricGet1:
+        parent: FabricGet
+        in:
+          luType:
+            const: verify
+          iid:
+            const: null
+            link:
+              path: StringFormat3/string
+              pos: 0
+            default: false
+          syncMode:
+            const: 'ON'
+  Stage 16:
+    last: 1
+    transactional: true
+    actors:
+      bwLoadSrcFilesToTable:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadFileToLUITable
+          interface:
+            external: srcInterface
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: src
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            link:
+              path: MTableLookup1/result/Customized_Key_Comparison
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          fileName:
+            link: File/value/name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+      bwLoadTarFilesToTable1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadFileToLUITable
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: tar
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            link:
+              path: MTableLookup1/result/Customized_Key_Comparison
+              iterate: First
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: tarInterface
+            schema: string
+            editor:
+              id: com.k2view.interface
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+            mandatory: false
+            createdBy: flowName
+          fileName:
+            link: File/value/name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+  Stage 5:
+    transactional: true
+    actors:
+      SRC Table111:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_DUMMY_GET='false';
+schemas:
+  ls1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+        createTime:
+          type: integer
+        lastModifiedTime:
+          type: integer
+        lastAccessTime:
+          type: integer
+        directory:
+          type: boolean
+  File.out.value:
+    type: object
+    properties:
+      name:
+        type: string
+      size:
+        type: integer
+      createTime:
+        type: integer
+      lastModifiedTime:
+        type: integer
+      lastAccessTime:
+        type: integer
+      directory:
+        type: boolean
+  MTableLookup1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        Source_Table_Name:
+          type: string
+        Source_Interface:
+          type: string
+        Source_Schema:
+          type: string
+        Source_Transformation_Function_Name: {
+          }
+        source_columns_to_Ignore_null: {
+          }
+        Target_Table_Name:
+          type: string
+        Target_Interface:
+          type: string
+        Target_Schema:
+          type: string
+        Target_Transformation_Function_Name: {
+          }
+        target_columns_to_Ignore_null: {
+          }
+        Customized_Key_Comparison:
+          type: string
+        Pii_Columns: {
+          }
+        Excluded_Columns_Names: {
+          }
+        Active:
+          type: string
+        Mode: {
+          }
+        Excluded_Rows_Sql: {
+          }
+        Column_Mapping: {
+          }
+        Buckets:
+          type: string
+        Buckets_Method:
+          type: string

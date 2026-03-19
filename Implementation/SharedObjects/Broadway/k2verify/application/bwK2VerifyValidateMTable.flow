@@ -12,7 +12,7 @@ stages:
         out:
           lu_name:
             schema: string
-  Stage 7:
+  Stage 2:
     actors:
       K2VERIFY_INTERFACE:
         parent: GetLUVariable
@@ -28,7 +28,7 @@ stages:
             const: K2VERIFY_OPERATIONAL_SCHEMA
           luName:
             link: GetLUName1/lu_name
-  Stage 5:
+  Stage 3:
     actors:
       FetchTaskProps:
         parent: DbFetchField
@@ -51,9 +51,62 @@ stages:
         out:
           result:
             schema: string
-  Stage 2:
+      FetchTables:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_INTERFACE/variableValue
+          sql:
+            const: select table_properties from ${@schema}.task_table_properties where
+              task_id=${task_id}
+          schema:
+            link: K2VERIFY_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: TASK_ID/number
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 4:
     actors:
-      JsonParser1:
+      Parse Table Json:
+        parent: JsonParser
+        in:
+          single:
+            const: false
+          stream:
+            link: FetchTables/result/table_properties
+        out:
+          object:
+            schema: '#ref'
+  Stage 5:
+    last: 1
+    actors:
+      Build Tables Map:
+        parent: MapBuild
+        height: 195
+        in:
+          key:
+            const: K2VERIFY_TABLE_LIST
+            schema: string
+          duplicateKeys:
+            const: all
+          value:
+            link:
+              path: Parse Table Json/object
+              iterate: Iterate
+        out:
+          map:
+            schema: '#ref'
+  Stage 6:
+    actors:
+      Parse Other Properties:
         parent: JsonParser
         in:
           stream:
@@ -61,21 +114,62 @@ stages:
         out:
           object:
             schema: '#ref'
-  Stage 3:
+  Stage 7:
+    actors:
+      Final Map for Validation:
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: Parse Other Properties/object
+              pos: 0
+            - path: Build Tables Map/map
+              pos: 1
+        out:
+          map:
+            schema: '#ref'
+  Stage 8:
     actors:
       bwValidateMtableParams1:
         parent: InnerFlow
-        height: 247
         in:
           flowName:
             const: bwValidateMtableParams
           taskProps:
-            link: JsonParser1/object
+            link: Final Map for Validation/map
             schema: '#ref'
             mandatory: false
             createdBy: flowName
 schemas:
-  JsonParser1.out.object:
+  FetchTables.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        table_properties:
+          type: string
+  Parse Table Json.out.object:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string
+  Build Tables Map.out.map:
+    type: object
+    properties:
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              table_properties:
+                type: string
+  Parse Other Properties.out.object:
     type: object
     properties:
       K2VERIFY_TASK_TITLE:
@@ -105,6 +199,42 @@ schemas:
         type: boolean
       K2VERIFY_PII_ONLY_COMPARISON:
         type: boolean
+  Final Map for Validation.out.map:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_ENV_SRC:
+        type: string
+      K2VERIFY_ENV_TAR:
+        type: string
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_MAXWORKERSPERNODE:
+        type: integer
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+            buckets:
+              type: string
   bwValidateMtableParams1.in.taskProps:
     type: object
     properties:

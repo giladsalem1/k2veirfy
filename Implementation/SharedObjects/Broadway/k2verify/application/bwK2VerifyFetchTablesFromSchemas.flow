@@ -1,0 +1,90 @@
+tags: k2verify
+stages:
+  'Stage 1 : Fetching the tables based on environment, interface and schema':
+    actors:
+      Fetch tables from schemas:
+        parent: LuFunction
+        in:
+          functionName:
+            const: getTableNamesByInterfaceAndSchema
+          envName:
+            external: envName
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          interfaceName:
+            external: interfaceName
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          schemaName:
+            external: schemaName
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: '#ref'
+      Map build for Schema:
+        parent: MapBuild
+        in:
+          key:
+            const: schema
+            schema: string
+          value:
+            external: schemaName
+        out:
+          map:
+            schema: '#ref'
+  'Stage 2: Building the map for tables':
+    actors:
+      Map build for Tables:
+        parent: MapBuild
+        in:
+          key:
+            const: tables
+            schema: string
+          duplicateKeys:
+            const: all
+          value:
+            link: Fetch tables from schemas/result
+        out:
+          map:
+            schema: '#ref'
+  'Stage 3: Building the final map for schema and tables':
+    actors:
+      'Final Schema and Tables Map ':
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: Map build for Schema/map
+              pos: 0
+            - path: Map build for Tables/map
+              pos: 1
+        out:
+          map:
+            external: map
+            schema: '#ref'
+schemas:
+  Fetch tables from schemas.out.result:
+    type: array
+    items:
+      type: string
+  Map build for Schema.out.map:
+    type: object
+    properties:
+      schema:
+        type: string
+  Map build for Tables.out.map:
+    type: object
+    properties:
+      tables:
+        type: string
+  Final Schema and Tables Map .out.map:
+    type: object
+    properties:
+      schema:
+        type: string
+      tables:
+        type: string

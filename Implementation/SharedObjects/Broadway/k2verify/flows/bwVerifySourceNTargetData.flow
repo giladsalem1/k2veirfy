@@ -758,12 +758,17 @@ stages:
     transactional: true
     dependsOn: Execute Query - Source
     actors:
-      NotNull1:
-        parent: NotNull
+      JavaScript2:
+        parent: JavaScript
         condition: result
         in:
-          value:
+          script:
+            const: source_transformation_function !== null && source_transformation_function
+              !== undefined && source_transformation_function !== ''
+          source_transformation_function:
             external: source_transformation_function
+            schema: any
+            mandatory: false
       ApplySrcTransformation:
         parent: InnerFlow
         in:
@@ -781,7 +786,7 @@ stages:
             createdBy: flowName
           transformationFunction:
             external: source_transformation_function
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delim:
@@ -880,12 +885,17 @@ stages:
     transactional: true
     dependsOn: Execute Query - Target
     actors:
-      NotNull2:
-        parent: NotNull
+      JavaScript3:
+        parent: JavaScript
         condition: result
         in:
-          value:
+          script:
+            const: target_transformation_function !== null && target_transformation_function
+              !== undefined && target_transformation_function !== ''
+          target_transformation_function:
             external: target_transformation_function
+            schema: any
+            mandatory: false
       ApplyTarTransformation:
         parent: InnerFlow
         in:
@@ -903,7 +913,7 @@ stages:
             createdBy: flowName
           transformationFunction:
             external: target_transformation_function
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delim:
@@ -1293,12 +1303,12 @@ stages:
             const: bwVerifyRecordData
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
             external: target_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           task_id:
@@ -1635,22 +1645,22 @@ stages:
             createdBy: sql
           duration_6:
             link: DateDuration6/millis
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           prepare_keys_group_duration:
             link: PrepareKeysGroupDuration/millis
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           verify_all_records_duration:
             link: verifyAllRecordsDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           verify_all_keys_exists_duration:
             link: verifyAllKeysExistsDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           update_nx1000_records_duration:
@@ -1660,77 +1670,77 @@ stages:
             createdBy: sql
           select_all_records_from_source_duration:
             link: selectAllRecordsFromSourceDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           all_src_transformation_duration:
             link: allSRCTransformationDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           select_all_records_from_tartget_duration:
             link: selectAllRecordsFromTartgetDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           all_tar_transformation_duration:
             link: allTARTransformationDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           all_src_records_map_duration:
             link: allSrcRecordsMapDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           all_tar_records_map_duration:
             link: allTarRecordsMapDuration/sum
-            schema: any
+            schema: number
             mandatory: false
             createdBy: sql
           verify_source_target_data_start:
             link: ToString1/string
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
           keys_group_loop_start:
             link: tsBeforKeysGroupLoop/string
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
           end_of_process:
             link: ToString2/string
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
           create_src_statement_duration:
             link: DateDuration1/millis
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           create_tar_statement_duration:
             link: DateDuration2/millis
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           get_bucket_key_list_duration:
             link: DateDuration3/millis
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           tar_bucket_rows_duration:
             link: GetBucketKeysList/tarBucketRowsDuration
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           src_bucket_rows_duration:
             link: GetBucketKeysList/srcBucketRowsDuration
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
           lu_function_duration:
             link: GetBucketKeysList/luFunctionDuration
-            schema: any
+            schema: integer
             mandatory: false
             createdBy: sql
 schemas:

@@ -63,6 +63,14 @@
                             }
                         },
                         {
+                            "name": "TASK_ID",
+                            "actorType": {
+                                "parentType": "ToNumber",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "Now",
                             "actorType": {
                                 "parentType": "Now",
@@ -79,10 +87,50 @@
                             }
                         },
                         {
-                            "name": "TASK_ID",
+                            "name": "IsRetryMode",
+                            "isDisabled": true,
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "RETRY_EXECUTION_ID",
                             "actorType": {
                                 "parentType": "ToNumber",
                                 "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "retry_execution_id_const",
+                            "isDisabled": true,
+                            "actorType": {
+                                "parentType": "ToNumber",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                ],
                                 "outputs": []
                             }
                         }
@@ -154,6 +202,10 @@
                                     {
                                         "name": "interface",
                                         "const": null
+                                    },
+                                    {
+                                        "name": "command",
+                                        "const": "upsert"
                                     },
                                     {
                                         "name": "schema",
@@ -228,8 +280,33 @@
             "stages": [
                 {
                     "name": "Fetch execution id",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Load task execution table"
+                    ],
                     "actors": [
+                        {
+                            "name": "NotEquals1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "a",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "true"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
                         {
                             "name": "FetchExecutionID",
                             "actorType": {
@@ -279,13 +356,143 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Stage 7",
+                    "dependsOnList": [
+                        "Load task execution table"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "ToString2",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
                 }
             ]
         },
         {
             "stages": [
                 {
-                    "name": "Fetch task props",
+                    "name": "Fiels/Record summary creation command",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "CreateFieldSumCmd",
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": "CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_field_summary_${execution_id} (\r\n  EXECUTION_ID bigint,\r\n  IID character varying(200),\r\n  SOURCE_TABLE_NAME character varying(200),\r\n  TARGET_TABLE_NAME character varying(200),\r\n  CUSTOMIZED_KEY character varying(1000),\r\n  COLUMN_NAME character varying(200),\r\n  MATCH_RESULT character varying(50),\r\n  TARGET_VALUE_SECURED character varying(50),\r\n  SOURCE_COLUMN_VALUE character varying(1000),\r\n  TARGET_COLUMN_VALUE character varying(1000),\r\n  SOURCE_COLUMN_VALUE_TRANS character varying(1000),\r\n  TARGET_COLUMN_VALUE_TRANS character varying(1000),\r\n  BW_TRANSFORMATION_FLOW boolean,\r\n  NULL_COMPARE boolean,\r\n  LOOKUP boolean,\r\n  DEFAULT_VALUE boolean)"
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "CreateRecSumCmd",
+                            "minHeight": 90,
+                            "actorType": {
+                                "parentType": "StringFormat",
+                                "inputs": [
+                                    {
+                                        "name": "format",
+                                        "const": "      CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_record_summary_${execution_id} (\r\n        execution_id BIGINT,\r\n        iid character varying(200),\r\n        source_table_name character varying(200),\r\n        target_table_name character varying(200),\r\n        customized_key character varying(1000),\r\n        number_of_fields_mismatch integer,\r\n        number_of_fields_match integer,\r\n        number_of_fields_only_in_target integer,\r\n        number_of_fields_only_in_source integer,\r\n        number_of_fields_unsecured_in_target integer\r\n    )"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "format",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Create field/record summary tables",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "CreateFieldSummary",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "CreateRecordSummary",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 21",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -329,32 +536,43 @@
                             }
                         },
                         {
-                            "name": "StringFormat1",
+                            "name": "FetchTablesProps",
                             "actorType": {
-                                "parentType": "StringFormat",
+                                "parentType": "DbFetchField",
                                 "inputs": [
                                     {
-                                        "name": "format",
-                                        "const": "CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_field_summary_${execution_id} (\r\n  EXECUTION_ID bigint,\r\n  IID character varying(200),\r\n  SOURCE_TABLE_NAME character varying(200),\r\n  TARGET_TABLE_NAME character varying(200),\r\n  CUSTOMIZED_KEY character varying(1000),\r\n  COLUMN_NAME character varying(200),\r\n  MATCH_RESULT character varying(50),\r\n  TARGET_VALUE_SECURED character varying(50),\r\n  SOURCE_COLUMN_VALUE character varying(1000),\r\n  TARGET_COLUMN_VALUE character varying(1000),\r\n  SOURCE_COLUMN_VALUE_TRANS character varying(1000),\r\n  TARGET_COLUMN_VALUE_TRANS character varying(1000),\r\n  BW_TRANSFORMATION_FLOW boolean,\r\n  NULL_COMPARE boolean,\r\n  LOOKUP boolean,\r\n  DEFAULT_VALUE boolean,\r\n    PRIMARY KEY(\r\n    EXECUTION_ID, IID, SOURCE_TABLE_NAME, \r\n    TARGET_TABLE_NAME, CUSTOMIZED_KEY, \r\n    COLUMN_NAME\r\n  )\r\n  )"
+                                        "name": "interface",
+                                        "const": null
                                     },
                                     {
-                                        "name": "k2verify_schema",
+                                        "name": "sql",
+                                        "const": "select table_properties from ${@schema}.task_table_properties where task_id=${task_id}"
+                                    },
+                                    {
+                                        "name": "schema",
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "format",
+                                        "createdBy": "sql",
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "execution_id",
+                                        "name": "task_id",
                                         "schema": {
                                             "type": "string"
                                         },
-                                        "createdBy": "format",
+                                        "createdBy": "sql",
                                         "mandatory": false
                                     }
                                 ],
-                                "outputs": []
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
@@ -368,7 +586,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "JsonParser1",
+                            "name": "Task properties",
                             "actorType": {
                                 "parentType": "JsonParser",
                                 "inputs": [],
@@ -390,11 +608,17 @@
                                                 "K2VERIFY_INTERFACE_TAR": {
                                                     "type": "string"
                                                 },
-                                                "K2VERIFY_SCHEMA_SRC": {
+                                                "K2VERIFY_ENV_SRC": {
                                                     "type": "string"
                                                 },
-                                                "K2VERIFY_SCHEMA_TAR": {
+                                                "K2VERIFY_ENV_TAR": {
                                                     "type": "string"
+                                                },
+                                                "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
                                                 },
                                                 "K2VERIFY_TABLE_LIST": {
                                                     "type": "array",
@@ -406,6 +630,9 @@
                                                             },
                                                             "tar": {
                                                                 "type": "string"
+                                                            },
+                                                            "buckets": {
+                                                                "type": "string"
                                                             }
                                                         }
                                                     }
@@ -416,6 +643,12 @@
                                                 },
                                                 "K2VERIFY_PII_ONLY_COMPARISON": {
                                                     "type": "boolean"
+                                                },
+                                                "K2VERIFY_SRC_CONTAINS_PII": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_TAR_CONTAINS_PII": {
+                                                    "type": "boolean"
                                                 }
                                             }
                                         }
@@ -424,17 +657,316 @@
                             }
                         },
                         {
-                            "name": "DbCommand1",
+                            "name": "Tables properties",
                             "actorType": {
-                                "parentType": "DbCommand",
+                                "parentType": "JsonParser",
                                 "inputs": [
                                     {
-                                        "name": "interface",
-                                        "const": null
+                                        "name": "single",
+                                        "const": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "object",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 12",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "DeepCopy1",
+                            "actorType": {
+                                "parentType": "DeepCopy",
+                                "inputs": [],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 8",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "ErrorFields1",
+                            "onError": "message",
+                            "actorType": {
+                                "parentType": "ErrorFields",
+                                "inputs": [],
+                                "outputs": [
+                                    {
+                                        "name": "inputs",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "flowName": {
+                                                    "type": "string"
+                                                },
+                                                "innerFlowClose": {
+                                                    "type": "boolean"
+                                                },
+                                                "process_type": {
+                                                    "type": "string"
+                                                },
+                                                "execution_id": {
+                                                    "type": "string"
+                                                },
+                                                "task_properties": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "K2VERIFY_TASK_TITLE": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_TASK_DESCRIPTION": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_INTERFACE_SRC": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_INTERFACE_TAR": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_ENV_SRC": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_ENV_TAR": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_PRE_EXECUTION_PROCESSES": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "process_name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "execution_order": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "K2VERIFY_POST_EXECUTION_PROCESSES": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "process_name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "execution_order": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                        "K2VERIFY_LOGPASS": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                },
+                                                "table_properties": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "src": {
+                                                                "type": "string"
+                                                            },
+                                                            "tar": {
+                                                                "type": "string"
+                                                            },
+                                                            "buckets": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "task_id": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "bwExecutePreProcess",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwExecutePrePostProcess"
                                     },
                                     {
-                                        "name": "sql",
-                                        "const": null
+                                        "const": "pre",
+                                        "name": "process_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_properties",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "K2VERIFY_TASK_TITLE": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TASK_DESCRIPTION": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_ENV_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_ENV_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PRE_EXECUTION_PROCESSES": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "process_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "execution_order": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "K2VERIFY_POST_EXECUTION_PROCESSES": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                "K2VERIFY_LOGPASS": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_properties",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []
@@ -447,11 +979,178 @@
         {
             "stages": [
                 {
-                    "name": "Table props",
+                    "name": "DeepCOpy for Props1",
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "LuFunction1",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "failJobWithoutRetry"
+                                    },
+                                    {
+                                        "name": "errorMessage",
+                                        "schema": {},
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "failureReason",
+                                        "schema": {}
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Interface Type",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "SourceInterfaceType",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwCheckDBType"
+                                    },
+                                    {
+                                        "name": "interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "envName",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "type",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "JDBC interface",
+                    "dependsOnList": [
+                        "Interface Type"
+                    ],
+                    "actors": [
+                        {
+                            "name": "JDBCInterface",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "LocalFileSystem"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "JobName",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "bwExecuteTableDataVerify"
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "FileSystem Interface",
+                    "dependsOnList": [
+                        "Interface Type"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "JobName1",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "bwExecuteCsvDataVerify"
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Table props",
+                    "dependsOnList": [
+                        "JDBC interface"
+                    ],
+                    "actors": [
+                        {
                             "name": "Props",
+                            "minHeight": 331,
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -473,6 +1172,51 @@
                                                     },
                                                     "tar": {
                                                         "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "File pros",
+                    "dependsOnList": [
+                        "FileSystem Interface"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Props2",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
                                                     }
                                                 }
                                             }
@@ -488,12 +1232,322 @@
         {
             "stages": [
                 {
+                    "name": "Stage 9",
+                    "dependsOnList": [
+                        "Table props"
+                    ],
+                    "actors": []
+                },
+                {
+                    "name": "Stage 10",
+                    "dependsOnList": [
+                        "File pros"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 13",
+                    "dependsOnList": [
+                        "Stage 9"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Split1",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "."
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Split2",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "."
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 14",
+                    "dependsOnList": [
+                        "Stage 10"
+                    ],
+                    "actors": [
+                        {
+                            "name": "SrcTableName",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TarTableName",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TablesMetadataMap",
+                            "actorType": {
+                                "parentType": "JavaScript",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": {
+                                            "userCode": "const myMap = {};\n\nmyMap.src_schema =src_table[0];\nmyMap.src_table  = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table  = tar_table[1];\n\nmyMap;",
+                                            "script": "var myMap = {};\nmyMap.src_schema = src_table[0];\nmyMap.src_table = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table = tar_table[1];\nmyMap;"
+                                        }
+                                    },
+                                    {
+                                        "name": "src_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "src_schema": {
+                                                    "type": "string"
+                                                },
+                                                "src_table": {
+                                                    "type": "string"
+                                                },
+                                                "tar_schema": {
+                                                    "type": "string"
+                                                },
+                                                "tar_table": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 15",
+                    "dependsOnList": [
+                        "Stage 13"
+                    ],
+                    "actors": [
+                        {
+                            "name": "JavaScript1",
+                            "actorType": {
+                                "parentType": "JavaScript",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": {
+                                            "userCode": "const myMap = {};\n\nmyMap.src_schema =src_table[0];\nmyMap.src_table  = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table  = tar_table[1];\n\nmyMap;",
+                                            "script": "var myMap = {};\nmyMap.src_schema = src_table[0];\nmyMap.src_table = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table = tar_table[1];\nmyMap;"
+                                        }
+                                    },
+                                    {
+                                        "name": "src_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "src_schema": {
+                                                    "type": "string"
+                                                },
+                                                "src_table": {
+                                                    "type": "string"
+                                                },
+                                                "tar_schema": {
+                                                    "type": "string"
+                                                },
+                                                "tar_table": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 16",
+                    "dependsOnList": [
+                        "Stage 14"
+                    ],
+                    "actors": [
+                        {
+                            "name": "LoadCsvToTables",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwLoadFilesToTables"
+                                    },
+                                    {
+                                        "name": "pattern",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tarInterface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "interfaceType": [
+                                                "LOCAL",
+                                                "SFTP",
+                                                "filesystem"
+                                            ],
+                                            "interfaces": [
+                                                "file://"
+                                            ],
+                                            "id": "com.k2view.interface"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "srcInterface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "interfaceType": [
+                                                "LOCAL",
+                                                "SFTP",
+                                                "filesystem"
+                                            ],
+                                            "interfaces": [
+                                                "file:///"
+                                            ],
+                                            "id": "com.k2view.interface"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "const": "verify",
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
                     "name": "Execute tables verify",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Stage 15"
+                    ],
                     "isLast": 1,
                     "actors": [
                         {
-                            "name": "K2verifyTableExecution",
+                            "name": "VerifyTableExecution",
                             "actorType": {
                                 "parentType": "BroadwayJob",
                                 "inputs": [
@@ -603,6 +1657,211 @@
                                         },
                                         "createdBy": "flowName",
                                         "mandatory": false
+                                    },
+                                    {
+                                        "name": "Buckets",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "interfaceType",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "target_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "target_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "IsRetryMode",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "retry_execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 11",
+                    "dependsOnList": [
+                        "Stage 16"
+                    ],
+                    "isLast": 1,
+                    "actors": [
+                        {
+                            "name": "VerifyCsvExecution",
+                            "actorType": {
+                                "parentType": "BroadwayJob",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwExecuteCsvDataVerify"
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "interfaceType": [
+                                                "LOCAL",
+                                                "SFTP",
+                                                "filesystem"
+                                            ],
+                                            "interfaces": [
+                                                "file:///"
+                                            ],
+                                            "id": "com.k2view.interface"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "log_pass",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "compare_only_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "maxWorkers",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "target_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "target_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []
@@ -682,7 +1941,15 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "jobstatus name='verify.bwExecuteTableDataVerify'"
+                                        "const": "jobstatus name='verify.${@jobName}'"
+                                    },
+                                    {
+                                        "name": "jobName",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": [
@@ -903,8 +2170,30 @@
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "NotRetryMode- Create PK",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "a",
+                                        "schema": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "const": true
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "FieldSumPK",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1148,7 +2437,6 @@
                     "actors": [
                         {
                             "name": "FieldSumIDX",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1305,7 +2593,93 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key;"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_record_summary_${@execution_id}(\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    number_of_fields_mismatch,\n    number_of_fields_match,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source,\n    number_of_fields_unsecured_in_target\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n    customized_key,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_mismatch,\n    COUNT(*) FILTER (WHERE match_result = 'PASSED') AS number_of_fields_match,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Target Key Not Found In Source','Instance Not Found In Source')\n    ) AS number_of_fields_only_in_target,\n    COUNT(*) FILTER (\n        WHERE match_result IN ('Source Key Not Found In Target','Instance Not Found In Target')\n    ) AS number_of_fields_only_in_source,\n    COUNT(*) FILTER (WHERE match_result = 'NOT PASSED') AS number_of_fields_unsecured_in_target\nFROM ${@result_schema}.k2verify_field_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    customized_key;"
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "result_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "execution_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "iid": {
+                                                        "type": "string"
+                                                    },
+                                                    "source_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "target_table_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "customized_key": {
+                                                        "type": "string"
+                                                    },
+                                                    "number_of_fields_mismatch": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_match": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_only_in_target": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_only_in_source": {
+                                                        "type": "integer"
+                                                    },
+                                                    "number_of_fields_unsecured_in_target": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Execution history table",
+                    "dependsOnList": [],
+                    "isTransactional": false,
+                    "actors": [
+                        {
+                            "name": "ExecutionHistory",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "INSERT INTO ${@result_schema}.task_execution_history(\n    execution_id,\n    number_of_fields_match,\n    number_of_fields_mismatch,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source\n)\nSELECT\n    execution_id,\n    sum(number_of_fields_match) as number_of_fields_match,\n    sum(number_of_fields_mismatch) as number_of_fields_mismatch,\n    sum(number_of_fields_only_in_target) as number_of_fields_only_in_target,\n    sum(number_of_fields_only_in_source) as number_of_fields_only_in_source\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\ngroup by execution_id"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1480,6 +2854,29 @@
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "NotRetryMode",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "a",
+                                        "schema": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "const": true
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "TableSummaryRows",
                             "isDisabled": true,
                             "actorType": {
@@ -1491,7 +2888,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target,\n    match_result\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0)\n        AS number_of_records_mismatch,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0)\n        AS number_of_records_only_in_source,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0)\n        AS number_of_records_only_in_target,\n\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0)\n        AS number_of_records_unsecured_in_target,\n\n    CASE\n        WHEN\n            MAX(number_of_fields_mismatch) > 0\n            OR MAX(number_of_fields_only_in_source) > 0\n            OR MAX(number_of_fields_only_in_target) > 0\n        THEN 'NOT PASSED'\n        ELSE 'PASSED'\n    END AS match_result\n\nFROM ${@result_schema}.k2verify_record_summary\nWHERE execution_id = ${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name;\n"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target,\n    match_result\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0)\n        AS number_of_records_mismatch,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0)\n        AS number_of_records_only_in_source,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0)\n        AS number_of_records_only_in_target,\n\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0)\n        AS number_of_records_unsecured_in_target,\n\n    CASE\n        WHEN\n            MAX(number_of_fields_mismatch) > 0\n            OR MAX(number_of_fields_only_in_source) > 0\n            OR MAX(number_of_fields_only_in_target) > 0\n        THEN 'NOT PASSED'\n        ELSE 'PASSED'\n    END AS match_result\n\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name;"
                                     },
                                     {
                                         "name": "execution_id",
@@ -1585,7 +2982,129 @@
                                                     },
                                                     "tar": {
                                                         "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
                                                     }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 17",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Split3",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Split4",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 18",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "JavaScript2",
+                            "actorType": {
+                                "parentType": "JavaScript",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": {
+                                            "userCode": "const myMap = {};\n\nmyMap.src_schema =src_table[0];\nmyMap.src_table  = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table  = tar_table[1];\n\nmyMap;",
+                                            "script": "var myMap = {};\nmyMap.src_schema = src_table[0];\nmyMap.src_table = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table = tar_table[1];\nmyMap;"
+                                        }
+                                    },
+                                    {
+                                        "name": "src_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "src_schema": {
+                                                    "type": "string"
+                                                },
+                                                "src_table": {
+                                                    "type": "string"
+                                                },
+                                                "tar_schema": {
+                                                    "type": "string"
+                                                },
+                                                "tar_table": {
+                                                    "type": "string"
                                                 }
                                             }
                                         }
@@ -1781,6 +3300,10 @@
                                         "const": null
                                     },
                                     {
+                                        "name": "command",
+                                        "const": "upsert"
+                                    },
+                                    {
                                         "name": "schema",
                                         "const": null
                                     },
@@ -1921,6 +3444,285 @@
         {
             "stages": [
                 {
+                    "name": "Stage 20",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "ErrorFields2",
+                            "onError": "message",
+                            "actorType": {
+                                "parentType": "ErrorFields",
+                                "inputs": [],
+                                "outputs": [
+                                    {
+                                        "name": "inputs",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "flowName": {
+                                                    "type": "string"
+                                                },
+                                                "innerFlowClose": {
+                                                    "type": "boolean"
+                                                },
+                                                "process_type": {
+                                                    "type": "string"
+                                                },
+                                                "execution_id": {
+                                                    "type": "string"
+                                                },
+                                                "task_properties": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "K2VERIFY_TASK_TITLE": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_TASK_DESCRIPTION": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_INTERFACE_SRC": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_INTERFACE_TAR": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_ENV_SRC": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_ENV_TAR": {
+                                                            "type": "string"
+                                                        },
+                                                        "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_PRE_EXECUTION_PROCESSES": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "process_name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "execution_order": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "K2VERIFY_POST_EXECUTION_PROCESSES": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "process_name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "execution_order": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                        "K2VERIFY_LOGPASS": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                },
+                                                "table_properties": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "src": {
+                                                                "type": "string"
+                                                            },
+                                                            "tar": {
+                                                                "type": "string"
+                                                            },
+                                                            "buckets": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "task_id": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "bwExecutePostProcess",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwExecutePrePostProcess"
+                                    },
+                                    {
+                                        "const": "post",
+                                        "name": "process_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_properties",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "K2VERIFY_TASK_TITLE": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_TASK_DESCRIPTION": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_INTERFACE_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_ENV_SRC": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_ENV_TAR": {
+                                                    "type": "string"
+                                                },
+                                                "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PRE_EXECUTION_PROCESSES": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "process_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "execution_order": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "K2VERIFY_POST_EXECUTION_PROCESSES": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                },
+                                                "K2VERIFY_MAXWORKERSPERNODE": {},
+                                                "K2VERIFY_LOGPASS": {
+                                                    "type": "boolean"
+                                                },
+                                                "K2VERIFY_PII_ONLY_COMPARISON": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_properties",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 19",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "LuFunction2",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "failJobWithoutRetry"
+                                    },
+                                    {
+                                        "name": "errorMessage",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "failureReason",
+                                        "schema": {}
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
                     "name": "Task end time",
                     "dependsOnList": [],
                     "actors": [
@@ -1961,7 +3763,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "update ${@schema}.task_execution set execution_status='Completed', end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id} and execution_status='In_Progress'"
+                                        "const": "update ${@schema}.task_execution set execution_status='Completed', end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id} and lower(execution_status) <> 'failed' AND lower(execution_status) <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status) <> 'killed'"
                                     },
                                     {
                                         "name": "schema",
@@ -2096,7 +3898,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "DbCommand1",
+                "actor": "CreateFieldSummary",
                 "name": "interface"
             }
         },
@@ -2222,6 +4024,36 @@
         },
         {
             "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateRecordSummary",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesProps",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "K2VERIFY_SCHEMA",
                 "name": "variableValue"
             },
@@ -2276,7 +4108,7 @@
                 "name": "variableValue"
             },
             "rightPort": {
-                "actor": "StringFormat1",
+                "actor": "CreateFieldSumCmd",
                 "name": "k2verify_schema"
             }
         },
@@ -2408,6 +4240,156 @@
             "rightPort": {
                 "actor": "DbCommand2",
                 "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateRecSumCmd",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesProps",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "LoadTaskExec",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTime",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforePKCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterPKCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterIDXCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforeIDXCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "UpTimAfterRecSum",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TASK_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "DbCommand2",
+                "name": "task_id"
             }
         },
         {
@@ -2432,122 +4414,12 @@
         },
         {
             "leftPort": {
-                "actor": "TASK_ID",
+                "actor": "RETRY_EXECUTION_ID",
                 "name": "number"
             },
             "rightPort": {
-                "actor": "FetchTaskProps",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "LoadTaskExec",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "FetchExecutionID",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "K2verifyTableExecution",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTaskEndTime",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "FetchUser",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforePKCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterPKCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterIDXCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforeIDXCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimAfterRecSum",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "task_id"
+                "actor": "ToString2",
+                "name": "value"
             }
         },
         {
@@ -2566,7 +4438,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "execution_id"
             }
         },
@@ -2642,6 +4514,26 @@
         },
         {
             "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchExecutionID",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "ToString1",
                 "name": "string"
             },
@@ -2656,7 +4548,7 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "StringFormat1",
+                "actor": "CreateFieldSumCmd",
                 "name": "execution_id"
             }
         },
@@ -2722,44 +4614,91 @@
         },
         {
             "leftPort": {
-                "actor": "FetchTaskProps",
-                "name": "result"
+                "actor": "ToString1",
+                "name": "string"
             },
             "rightPort": {
-                "actor": "JsonParser1",
-                "name": "stream"
+                "actor": "CreateRecSumCmd",
+                "name": "execution_id"
             }
         },
         {
             "leftPort": {
-                "actor": "StringFormat1",
+                "actor": "ToString1",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "DbCommand1",
+                "actor": "bwExecutePreProcess",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString1",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "bwExecutePostProcess",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ToString2",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "CreateFieldSumCmd",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "CreateFieldSumCmd",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "CreateFieldSummary",
                 "name": "sql"
             }
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
-                "name": "object"
+                "actor": "CreateRecSumCmd",
+                "name": "string"
             },
             "rightPort": {
-                "actor": "Props",
-                "name": "value"
-            },
-            "path": [
-                "K2VERIFY_TABLE_LIST"
-            ]
+                "actor": "CreateRecordSummary",
+                "name": "sql"
+            }
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "FetchTaskProps",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Task properties",
+                "name": "stream"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "FetchTablesProps",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Tables properties",
+                "name": "stream"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
                 "name": "object"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "Source_Interface"
             },
             "path": [
@@ -2768,11 +4707,11 @@
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "Task properties",
                 "name": "object"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "Target_Interface"
             },
             "path": [
@@ -2781,37 +4720,11 @@
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "Task properties",
                 "name": "object"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
-                "name": "Source_Schema"
-            },
-            "path": [
-                "K2VERIFY_SCHEMA_SRC"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "JsonParser1",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "K2verifyTableExecution",
-                "name": "Target_Schema"
-            },
-            "path": [
-                "K2VERIFY_SCHEMA_TAR"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "JsonParser1",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "maxWorkers"
             },
             "path": [
@@ -2820,11 +4733,11 @@
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "Task properties",
                 "name": "object"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "log_pass"
             },
             "path": [
@@ -2833,11 +4746,11 @@
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "Task properties",
                 "name": "object"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
+                "actor": "VerifyTableExecution",
                 "name": "compare_only_pii"
             },
             "path": [
@@ -2846,15 +4759,367 @@
         },
         {
             "leftPort": {
-                "actor": "JsonParser1",
+                "actor": "Task properties",
                 "name": "object"
+            },
+            "rightPort": {
+                "actor": "SourceInterfaceType",
+                "name": "interface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "LoadCsvToTables",
+                "name": "srcInterface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "LoadCsvToTables",
+                "name": "tarInterface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Source_Interface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Target_Interface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "log_pass"
+            },
+            "path": [
+                "K2VERIFY_LOGPASS"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "compare_only_pii"
+            },
+            "path": [
+                "K2VERIFY_PII_ONLY_COMPARISON"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "maxWorkers"
+            },
+            "path": [
+                "K2VERIFY_MAXWORKERSPERNODE"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "source_environment"
+            },
+            "path": [
+                "K2VERIFY_ENV_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "target_environment"
+            },
+            "path": [
+                "K2VERIFY_ENV_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "source_environment_is_pii"
+            },
+            "path": [
+                "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "target_environment_is_pii"
+            },
+            "path": [
+                "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "source_environment"
+            },
+            "path": [
+                "K2VERIFY_ENV_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "target_environment"
+            },
+            "path": [
+                "K2VERIFY_ENV_TAR"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "source_environment_is_pii"
+            },
+            "path": [
+                "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "target_environment_is_pii"
+            },
+            "path": [
+                "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "SourceInterfaceType",
+                "name": "envName"
+            },
+            "path": [
+                "K2VERIFY_ENV_SRC"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "bwExecutePreProcess",
+                "name": "task_properties"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "bwExecutePostProcess",
+                "name": "task_properties"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Tables properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
             },
             "rightPort": {
                 "actor": "Props1",
                 "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
             },
+            "rightPort": {
+                "actor": "Props",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Props2",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "bwExecutePreProcess",
+                "name": "table_properties"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DeepCopy1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "bwExecutePostProcess",
+                "name": "table_properties"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ErrorFields1",
+                "name": "message"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "errorMessage"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "SourceInterfaceType",
+                "name": "type"
+            },
+            "rightPort": {
+                "actor": "JDBCInterface",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "SourceInterfaceType",
+                "name": "type"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "interfaceType"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "JobName",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "TableVerifyJobStatus",
+                "name": "jobName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "JobName1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "TableVerifyJobStatus",
+                "name": "jobName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Props",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Split1",
+                "name": "string"
+            },
+            "iterate": "Iterate",
             "path": [
-                "K2VERIFY_TABLE_LIST"
+                "src"
             ]
         },
         {
@@ -2863,8 +5128,8 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
-                "name": "Target_Table_Name"
+                "actor": "Split2",
+                "name": "string"
             },
             "iterate": "Iterate",
             "path": [
@@ -2877,12 +5142,171 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "K2verifyTableExecution",
-                "name": "Source_Table_Name"
+                "actor": "VerifyTableExecution",
+                "name": "Buckets"
+            },
+            "iterate": "Iterate",
+            "path": [
+                "buckets"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Props2",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "SrcTableName",
+                "name": "string"
             },
             "iterate": "Iterate",
             "path": [
                 "src"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Props2",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "TarTableName",
+                "name": "string"
+            },
+            "iterate": "Iterate",
+            "path": [
+                "tar"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Split1",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "JavaScript1",
+                "name": "src_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split2",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "JavaScript1",
+                "name": "tar_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "SrcTableName",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "TablesMetadataMap",
+                "name": "src_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TarTableName",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "TablesMetadataMap",
+                "name": "tar_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TablesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Source_Table_Name"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "TablesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Target_Table_Name"
+            },
+            "path": [
+                "tar_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "TablesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "LoadCsvToTables",
+                "name": "pattern"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "Source_Schema"
+            },
+            "path": [
+                "src_schema"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "Source_Table_Name"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "Target_Schema"
+            },
+            "path": [
+                "tar_schema"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "Target_Table_Name"
+            },
+            "path": [
+                "tar_table"
             ]
         },
         {
@@ -3016,8 +5440,8 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DbFetchField1",
-                "name": "source_table_name"
+                "actor": "Split3",
+                "name": "string"
             },
             "iterate": "Iterate",
             "path": [
@@ -3030,8 +5454,8 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "DbFetchField1",
-                "name": "target_table_name"
+                "actor": "Split4",
+                "name": "string"
             },
             "iterate": "Iterate",
             "path": [
@@ -3040,41 +5464,87 @@
         },
         {
             "leftPort": {
-                "actor": "Props1",
-                "name": "value"
+                "actor": "Split3",
+                "name": "strings"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "JavaScript2",
+                "name": "src_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Split4",
+                "name": "strings"
+            },
+            "rightPort": {
+                "actor": "JavaScript2",
+                "name": "tar_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript2",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "DbFetchField1",
                 "name": "source_table_name"
             },
             "path": [
-                "src"
+                "src_table"
             ]
         },
         {
             "leftPort": {
-                "actor": "Props1",
-                "name": "value"
+                "actor": "JavaScript2",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "DbFetchField1",
                 "name": "target_table_name"
             },
             "path": [
-                "tar"
+                "tar_table"
             ]
         },
         {
             "leftPort": {
-                "actor": "Props1",
-                "name": "value"
+                "actor": "JavaScript2",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "DbCommand2",
                 "name": "table_name"
             },
             "path": [
-                "src"
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript2",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "DbLoad1",
+                "name": "source_table_name"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "JavaScript2",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "DbLoad1",
+                "name": "target_table_name"
+            },
+            "path": [
+                "tar_table"
             ]
         },
         {
@@ -3100,6 +5570,16 @@
             "path": [
                 "tr"
             ]
+        },
+        {
+            "leftPort": {
+                "actor": "ErrorFields2",
+                "name": "message"
+            },
+            "rightPort": {
+                "actor": "LuFunction2",
+                "name": "errorMessage"
+            }
         },
         {
             "leftPort": {
@@ -3129,6 +5609,156 @@
             "rightPort": {
                 "actor": "TASK_ID",
                 "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "IsRetryMode",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "IsRetryMode",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "execution_id"
+            },
+            "rightPort": {
+                "actor": "RETRY_EXECUTION_ID",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "RETRY_EXECUTION_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "flowArgs",
+                "name": "retry_execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "retry_execution_id"
+            },
+            "rightPort": {
+                "actor": "retry_execution_id_const",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "retry_execution_id_const",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "flowArgs",
+                "name": "retry_execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "NotEquals1",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "FetchTablesProps",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "bwExecutePreProcess",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "IsRetryMode"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "retry_execution_id"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "retry_execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "NotRetryMode- Create PK",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "NotRetryMode",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "bwExecutePostProcess",
+                "name": "task_id"
             }
         }
     ]

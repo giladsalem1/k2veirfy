@@ -49,6 +49,18 @@ stages:
             link: SEPERATOR/variableValue
           string:
             external: columns
+      Read Source Environment:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SOURCE_ENV
+            default: false
+      Read Target Environment:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TARGET_ENV
+            default: false
   Validation queries:
     actors:
       SRC Validation SQL:
@@ -122,8 +134,24 @@ stages:
             schema: string
           columns:
             schema: '#ref'
+  Stage 1:
+    actors:
+      Uppercase MTable Col:
+        parent: Uppercase
+        in:
+          string:
+            link:
+              path: ColsFromMtable/strings
+              iterate: Iterate
+      Uppercase Mapped Col:
+        parent: Uppercase
+        in:
+          string:
+            link:
+              path: MappedCols/columns
+              iterate: Iterate
   SRC env:
-    dependsOn: Columns
+    dependsOn: Stage 1
     actors:
       SrcEnv:
         parent: JavaScript
@@ -140,7 +168,7 @@ stages:
             schema: boolean
     split: '--------------------'
   TAR env:
-    dependsOn: Columns
+    dependsOn: Stage 1
     actors:
       TarEnv:
         parent: JavaScript
@@ -160,6 +188,7 @@ stages:
     actors:
       ValidateSrcColumn:
         parent: DbCommand
+        disabled: true
         in:
           interface:
             const: null
@@ -178,11 +207,42 @@ stages:
             mandatory: false
             createdBy: sql
           column:
-            link:
-              path: ColsFromMtable/strings
-              iterate: Iterate
+            link: Uppercase MTable Col/string
             schema: string
             mandatory: false
+        out:
+          result:
+            schema: '#ref'
+      Validate Source Column:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnValidateColumn
+          iface:
+            external: src_interface
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          schema:
+            external: src_schema
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          table:
+            external: src_table
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          column:
+            link: Uppercase MTable Col/string
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          environment:
+            link: Read Source Environment/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -190,7 +250,9 @@ stages:
         parent: DeepCopy
         in:
           value:
-            link: ValidateSrcColumn/result
+            link:
+            - ValidateSrcColumn/result
+            - Validate Source Column/result
         out:
           value:
             schema: string
@@ -200,6 +262,7 @@ stages:
     actors:
       Validate tar column:
         parent: DbCommand
+        disabled: true
         in:
           interface:
             const: null
@@ -218,11 +281,42 @@ stages:
             mandatory: false
             createdBy: sql
           column:
-            link:
-              path: MappedCols/columns
-              iterate: Iterate
+            link: Uppercase Mapped Col/string
             schema: string
             mandatory: false
+        out:
+          result:
+            schema: '#ref'
+      Validate Target Column:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnValidateColumn
+          iface:
+            external: tar_interface
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          schema:
+            external: tar_schema
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          table:
+            external: tar_table
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          column:
+            link: Uppercase Mapped Col/string
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          environment:
+            link: Read Target Environment/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -230,7 +324,9 @@ stages:
         parent: DeepCopy
         in:
           value:
-            link: Validate tar column/result
+            link:
+            - Validate tar column/result
+            - Validate Target Column/result
         out:
           value:
             schema: string
@@ -248,9 +344,7 @@ stages:
             const: Column '${column}' doesn't exist in the source table. If it is
               a key column, ensure it is case-sensitive.
           column:
-            link:
-              path: ColsFromMtable/strings
-              iterate: Iterate
+            link: Uppercase MTable Col/string
             schema: string
             mandatory: false
             createdBy: message
@@ -271,9 +365,7 @@ stages:
             const: Column '${column}' doesn't exist in the target table. If it is
               a key column, ensure it is case-sensitive.
           column:
-            link:
-              path: MappedCols/columns
-              iterate: Iterate
+            link: Uppercase Mapped Col/string
             schema: string
             mandatory: false
             createdBy: message
@@ -313,12 +405,26 @@ schemas:
       properties:
         column_name:
           type: string
+  Validate Source Column.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        ?column?:
+          type: integer
   Validate tar column.out.result:
     type: array
     items:
       type: object
       properties:
         '1':
+          type: integer
+  Validate Target Column.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        ?column?:
           type: integer
   assertNotEquals1.in.unexpected:
     type: array

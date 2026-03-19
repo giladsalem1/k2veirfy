@@ -64,11 +64,12 @@ stages:
               field_stats AS (
                   SELECT
                       krs.execution_id,
-                      COALESCE(SUM(krs.number_of_fields_mismatch), 0)       AS fields_mismatch,
-                      COALESCE(SUM(krs.number_of_fields_only_in_source), 0) AS fields_only_in_source,
-                      COALESCE(SUM(krs.number_of_fields_only_in_target), 0) AS fields_only_in_target
-                  FROM ${@schema}.k2verify_record_summary krs
+                      krs.number_of_fields_mismatch       AS fields_mismatch,
+                      krs.number_of_fields_only_in_source AS fields_only_in_source,
+                      krs.number_of_fields_only_in_target AS fields_only_in_target
+                  FROM ${@schema}.task_execution_history krs
                   GROUP BY 1
+
               ),
 
               /* ---------- TRUE TOTALS (execution-level) ---------- */

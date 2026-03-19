@@ -37,8 +37,20 @@ stages:
         in:
           string:
             link: Conditions/value
-  Stage 4:
+  Stage 9:
+    dependsOn: Stage 2
     actors:
+      EqualsIgnoreCase1:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: mismatched_records
+            schema: string
+          a:
+            link:
+              path: Split1/strings
+              iterate: Iterate
       JavaScript1:
         parent: JavaScript
         in:
@@ -54,16 +66,7 @@ stages:
 
                 // collect match_result values based on conditions
                 const matchResults = [];
-
-                if (conditions.indexOf("records_only_in_source") >= 0) {
-                  matchResults.push("source key not found in target");
-                }
-                if (conditions.indexOf("records_only_in_target") >= 0) {
-                  matchResults.push("target key not found in source");
-                }
-                if (conditions.indexOf("mismatched_records") >= 0) {
-                  matchResults.push("not passed");
-                }
+                matchResults.push("not passed");
 
                 // start finalQuery from base
                 let finalQuery = baseQuery;
@@ -98,19 +101,7 @@ stages:
                 var baseQuery = "select *\nfrom ${@schema_name}.k2verify_field_summary_" + exec_id + "\nwhere execution_id = ${execution_id}\n  and source_table_name = ${source_table_name}"; // collect match_result values based on conditions
 
                 var matchResults = [];
-
-                if (conditions.indexOf("records_only_in_source") >= 0) {
-                  matchResults.push("source key not found in target");
-                }
-
-                if (conditions.indexOf("records_only_in_target") >= 0) {
-                  matchResults.push("target key not found in source");
-                }
-
-                if (conditions.indexOf("mismatched_records") >= 0) {
-                  matchResults.push("not passed");
-                } // start finalQuery from base
-
+                matchResults.push("not passed"); // start finalQuery from base
 
                 var finalQuery = baseQuery; // match_result filtering
 
@@ -138,22 +129,248 @@ stages:
                 }
 
                 finalQuery;
-          conditions:
-            link: Split1/strings
-            schema: '#ref'
-            mandatory: false
           filters:
             link: JsonParser1/object
-            schema: any
+            schema: '#ref'
             mandatory: false
           exec_id:
             external: execution_id
-            schema: any
+            schema: string
             mandatory: false
         out:
           result:
             schema: string
-  Stage 8:
+    split: '--------------------'
+  Stage 10:
+    dependsOn: Stage 2
+    actors:
+      EqualsIgnoreCase2:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: records_only_in_source
+            schema: string
+          a:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+      JavaScript2:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |
+                let queryParts = [];
+
+                const baseQuery = `select *
+                from \${@schema_name}.k2verify_field_summary_${exec_id}
+                where execution_id = \${execution_id}
+                  and source_table_name = \${source_table_name}`;
+
+                // collect match_result values based on conditions
+                const matchResults = [];
+                matchResults.push("source key not found in target");
+
+                // start finalQuery from base
+                let finalQuery = baseQuery;
+
+                // match_result filtering
+                if (matchResults.length > 0) {
+                  const inList = matchResults
+                    .map((v) => `'${String(v).replace(/'/g, "''").toLowerCase()}'`)
+                    .join(", ");
+
+                  finalQuery += `\n  and lower(match_result) in (${inList})`;
+                }
+
+                // ---- filters object -> LIKE clauses ----
+                const safeLike = (v) => String(v).trim().replace(/'/g, "''"); // escape single quotes
+
+                if (filters && typeof filters === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += `\n  and column_name like '%${safeLike(filters.column_name)}%'`;
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += `\n  and customized_key like '%${safeLike(filters.customized_key)}%'`;
+                  }
+                }
+
+                // ✅ NEW: only 1 record per customized_key
+                // Pick which record to keep using ORDER BY (change it if you prefer a different "representative" row)
+                finalQuery =
+                  `select distinct on (customized_key) * from (` +
+                  `\n${finalQuery}\n` +
+                  `) q ` +
+                  `order by customized_key, iid nulls last`;
+
+                finalQuery;
+              script: |-
+                function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+                var queryParts = [];
+                var baseQuery = "select *\nfrom ${@schema_name}.k2verify_field_summary_" + exec_id + "\nwhere execution_id = ${execution_id}\n  and source_table_name = ${source_table_name}"; // collect match_result values based on conditions
+
+                var matchResults = [];
+                matchResults.push("source key not found in target"); // start finalQuery from base
+
+                var finalQuery = baseQuery; // match_result filtering
+
+                if (matchResults.length > 0) {
+                  var inList = matchResults.map(function (v) {
+                    return "'" + String(v).replace(/'/g, "''").toLowerCase() + "'";
+                  }).join(", ");
+                  finalQuery += "\n  and lower(match_result) in (" + inList + ")";
+                } // ---- filters object -> LIKE clauses ----
+
+
+                var safeLike = function safeLike(v) {
+                  return String(v).trim().replace(/'/g, "''");
+                }; // escape single quotes
+
+
+                if (filters && (typeof filters === "undefined" ? "undefined" : _typeof(filters)) === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += "\n  and column_name like '%" + safeLike(filters.column_name) + "%'";
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += "\n  and customized_key like '%" + safeLike(filters.customized_key) + "%'";
+                  }
+                } // ✅ NEW: only 1 record per customized_key
+                // Pick which record to keep using ORDER BY (change it if you prefer a different "representative" row)
+
+
+                finalQuery = "select distinct on (customized_key) * from (" + ("\n" + finalQuery + "\n") + ") q " + "order by customized_key, iid nulls last";
+                finalQuery;
+          filters:
+            link: JsonParser1/object
+            schema: '#ref'
+            mandatory: false
+          exec_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+    split: '--------------------'
+  Stage 11:
+    dependsOn: Stage 2
+    actors:
+      EqualsIgnoreCase3:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: records_only_in_target
+            schema: string
+          a:
+            link:
+              path: Split1/strings
+              iterate: Iterate
+      JavaScript3:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |
+                let queryParts = [];
+
+                const baseQuery = `select *
+                from \${@schema_name}.k2verify_field_summary_${exec_id}
+                where execution_id = \${execution_id}
+                  and source_table_name = \${source_table_name}`;
+
+                // collect match_result values based on conditions
+                const matchResults = [];
+                matchResults.push("target key not found in source");
+
+                // start finalQuery from base
+                let finalQuery = baseQuery;
+
+                // match_result filtering
+                if (matchResults.length > 0) {
+                  const inList = matchResults
+                    .map((v) => `'${String(v).replace(/'/g, "''").toLowerCase()}'`)
+                    .join(", ");
+
+                  finalQuery += `\n  and lower(match_result) in (${inList})`;
+                }
+
+                // ---- filters object -> LIKE clauses ----
+                const safeLike = (v) => String(v).trim().replace(/'/g, "''"); // escape single quotes
+
+                if (filters && typeof filters === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += `\n  and column_name like '%${safeLike(filters.column_name)}%'`;
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += `\n  and customized_key like '%${safeLike(filters.customized_key)}%'`;
+                  }
+                }
+
+                // ✅ NEW: only 1 record per customized_key
+                // Pick which record to keep using ORDER BY (change it if you prefer a different "representative" row)
+                finalQuery =
+                  `select distinct on (customized_key) * from (` +
+                  `\n${finalQuery}\n` +
+                  `) q ` +
+                  `order by customized_key, iid nulls last`;
+
+                finalQuery;
+              script: |-
+                function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+                var queryParts = [];
+                var baseQuery = "select *\nfrom ${@schema_name}.k2verify_field_summary_" + exec_id + "\nwhere execution_id = ${execution_id}\n  and source_table_name = ${source_table_name}"; // collect match_result values based on conditions
+
+                var matchResults = [];
+                matchResults.push("target key not found in source"); // start finalQuery from base
+
+                var finalQuery = baseQuery; // match_result filtering
+
+                if (matchResults.length > 0) {
+                  var inList = matchResults.map(function (v) {
+                    return "'" + String(v).replace(/'/g, "''").toLowerCase() + "'";
+                  }).join(", ");
+                  finalQuery += "\n  and lower(match_result) in (" + inList + ")";
+                } // ---- filters object -> LIKE clauses ----
+
+
+                var safeLike = function safeLike(v) {
+                  return String(v).trim().replace(/'/g, "''");
+                }; // escape single quotes
+
+
+                if (filters && (typeof filters === "undefined" ? "undefined" : _typeof(filters)) === "object") {
+                  if (filters.column_name != null && String(filters.column_name).trim() !== "") {
+                    finalQuery += "\n  and column_name like '%" + safeLike(filters.column_name) + "%'";
+                  }
+
+                  if (filters.customized_key != null && String(filters.customized_key).trim() !== "") {
+                    finalQuery += "\n  and customized_key like '%" + safeLike(filters.customized_key) + "%'";
+                  }
+                } // ✅ NEW: only 1 record per customized_key
+                // Pick which record to keep using ORDER BY (change it if you prefer a different "representative" row)
+
+
+                finalQuery = "select distinct on (customized_key) * from (" + ("\n" + finalQuery + "\n") + ") q " + "order by customized_key, iid nulls last";
+                finalQuery;
+          filters:
+            link: JsonParser1/object
+            schema: '#ref'
+            mandatory: false
+          exec_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 4:
     actors:
       StringFormat2:
         parent: StringFormat
@@ -166,7 +383,10 @@ stages:
             mandatory: false
             createdBy: format
           query:
-            link: JavaScript1/result
+            link:
+            - JavaScript1/result
+            - JavaScript2/result
+            - JavaScript3/result
             schema: string
             mandatory: false
             createdBy: format
@@ -210,7 +430,10 @@ stages:
           format:
             const: select count(1) from (${query}) s;
           query:
-            link: JavaScript1/result
+            link:
+            - JavaScript1/result
+            - JavaScript2/result
+            - JavaScript3/result
             schema: string
             mandatory: false
   Stage 5:
@@ -250,6 +473,26 @@ stages:
         out:
           value:
             schema: '#ref'
+  Stage 13:
+    last: 1
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: DeepCopy1/value
+        out:
+          array:
+            schema: '#ref'
+      Aggregate1:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: DbFetchField1/result
+              pos: 0
+  Stage 12: {
+    }
   Stage 6:
     actors:
       MapBuild2:
@@ -259,7 +502,7 @@ stages:
             const: count
             schema: string
           value:
-            link: DbFetchField1/result
+            link: Aggregate1/sum
         out:
           map:
             schema: '#ref'
@@ -270,7 +513,7 @@ stages:
             const: rows
             schema: string
           value:
-            link: DeepCopy1/value
+            link: ArrayBuilder1/array
             schema: '#ref'
         out:
           map:
@@ -298,10 +541,18 @@ schemas:
         type: string
       customized_key:
         type: string
-  JavaScript1.in.conditions:
-    type: array
-    items:
-      type: string
+  JavaScript1.in.filters:
+    type: object
+    properties: {
+      }
+  JavaScript2.in.filters:
+    type: object
+    properties: {
+      }
+  JavaScript3.in.filters:
+    type: object
+    properties: {
+      }
   DbCommand1.out.result:
     type: array
     items:
@@ -340,6 +591,43 @@ schemas:
           }
         target_column_value_trans: {
           }
+        bw_transformation_flow: {
+          }
+        null_compare: {
+          }
+        lookup: {
+          }
+        default_value: {
+          }
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        execution_id:
+          type: integer
+        iid:
+          type: string
+        source_table_name:
+          type: string
+        target_table_name:
+          type: string
+        customized_key:
+          type: string
+        column_name:
+          type: string
+        match_result:
+          type: string
+        target_value_secured:
+          type: string
+        source_column_value:
+          type: string
+        target_column_value:
+          type: string
+        source_column_value_trans:
+          type: string
+        target_column_value_trans:
+          type: string
         bw_transformation_flow: {
           }
         null_compare: {

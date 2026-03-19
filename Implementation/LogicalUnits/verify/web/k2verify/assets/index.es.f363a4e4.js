@@ -1,4 +1,17 @@
-import { c as commonjsGlobal, _ as _typeof$1 } from "./index.deec1fa2.js";
+
+(function() {
+  var scripts = document.getElementsByTagName('script');
+  var basePath = '';
+  for (var i = 0; i < scripts.length; i++) {
+    var src = scripts[i].src;
+    if (src && src.includes('assets/index') && src.includes('.js')) {
+      var match = src.match(/(.*?)\/assets\//);
+      if (match) { basePath = match[1]; break; }
+    }
+  }
+  window.__vite_asset_base__ = basePath ? basePath + '/assets/' : './assets/';
+})();
+import { c as commonjsGlobal, _ as _typeof$1 } from "./index.c745d6ee.js";
 var es_promise = {};
 var es_promise_constructor = {};
 "use strict";

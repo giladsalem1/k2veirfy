@@ -24,7 +24,7 @@ stages:
           sql:
             const: |-
               select customized_key,column_name,match_result,source_column_value,target_column_value from ${@schema_name}.k2verify_field_summary_${@execution_id}
-              where execution_id = ${execution_id} and source_table_name = ${source_table_name} and lower(match_result)='not passed'
+              where execution_id = ${execution_id} and source_table_name = ${source_table_name} and lower(match_result)in ('not passed','target key not found in source','source key not found in target')
           schema_name:
             external: schema_name
             schema: string

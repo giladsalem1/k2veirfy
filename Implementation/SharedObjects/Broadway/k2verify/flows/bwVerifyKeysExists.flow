@@ -59,7 +59,7 @@ stages:
         out:
           result:
             external: keyNotFound
-  Stage 1:
+  Report key is missing:
     transactional: true
     actors:
       =true:
@@ -71,9 +71,6 @@ stages:
             schema: boolean
           a:
             link: Or1/result
-  Report key is missing:
-    transactional: true
-    actors:
       Const6:
         parent: Const
         in:
@@ -154,11 +151,6 @@ stages:
         out:
           value:
             schema: '#ref'
-      Result Files Dir:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_RESULT_FILES_PATH
   Stage 7:
     transactional: true
     actors:
@@ -183,31 +175,6 @@ stages:
             - TARGET_COLUMN_VALUE_TRANS
           maps:
             link: Const1/value
-      Format File Name:
-        parent: StringFormat
-        in:
-          format:
-            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
-          bucket_id:
-            external: bucket_id
-            schema: string
-            mandatory: false
-            createdBy: format
-          dir:
-            link: Result Files Dir/result
-            schema: string
-            mandatory: false
-            createdBy: format
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: format
-          source_table_name:
-            external: source_table_name
-            schema: string
-            mandatory: false
-            createdBy: format
   Write to file:
     transactional: true
     actors:
@@ -221,7 +188,7 @@ stages:
           stream:
             link: CsvBuilder1/csv
           path:
-            link: Format File Name/string
+            external: file_name
 schemas:
   ReportDetailsMap12.in.TARGET_COLUMN_VALUE:
     type: array

@@ -41,34 +41,20 @@ stages:
         out:
           value:
             schema: string
-  Validation queries:
-    actors:
-      SRC Validation SQL:
-        parent: InnerFlow
+      Read Source Environment:
+        parent: FabricSetRead
         in:
-          flowName:
-            const: bwGetMetadataValidationSql
-          interface:
-            external: src_interface
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          sql:
-            schema: '#ref'
-      TAR Validation SQL:
-        parent: InnerFlow
+          key:
+            const: K2VERIFY_SOURCE_ENV
+            default: false
+      Read Target Environment:
+        parent: FabricSetRead
         in:
-          flowName:
-            const: bwGetMetadataValidationSql
-          interface:
-            external: tar_interface
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          sql:
-            schema: '#ref'
+          key:
+            const: K2VERIFY_TARGET_ENV
+            default: false
+  Validation queries: {
+    }
   Case insensitive:
     dependsOn: Validation queries
     actors:
@@ -156,25 +142,31 @@ stages:
         out:
           result:
             schema: boolean
-      ColumnsFromSourceDB:
-        parent: DbCommand
+      Columns From Source:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnFetchColumns
+          iface:
             external: src_interface
-          sql:
-            const: null
-            link: SRC Validation SQL/sql/column_ci
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             external: src_schema
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
           table:
             external: src_table
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: Read Source Environment/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -195,25 +187,31 @@ stages:
         out:
           result:
             schema: boolean
-      ColumnsFromTarDB:
-        parent: DbCommand
+      Columns From Target:
+        parent: LuFunction
         in:
-          interface:
-            const: null
+          functionName:
+            const: fnFetchColumns
+          iface:
             external: tar_interface
-          sql:
-            const: null
-            link: TAR Validation SQL/sql/column_ci
+            schema: string
+            mandatory: false
+            createdBy: functionName
           schema:
             external: tar_schema
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
           table:
             external: tar_table
             schema: string
             mandatory: false
-            createdBy: sql
+            createdBy: functionName
+          environment:
+            link: Read Target Environment/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -225,11 +223,10 @@ stages:
     actors:
       toUpperCase:
         parent: Mapper
+        disabled: true
         in:
           script:
             const: value[0].toUpperCase();
-          values:
-            link: ColumnsFromSourceDB/result
         out:
           values:
             schema: '#ref'
@@ -239,11 +236,10 @@ stages:
     actors:
       'toUpperCase ':
         parent: Mapper
+        disabled: true
         in:
           script:
             const: value[0].toUpperCase();
-          values:
-            link: ColumnsFromTarDB/result
         out:
           values:
             schema: '#ref'
@@ -265,7 +261,9 @@ stages:
         parent: DeepCopy
         in:
           value:
-            link: toUpperCase/values
+            link:
+            - Columns From Source/result
+            - toUpperCase/values
         out:
           value:
             schema: '#ref'
@@ -285,7 +283,9 @@ stages:
         parent: DeepCopy
         in:
           value:
-            link: toUpperCase /values
+            link:
+            - Columns From Target/result
+            - toUpperCase /values
         out:
           value:
             schema: '#ref'
@@ -453,42 +453,14 @@ stages:
   Stage 12: {
     }
 schemas:
-  SRC Validation SQL.out.sql:
-    type: object
-    properties:
-      schema: {
-        }
-      table: {
-        }
-      column: {
-        }
-      column_ci: {
-        }
-  TAR Validation SQL.out.sql:
-    type: object
-    properties:
-      schema:
-        type: string
-      table:
-        type: string
-      column:
-        type: string
-      column_ci:
-        type: string
-  ColumnsFromSourceDB.out.result:
+  Columns From Source.out.result:
     type: array
     items:
-      type: object
-      properties:
-        column_name:
-          type: string
-  ColumnsFromTarDB.out.result:
+      type: string
+  Columns From Target.out.result:
     type: array
     items:
-      type: object
-      properties:
-        '1':
-          type: integer
+      type: string
   toUpperCase.out.values:
     type: array
     items:

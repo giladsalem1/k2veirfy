@@ -1,3 +1,16 @@
+
+(function() {
+  var scripts = document.getElementsByTagName('script');
+  var basePath = '';
+  for (var i = 0; i < scripts.length; i++) {
+    var src = scripts[i].src;
+    if (src && src.includes('assets/index') && src.includes('.js')) {
+      var match = src.match(/(.*?)\/assets\//);
+      if (match) { basePath = match[1]; break; }
+    }
+  }
+  window.__vite_asset_base__ = basePath ? basePath + '/assets/' : './assets/';
+})();
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => {
@@ -102,7 +115,7 @@ var react_production_min = {};
  * LICENSE file in the root directory of this source tree.
  */
 "use strict";
-var l$2 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$3 = Symbol.for("react.fragment"), q$2 = Symbol.for("react.strict_mode"), r$1 = Symbol.for("react.profiler"), t = Symbol.for("react.provider"), u$1 = Symbol.for("react.context"), v$2 = Symbol.for("react.forward_ref"), w$1 = Symbol.for("react.suspense"), x$2 = Symbol.for("react.memo"), y$1 = Symbol.for("react.lazy"), z$2 = Symbol.iterator;
+var l$2 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$3 = Symbol.for("react.fragment"), q$2 = Symbol.for("react.strict_mode"), r$1 = Symbol.for("react.profiler"), t$1 = Symbol.for("react.provider"), u$1 = Symbol.for("react.context"), v$2 = Symbol.for("react.forward_ref"), w$1 = Symbol.for("react.suspense"), x$2 = Symbol.for("react.memo"), y$1 = Symbol.for("react.lazy"), z$2 = Symbol.iterator;
 function A$2(a2) {
   if (null === a2 || "object" !== typeof a2)
     return null;
@@ -299,7 +312,7 @@ var cloneElement = react_production_min.cloneElement = function(a2, b3, e) {
 };
 var createContext = react_production_min.createContext = function(a2) {
   a2 = { $$typeof: u$1, _currentValue: a2, _currentValue2: a2, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null };
-  a2.Provider = { $$typeof: t, _context: a2 };
+  a2.Provider = { $$typeof: t$1, _context: a2 };
   return a2.Consumer = a2;
 };
 var createElement = react_production_min.createElement = M$2;
@@ -8080,15 +8093,15 @@ function convertRoutesToDataRoutes(routes, mapRouteProperties2, parentPath, mani
     }
   });
 }
-function matchRoutes(routes, locationArg, basename) {
-  if (basename === void 0) {
-    basename = "/";
+function matchRoutes(routes, locationArg, basename2) {
+  if (basename2 === void 0) {
+    basename2 = "/";
   }
-  return matchRoutesImpl(routes, locationArg, basename, false);
+  return matchRoutesImpl(routes, locationArg, basename2, false);
 }
-function matchRoutesImpl(routes, locationArg, basename, allowPartial) {
+function matchRoutesImpl(routes, locationArg, basename2, allowPartial) {
   let location2 = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-  let pathname = stripBasename(location2.pathname || "/", basename);
+  let pathname = stripBasename(location2.pathname || "/", basename2);
   if (pathname == null) {
     return null;
   }
@@ -8357,13 +8370,13 @@ function decodePath(value) {
     return value;
   }
 }
-function stripBasename(pathname, basename) {
-  if (basename === "/")
+function stripBasename(pathname, basename2) {
+  if (basename2 === "/")
     return pathname;
-  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) {
+  if (!pathname.toLowerCase().startsWith(basename2.toLowerCase())) {
     return null;
   }
-  let startIndex = basename.endsWith("/") ? basename.length - 1 : basename.length;
+  let startIndex = basename2.endsWith("/") ? basename2.length - 1 : basename2.length;
   let nextChar = pathname.charAt(startIndex);
   if (nextChar && nextChar !== "/") {
     return null;
@@ -8724,7 +8737,7 @@ function createRouter(init) {
   let manifest = {};
   let dataRoutes = convertRoutesToDataRoutes(init.routes, mapRouteProperties2, void 0, manifest);
   let inFlightDataRoutes;
-  let basename = init.basename || "/";
+  let basename2 = init.basename || "/";
   let dataStrategyImpl = init.dataStrategy || defaultDataStrategy;
   let patchRoutesOnNavigationImpl = init.patchRoutesOnNavigation;
   let future = _extends$3({
@@ -8741,7 +8754,7 @@ function createRouter(init) {
   let getScrollRestorationKey = null;
   let getScrollPosition = null;
   let initialScrollRestored = init.hydrationData != null;
-  let initialMatches = matchRoutes(dataRoutes, init.history.location, basename);
+  let initialMatches = matchRoutes(dataRoutes, init.history.location, basename2);
   let initialMatchesIsFOW = false;
   let initialErrors = null;
   if (initialMatches == null && !patchRoutesOnNavigationImpl) {
@@ -9030,7 +9043,7 @@ function createRouter(init) {
       init.history.go(to);
       return;
     }
-    let normalizedPath = normalizeTo(state.location, state.matches, basename, future.v7_prependBasename, to, future.v7_relativeSplatPath, opts == null ? void 0 : opts.fromRouteId, opts == null ? void 0 : opts.relative);
+    let normalizedPath = normalizeTo(state.location, state.matches, basename2, future.v7_prependBasename, to, future.v7_relativeSplatPath, opts == null ? void 0 : opts.fromRouteId, opts == null ? void 0 : opts.relative);
     let {
       path,
       submission,
@@ -9116,7 +9129,7 @@ function createRouter(init) {
     pendingViewTransitionEnabled = (opts && opts.enableViewTransition) === true;
     let routesToUse = inFlightDataRoutes || dataRoutes;
     let loadingNavigation = opts && opts.overrideNavigation;
-    let matches = opts != null && opts.initialHydration && state.matches && state.matches.length > 0 && !initialMatchesIsFOW ? state.matches : matchRoutes(routesToUse, location2, basename);
+    let matches = opts != null && opts.initialHydration && state.matches && state.matches.length > 0 && !initialMatchesIsFOW ? state.matches : matchRoutes(routesToUse, location2, basename2);
     let flushSync2 = (opts && opts.flushSync) === true;
     if (matches && state.initialized && !isRevalidationRequired && isHashChangeOnly(state.location, location2) && !(opts && opts.submission && isMutationMethod(opts.submission.formMethod))) {
       completeNavigation(location2, {
@@ -9269,7 +9282,7 @@ function createRouter(init) {
       if (opts && opts.replace != null) {
         replace2 = opts.replace;
       } else {
-        let location3 = normalizeRedirectLocation(result.response.headers.get("Location"), new URL(request.url), basename);
+        let location3 = normalizeRedirectLocation(result.response.headers.get("Location"), new URL(request.url), basename2);
         replace2 = location3 === state.location.pathname + state.location.search;
       }
       await startRedirectNavigation(request, result, true, {
@@ -9347,7 +9360,7 @@ function createRouter(init) {
       }
     }
     let routesToUse = inFlightDataRoutes || dataRoutes;
-    let [matchesToLoad, revalidatingFetchers] = getMatchesToLoad(init.history, state, matches, activeSubmission, location2, future.v7_partialHydration && initialHydration === true, future.v7_skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename, pendingActionResult);
+    let [matchesToLoad, revalidatingFetchers] = getMatchesToLoad(init.history, state, matches, activeSubmission, location2, future.v7_partialHydration && initialHydration === true, future.v7_skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename2, pendingActionResult);
     cancelActiveDeferreds((routeId) => !(matches && matches.some((m2) => m2.route.id === routeId)) || matchesToLoad && matchesToLoad.some((m2) => m2.route.id === routeId));
     pendingNavigationLoadId = ++incrementingLoadId;
     if (matchesToLoad.length === 0 && revalidatingFetchers.length === 0) {
@@ -9478,8 +9491,8 @@ function createRouter(init) {
     abortFetcher(key);
     let flushSync2 = (opts && opts.flushSync) === true;
     let routesToUse = inFlightDataRoutes || dataRoutes;
-    let normalizedPath = normalizeTo(state.location, state.matches, basename, future.v7_prependBasename, href, future.v7_relativeSplatPath, routeId, opts == null ? void 0 : opts.relative);
-    let matches = matchRoutes(routesToUse, normalizedPath, basename);
+    let normalizedPath = normalizeTo(state.location, state.matches, basename2, future.v7_prependBasename, href, future.v7_relativeSplatPath, routeId, opts == null ? void 0 : opts.relative);
+    let matches = matchRoutes(routesToUse, normalizedPath, basename2);
     let fogOfWar = checkFogOfWar(matches, routesToUse, normalizedPath);
     if (fogOfWar.active && fogOfWar.matches) {
       matches = fogOfWar.matches;
@@ -9608,13 +9621,13 @@ function createRouter(init) {
     let nextLocation = state.navigation.location || state.location;
     let revalidationRequest = createClientSideRequest(init.history, nextLocation, abortController.signal);
     let routesToUse = inFlightDataRoutes || dataRoutes;
-    let matches = state.navigation.state !== "idle" ? matchRoutes(routesToUse, state.navigation.location, basename) : state.matches;
+    let matches = state.navigation.state !== "idle" ? matchRoutes(routesToUse, state.navigation.location, basename2) : state.matches;
     invariant(matches, "Didn't find any matches after fetcher action");
     let loadId = ++incrementingLoadId;
     fetchReloadIds.set(key, loadId);
     let loadFetcher = getLoadingFetcher(submission, actionResult.data);
     state.fetchers.set(key, loadFetcher);
-    let [matchesToLoad, revalidatingFetchers] = getMatchesToLoad(init.history, state, matches, submission, nextLocation, false, future.v7_skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename, [match.route.id, actionResult]);
+    let [matchesToLoad, revalidatingFetchers] = getMatchesToLoad(init.history, state, matches, submission, nextLocation, false, future.v7_skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename2, [match.route.id, actionResult]);
     revalidatingFetchers.filter((rf2) => rf2.key !== key).forEach((rf2) => {
       let staleKey = rf2.key;
       let existingFetcher2 = state.fetchers.get(staleKey);
@@ -9757,7 +9770,7 @@ function createRouter(init) {
     }
     let location2 = redirect3.response.headers.get("Location");
     invariant(location2, "Expected a Location header on the redirect Response");
-    location2 = normalizeRedirectLocation(location2, new URL(request.url), basename);
+    location2 = normalizeRedirectLocation(location2, new URL(request.url), basename2);
     let redirectLocation = createLocation(state.location, location2, {
       _isRedirect: true
     });
@@ -9767,7 +9780,7 @@ function createRouter(init) {
         isDocumentReload = true;
       } else if (ABSOLUTE_URL_REGEX$1.test(location2)) {
         const url = init.history.createURL(location2);
-        isDocumentReload = url.origin !== routerWindow.location.origin || stripBasename(url.pathname, basename) == null;
+        isDocumentReload = url.origin !== routerWindow.location.origin || stripBasename(url.pathname, basename2) == null;
       }
       if (isDocumentReload) {
         if (replace2) {
@@ -9826,7 +9839,7 @@ function createRouter(init) {
         let response = result.result;
         dataResults[routeId] = {
           type: ResultType.redirect,
-          response: normalizeRelativeRoutingRedirectResponse(response, request, routeId, matches, basename, future.v7_relativeSplatPath)
+          response: normalizeRelativeRoutingRedirectResponse(response, request, routeId, matches, basename2, future.v7_relativeSplatPath)
         };
       } else {
         dataResults[routeId] = await convertDataStrategyResultToDataResult(result);
@@ -10098,14 +10111,14 @@ function createRouter(init) {
   function checkFogOfWar(matches, routesToUse, pathname) {
     if (patchRoutesOnNavigationImpl) {
       if (!matches) {
-        let fogMatches = matchRoutesImpl(routesToUse, pathname, basename, true);
+        let fogMatches = matchRoutesImpl(routesToUse, pathname, basename2, true);
         return {
           active: true,
           matches: fogMatches || []
         };
       } else {
         if (Object.keys(matches[0].params).length > 0) {
-          let partialMatches = matchRoutesImpl(routesToUse, pathname, basename, true);
+          let partialMatches = matchRoutesImpl(routesToUse, pathname, basename2, true);
           return {
             active: true,
             matches: partialMatches
@@ -10158,14 +10171,14 @@ function createRouter(init) {
           type: "aborted"
         };
       }
-      let newMatches = matchRoutes(routesToUse, pathname, basename);
+      let newMatches = matchRoutes(routesToUse, pathname, basename2);
       if (newMatches) {
         return {
           type: "success",
           matches: newMatches
         };
       }
-      let newPartialMatches = matchRoutesImpl(routesToUse, pathname, basename, true);
+      let newPartialMatches = matchRoutesImpl(routesToUse, pathname, basename2, true);
       if (!newPartialMatches || partialMatches.length === newPartialMatches.length && partialMatches.every((m2, i2) => m2.route.id === newPartialMatches[i2].route.id)) {
         return {
           type: "success",
@@ -10190,7 +10203,7 @@ function createRouter(init) {
   }
   router = {
     get basename() {
-      return basename;
+      return basename2;
     },
     get future() {
       return future;
@@ -10228,7 +10241,7 @@ const UNSAFE_DEFERRED_SYMBOL = Symbol("deferred");
 function createStaticHandler(routes, opts) {
   invariant(routes.length > 0, "You must provide a non-empty routes array to createStaticHandler");
   let manifest = {};
-  let basename = (opts ? opts.basename : null) || "/";
+  let basename2 = (opts ? opts.basename : null) || "/";
   let mapRouteProperties2;
   if (opts != null && opts.mapRouteProperties) {
     mapRouteProperties2 = opts.mapRouteProperties;
@@ -10254,7 +10267,7 @@ function createStaticHandler(routes, opts) {
     let url = new URL(request.url);
     let method = request.method;
     let location2 = createLocation("", createPath(url), null, "default");
-    let matches = matchRoutes(dataRoutes, location2, basename);
+    let matches = matchRoutes(dataRoutes, location2, basename2);
     if (!isValidMethod(method) && method !== "HEAD") {
       let error = getInternalRouterError(405, {
         method
@@ -10264,7 +10277,7 @@ function createStaticHandler(routes, opts) {
         route
       } = getShortCircuitMatches(dataRoutes);
       return {
-        basename,
+        basename: basename2,
         location: location2,
         matches: methodNotAllowedMatches,
         loaderData: {},
@@ -10286,7 +10299,7 @@ function createStaticHandler(routes, opts) {
         route
       } = getShortCircuitMatches(dataRoutes);
       return {
-        basename,
+        basename: basename2,
         location: location2,
         matches: notFoundMatches,
         loaderData: {},
@@ -10306,7 +10319,7 @@ function createStaticHandler(routes, opts) {
     }
     return _extends$3({
       location: location2,
-      basename
+      basename: basename2
     }, result);
   }
   async function queryRoute(request, _temp4) {
@@ -10318,7 +10331,7 @@ function createStaticHandler(routes, opts) {
     let url = new URL(request.url);
     let method = request.method;
     let location2 = createLocation("", createPath(url), null, "default");
-    let matches = matchRoutes(dataRoutes, location2, basename);
+    let matches = matchRoutes(dataRoutes, location2, basename2);
     if (!isValidMethod(method) && method !== "HEAD" && method !== "OPTIONS") {
       throw getInternalRouterError(405, {
         method
@@ -10525,7 +10538,7 @@ function createStaticHandler(routes, opts) {
       let result = results[match.route.id];
       if (isRedirectDataStrategyResultResult(result)) {
         let response = result.result;
-        throw normalizeRelativeRoutingRedirectResponse(response, request, match.route.id, matches, basename, future.v7_relativeSplatPath);
+        throw normalizeRelativeRoutingRedirectResponse(response, request, match.route.id, matches, basename2, future.v7_relativeSplatPath);
       }
       if (isResponse(result.result) && isRouteRequest) {
         throw result;
@@ -10559,7 +10572,7 @@ function throwStaticHandlerAbortedError(request, isRouteRequest, future) {
 function isSubmissionNavigation(opts) {
   return opts != null && ("formData" in opts && opts.formData != null || "body" in opts && opts.body !== void 0);
 }
-function normalizeTo(location2, matches, basename, prependBasename, to, v7_relativeSplatPath, fromRouteId, relative) {
+function normalizeTo(location2, matches, basename2, prependBasename, to, v7_relativeSplatPath, fromRouteId, relative) {
   let contextualMatches;
   let activeRouteMatch;
   if (fromRouteId) {
@@ -10575,7 +10588,7 @@ function normalizeTo(location2, matches, basename, prependBasename, to, v7_relat
     contextualMatches = matches;
     activeRouteMatch = matches[matches.length - 1];
   }
-  let path = resolveTo(to ? to : ".", getResolveToMatches(contextualMatches, v7_relativeSplatPath), stripBasename(location2.pathname, basename) || location2.pathname, relative === "path");
+  let path = resolveTo(to ? to : ".", getResolveToMatches(contextualMatches, v7_relativeSplatPath), stripBasename(location2.pathname, basename2) || location2.pathname, relative === "path");
   if (to == null) {
     path.search = location2.search;
     path.hash = location2.hash;
@@ -10593,8 +10606,8 @@ function normalizeTo(location2, matches, basename, prependBasename, to, v7_relat
       path.search = qs ? "?" + qs : "";
     }
   }
-  if (prependBasename && basename !== "/") {
-    path.pathname = path.pathname === "/" ? basename : joinPaths([basename, path.pathname]);
+  if (prependBasename && basename2 !== "/") {
+    path.pathname = path.pathname === "/" ? basename2 : joinPaths([basename2, path.pathname]);
   }
   return createPath(path);
 }
@@ -10720,7 +10733,7 @@ function getLoaderMatchesUntilBoundary(matches, boundaryId, includeBoundary) {
   }
   return matches;
 }
-function getMatchesToLoad(history, state, matches, submission, location2, initialHydration, skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename, pendingActionResult) {
+function getMatchesToLoad(history, state, matches, submission, location2, initialHydration, skipActionErrorRevalidation, isRevalidationRequired, cancelledDeferredRoutes, cancelledFetcherLoads, deletedFetchers, fetchLoadMatches, fetchRedirectIds, routesToUse, basename2, pendingActionResult) {
   let actionResult = pendingActionResult ? isErrorResult(pendingActionResult[1]) ? pendingActionResult[1].error : pendingActionResult[1].data : void 0;
   let currentUrl = history.createURL(state.location);
   let nextUrl = history.createURL(location2);
@@ -10766,7 +10779,7 @@ function getMatchesToLoad(history, state, matches, submission, location2, initia
     if (initialHydration || !matches.some((m2) => m2.route.id === f2.routeId) || deletedFetchers.has(key)) {
       return;
     }
-    let fetcherMatches = matchRoutes(routesToUse, f2.path, basename);
+    let fetcherMatches = matchRoutes(routesToUse, f2.path, basename2);
     if (!fetcherMatches) {
       revalidatingFetchers.push({
         key,
@@ -11124,21 +11137,21 @@ async function convertDataStrategyResultToDataResult(dataStrategyResult) {
     data: result
   };
 }
-function normalizeRelativeRoutingRedirectResponse(response, request, routeId, matches, basename, v7_relativeSplatPath) {
+function normalizeRelativeRoutingRedirectResponse(response, request, routeId, matches, basename2, v7_relativeSplatPath) {
   let location2 = response.headers.get("Location");
   invariant(location2, "Redirects returned/thrown from loaders/actions must have a Location header");
   if (!ABSOLUTE_URL_REGEX$1.test(location2)) {
     let trimmedMatches = matches.slice(0, matches.findIndex((m2) => m2.route.id === routeId) + 1);
-    location2 = normalizeTo(new URL(request.url), trimmedMatches, basename, true, location2, v7_relativeSplatPath);
+    location2 = normalizeTo(new URL(request.url), trimmedMatches, basename2, true, location2, v7_relativeSplatPath);
     response.headers.set("Location", location2);
   }
   return response;
 }
-function normalizeRedirectLocation(location2, currentUrl, basename) {
+function normalizeRedirectLocation(location2, currentUrl, basename2) {
   if (ABSOLUTE_URL_REGEX$1.test(location2)) {
     let normalizedLocation = location2;
     let url = normalizedLocation.startsWith("//") ? new URL(currentUrl.protocol + normalizedLocation) : new URL(normalizedLocation);
-    let isSameBasename = stripBasename(url.pathname, basename) != null;
+    let isSameBasename = stripBasename(url.pathname, basename2) != null;
     if (url.origin === currentUrl.origin && isSameBasename) {
       return url.pathname + url.search + url.hash;
     }
@@ -11755,7 +11768,7 @@ function useHref(to, _temp) {
     "useHref() may be used only in the context of a <Router> component."
   ) : invariant(false) : void 0;
   let {
-    basename,
+    basename: basename2,
     navigator: navigator2
   } = react.exports.useContext(NavigationContext);
   let {
@@ -11766,8 +11779,8 @@ function useHref(to, _temp) {
     relative
   });
   let joinedPathname = pathname;
-  if (basename !== "/") {
-    joinedPathname = pathname === "/" ? basename : joinPaths([basename, pathname]);
+  if (basename2 !== "/") {
+    joinedPathname = pathname === "/" ? basename2 : joinPaths([basename2, pathname]);
   }
   return navigator2.createHref({
     pathname: joinedPathname,
@@ -11818,7 +11831,7 @@ function useNavigateUnstable() {
   ) : invariant(false) : void 0;
   let dataRouterContext = react.exports.useContext(DataRouterContext);
   let {
-    basename,
+    basename: basename2,
     future,
     navigator: navigator2
   } = react.exports.useContext(NavigationContext);
@@ -11845,11 +11858,11 @@ function useNavigateUnstable() {
       return;
     }
     let path = resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, options.relative === "path");
-    if (dataRouterContext == null && basename !== "/") {
-      path.pathname = path.pathname === "/" ? basename : joinPaths([basename, path.pathname]);
+    if (dataRouterContext == null && basename2 !== "/") {
+      path.pathname = path.pathname === "/" ? basename2 : joinPaths([basename2, path.pathname]);
     }
     (!!options.replace ? navigator2.replace : navigator2.push)(path, options.state, options);
-  }, [basename, navigator2, routePathnamesJson, locationPathname, dataRouterContext]);
+  }, [basename2, navigator2, routePathnamesJson, locationPathname, dataRouterContext]);
   return navigate;
 }
 const OutletContext = /* @__PURE__ */ react.exports.createContext(null);
@@ -12268,7 +12281,7 @@ let blockerId = 0;
 function useBlocker(shouldBlock) {
   let {
     router,
-    basename
+    basename: basename2
   } = useDataRouterContext$1(DataRouterHook$1.UseBlocker);
   let state = useDataRouterState$1(DataRouterStateHook$1.UseBlocker);
   let [blockerKey, setBlockerKey] = react.exports.useState("");
@@ -12276,7 +12289,7 @@ function useBlocker(shouldBlock) {
     if (typeof shouldBlock !== "function") {
       return !!shouldBlock;
     }
-    if (basename === "/") {
+    if (basename2 === "/") {
       return shouldBlock(arg);
     }
     let {
@@ -12286,14 +12299,14 @@ function useBlocker(shouldBlock) {
     } = arg;
     return shouldBlock({
       currentLocation: _extends$2({}, currentLocation, {
-        pathname: stripBasename(currentLocation.pathname, basename) || currentLocation.pathname
+        pathname: stripBasename(currentLocation.pathname, basename2) || currentLocation.pathname
       }),
       nextLocation: _extends$2({}, nextLocation, {
-        pathname: stripBasename(nextLocation.pathname, basename) || nextLocation.pathname
+        pathname: stripBasename(nextLocation.pathname, basename2) || nextLocation.pathname
       }),
       historyAction
     });
-  }, [basename, shouldBlock]);
+  }, [basename2, shouldBlock]);
   react.exports.useEffect(() => {
     let key = String(++blockerId);
     setBlockerKey(key);
@@ -12408,20 +12421,20 @@ function RouterProvider$1(_ref) {
       })
     };
   }, [router]);
-  let basename = router.basename || "/";
+  let basename2 = router.basename || "/";
   let dataRouterContext = react.exports.useMemo(() => ({
     router,
     navigator: navigator2,
     static: false,
-    basename
-  }), [router, navigator2, basename]);
+    basename: basename2
+  }), [router, navigator2, basename2]);
   react.exports.useEffect(() => logV6DeprecationWarnings(future, router.future), [router, future]);
   return /* @__PURE__ */ react.exports.createElement(react.exports.Fragment, null, /* @__PURE__ */ react.exports.createElement(DataRouterContext.Provider, {
     value: dataRouterContext
   }, /* @__PURE__ */ react.exports.createElement(DataRouterStateContext.Provider, {
     value: state
   }, /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     location: state.location,
     navigationType: state.historyAction,
     navigator: navigator2,
@@ -12444,7 +12457,7 @@ function DataRoutes$1(_ref2) {
 }
 function MemoryRouter(_ref3) {
   let {
-    basename,
+    basename: basename2,
     children,
     initialEntries,
     initialIndex,
@@ -12472,7 +12485,7 @@ function MemoryRouter(_ref3) {
   react.exports.useLayoutEffect(() => history.listen(setState), [history, setState]);
   react.exports.useEffect(() => logV6DeprecationWarnings(future), [future]);
   return /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     children,
     location: state.location,
     navigationType: state.action,
@@ -12529,15 +12542,15 @@ function Router(_ref5) {
     future
   } = _ref5;
   !!useInRouterContext() ? false ? invariant(false, "You cannot render a <Router> inside another <Router>. You should never have more than one in your app.") : invariant(false) : void 0;
-  let basename = basenameProp.replace(/^\/*/, "/");
+  let basename2 = basenameProp.replace(/^\/*/, "/");
   let navigationContext = react.exports.useMemo(() => ({
-    basename,
+    basename: basename2,
     navigator: navigator2,
     static: staticProp,
     future: _extends$2({
       v7_relativeSplatPath: false
     }, future)
-  }), [basename, future, navigator2, staticProp]);
+  }), [basename2, future, navigator2, staticProp]);
   if (typeof locationProp === "string") {
     locationProp = parsePath(locationProp);
   }
@@ -12549,7 +12562,7 @@ function Router(_ref5) {
     key = "default"
   } = locationProp;
   let locationContext = react.exports.useMemo(() => {
-    let trailingPathname = stripBasename(pathname, basename);
+    let trailingPathname = stripBasename(pathname, basename2);
     if (trailingPathname == null) {
       return null;
     }
@@ -12563,8 +12576,8 @@ function Router(_ref5) {
       },
       navigationType
     };
-  }, [basename, pathname, search, hash, state, key, navigationType]);
-  false ? warning(locationContext != null, '<Router basename="' + basename + '"> is not able to match the URL ' + ('"' + pathname + search + hash + '" because it does not start with the ') + "basename, so the <Router> won't render anything.") : void 0;
+  }, [basename2, pathname, search, hash, state, key, navigationType]);
+  false ? warning(locationContext != null, '<Router basename="' + basename2 + '"> is not able to match the URL ' + ('"' + pathname + search + hash + '" because it does not start with the ') + "basename, so the <Router> won't render anything.") : void 0;
   if (locationContext == null) {
     return null;
   }
@@ -12888,7 +12901,7 @@ function getFormEncType(encType) {
   }
   return encType;
 }
-function getFormSubmissionInfo(target, basename) {
+function getFormSubmissionInfo(target, basename2) {
   let method;
   let action;
   let encType;
@@ -12896,7 +12909,7 @@ function getFormSubmissionInfo(target, basename) {
   let body;
   if (isFormElement(target)) {
     let attr = target.getAttribute("action");
-    action = attr ? stripBasename(attr, basename) : null;
+    action = attr ? stripBasename(attr, basename2) : null;
     method = target.getAttribute("method") || defaultMethod;
     encType = getFormEncType(target.getAttribute("enctype")) || defaultEncType;
     formData = new FormData(target);
@@ -12906,7 +12919,7 @@ function getFormSubmissionInfo(target, basename) {
       throw new Error('Cannot submit a <button> or <input type="submit"> without a <form>');
     }
     let attr = target.getAttribute("formaction") || form.getAttribute("action");
-    action = attr ? stripBasename(attr, basename) : null;
+    action = attr ? stripBasename(attr, basename2) : null;
     method = target.getAttribute("formmethod") || form.getAttribute("method") || defaultMethod;
     encType = getFormEncType(target.getAttribute("formenctype")) || getFormEncType(form.getAttribute("enctype")) || defaultEncType;
     formData = new FormData(form, target);
@@ -13228,13 +13241,13 @@ function RouterProvider(_ref) {
       })
     };
   }, [router]);
-  let basename = router.basename || "/";
+  let basename2 = router.basename || "/";
   let dataRouterContext = react.exports.useMemo(() => ({
     router,
     navigator: navigator2,
     static: false,
-    basename
-  }), [router, navigator2, basename]);
+    basename: basename2
+  }), [router, navigator2, basename2]);
   let routerFuture = react.exports.useMemo(() => ({
     v7_relativeSplatPath: router.future.v7_relativeSplatPath
   }), [router.future.v7_relativeSplatPath]);
@@ -13248,7 +13261,7 @@ function RouterProvider(_ref) {
   }, /* @__PURE__ */ react.exports.createElement(ViewTransitionContext.Provider, {
     value: vtContext
   }, /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     location: state.location,
     navigationType: state.historyAction,
     navigator: navigator2,
@@ -13270,7 +13283,7 @@ function DataRoutes(_ref3) {
 }
 function BrowserRouter(_ref4) {
   let {
-    basename,
+    basename: basename2,
     children,
     future,
     window: window2
@@ -13296,7 +13309,7 @@ function BrowserRouter(_ref4) {
   react.exports.useLayoutEffect(() => history.listen(setState), [history, setState]);
   react.exports.useEffect(() => logV6DeprecationWarnings(future), [future]);
   return /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     children,
     location: state.location,
     navigationType: state.action,
@@ -13306,7 +13319,7 @@ function BrowserRouter(_ref4) {
 }
 function HashRouter(_ref5) {
   let {
-    basename,
+    basename: basename2,
     children,
     future,
     window: window2
@@ -13332,7 +13345,7 @@ function HashRouter(_ref5) {
   react.exports.useLayoutEffect(() => history.listen(setState), [history, setState]);
   react.exports.useEffect(() => logV6DeprecationWarnings(future), [future]);
   return /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     children,
     location: state.location,
     navigationType: state.action,
@@ -13342,7 +13355,7 @@ function HashRouter(_ref5) {
 }
 function HistoryRouter(_ref6) {
   let {
-    basename,
+    basename: basename2,
     children,
     future,
     history
@@ -13360,7 +13373,7 @@ function HistoryRouter(_ref6) {
   react.exports.useLayoutEffect(() => history.listen(setState), [history, setState]);
   react.exports.useEffect(() => logV6DeprecationWarnings(future), [future]);
   return /* @__PURE__ */ react.exports.createElement(Router, {
-    basename,
+    basename: basename2,
     children,
     location: state.location,
     navigationType: state.action,
@@ -13386,7 +13399,7 @@ const Link = /* @__PURE__ */ react.exports.forwardRef(function LinkWithRef(_ref7
     viewTransition
   } = _ref7, rest = _objectWithoutPropertiesLoose$1(_ref7, _excluded);
   let {
-    basename
+    basename: basename2
   } = react.exports.useContext(NavigationContext);
   let absoluteHref;
   let isExternal = false;
@@ -13396,7 +13409,7 @@ const Link = /* @__PURE__ */ react.exports.forwardRef(function LinkWithRef(_ref7
       try {
         let currentUrl = new URL(window.location.href);
         let targetUrl = to.startsWith("//") ? new URL(currentUrl.protocol + to) : new URL(to);
-        let path = stripBasename(targetUrl.pathname, basename);
+        let path = stripBasename(targetUrl.pathname, basename2);
         if (targetUrl.origin === currentUrl.origin && path != null) {
           to = path + targetUrl.search + targetUrl.hash;
         } else {
@@ -13453,7 +13466,7 @@ const NavLink = /* @__PURE__ */ react.exports.forwardRef(function NavLinkWithRef
   let routerState = react.exports.useContext(DataRouterStateContext);
   let {
     navigator: navigator2,
-    basename
+    basename: basename2
   } = react.exports.useContext(NavigationContext);
   let isTransitioning = routerState != null && useViewTransitionState(path) && viewTransition === true;
   let toPathname = navigator2.encodeLocation ? navigator2.encodeLocation(path).pathname : path.pathname;
@@ -13464,8 +13477,8 @@ const NavLink = /* @__PURE__ */ react.exports.forwardRef(function NavLinkWithRef
     nextLocationPathname = nextLocationPathname ? nextLocationPathname.toLowerCase() : null;
     toPathname = toPathname.toLowerCase();
   }
-  if (nextLocationPathname && basename) {
-    nextLocationPathname = stripBasename(nextLocationPathname, basename) || nextLocationPathname;
+  if (nextLocationPathname && basename2) {
+    nextLocationPathname = stripBasename(nextLocationPathname, basename2) || nextLocationPathname;
   }
   const endSlashPosition = toPathname !== "/" && toPathname.endsWith("/") ? toPathname.length - 1 : toPathname.length;
   let isActive = locationPathname === toPathname || !end && locationPathname.startsWith(toPathname) && locationPathname.charAt(endSlashPosition) === "/";
@@ -13637,7 +13650,7 @@ function useSubmit() {
     router
   } = useDataRouterContext(DataRouterHook.UseSubmit);
   let {
-    basename
+    basename: basename2
   } = react.exports.useContext(NavigationContext);
   let currentRouteId = useRouteId();
   return react.exports.useCallback(function(target, options) {
@@ -13651,7 +13664,7 @@ function useSubmit() {
       encType,
       formData,
       body
-    } = getFormSubmissionInfo(target, basename);
+    } = getFormSubmissionInfo(target, basename2);
     if (options.navigate === false) {
       let key = options.fetcherKey || getUniqueFetcherId();
       router.fetch(key, currentRouteId, options.action || action, {
@@ -13676,14 +13689,14 @@ function useSubmit() {
         viewTransition: options.viewTransition
       });
     }
-  }, [router, basename, currentRouteId]);
+  }, [router, basename2, currentRouteId]);
 }
 function useFormAction(action, _temp2) {
   let {
     relative
   } = _temp2 === void 0 ? {} : _temp2;
   let {
-    basename
+    basename: basename2
   } = react.exports.useContext(NavigationContext);
   let routeContext = react.exports.useContext(RouteContext);
   !routeContext ? false ? invariant(false, "useFormAction must be used inside a RouteContext") : invariant(false) : void 0;
@@ -13707,8 +13720,8 @@ function useFormAction(action, _temp2) {
   if ((!action || action === ".") && match.route.index) {
     path.search = path.search ? path.search.replace(/^\?/, "?index&") : "?index";
   }
-  if (basename !== "/") {
-    path.pathname = path.pathname === "/" ? basename : joinPaths([basename, path.pathname]);
+  if (basename2 !== "/") {
+    path.pathname = path.pathname === "/" ? basename2 : joinPaths([basename2, path.pathname]);
   }
   return createPath(path);
 }
@@ -13799,7 +13812,7 @@ function useScrollRestoration(_temp4) {
     preventScrollReset
   } = useDataRouterState(DataRouterStateHook.UseScrollRestoration);
   let {
-    basename
+    basename: basename2
   } = react.exports.useContext(NavigationContext);
   let location2 = useLocation();
   let matches = useMatches();
@@ -13833,15 +13846,15 @@ function useScrollRestoration(_temp4) {
       }
     }, [storageKey]);
     react.exports.useLayoutEffect(() => {
-      let getKeyWithoutBasename = getKey && basename !== "/" ? (location3, matches2) => getKey(
+      let getKeyWithoutBasename = getKey && basename2 !== "/" ? (location3, matches2) => getKey(
         _extends$1({}, location3, {
-          pathname: stripBasename(location3.pathname, basename) || location3.pathname
+          pathname: stripBasename(location3.pathname, basename2) || location3.pathname
         }),
         matches2
       ) : getKey;
       let disableScrollRestoration = router == null ? void 0 : router.enableScrollRestoration(savedScrollPositions, () => window.scrollY, getKeyWithoutBasename);
       return () => disableScrollRestoration && disableScrollRestoration();
-    }, [router, basename, getKey]);
+    }, [router, basename2, getKey]);
     react.exports.useLayoutEffect(() => {
       if (restoreScrollPosition === false) {
         return;
@@ -13921,7 +13934,7 @@ function useViewTransitionState(to, opts) {
   let vtContext = react.exports.useContext(ViewTransitionContext);
   !(vtContext != null) ? false ? invariant(false, "`useViewTransitionState` must be used within `react-router-dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?") : invariant(false) : void 0;
   let {
-    basename
+    basename: basename2
   } = useDataRouterContext(DataRouterHook.useViewTransitionState);
   let path = useResolvedPath(to, {
     relative: opts.relative
@@ -13929,8 +13942,8 @@ function useViewTransitionState(to, opts) {
   if (!vtContext.isTransitioning) {
     return false;
   }
-  let currentPath = stripBasename(vtContext.currentLocation.pathname, basename) || vtContext.currentLocation.pathname;
-  let nextPath = stripBasename(vtContext.nextLocation.pathname, basename) || vtContext.nextLocation.pathname;
+  let currentPath = stripBasename(vtContext.currentLocation.pathname, basename2) || vtContext.currentLocation.pathname;
+  let nextPath = stripBasename(vtContext.nextLocation.pathname, basename2) || vtContext.nextLocation.pathname;
   return matchPath(path.pathname, nextPath) != null || matchPath(path.pathname, currentPath) != null;
 }
 function useFetchData(url, options = {}) {
@@ -14108,9 +14121,10 @@ function DeleteConfirmModal({
   });
 }
 function useActiveTasksPolling(intervalMs = 3e3) {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const [activeTasks, setActiveTasks] = react.exports.useState([]);
   const { fetchData: fetchActiveTasks } = useFetchData(
-    "/api/fabric-command?command=broadway%20verify.bwK2VerifyRunningTasks%20RESULT_STRUCTURE=CURSOR"
+    `${apiBasePath2}/api/fabric-command?command=broadway%20verify.bwK2VerifyRunningTasks%20RESULT_STRUCTURE=CURSOR`
   );
   react.exports.useEffect(() => {
     let isMounted = true;
@@ -14157,8 +14171,9 @@ function useActiveTasksPolling(intervalMs = 3e3) {
 }
 async function runFabricCommand(command) {
   var _a2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const encoded = encodeURIComponent(command);
-  const res = await fetch(`/api/fabric-command?command=${encoded}`);
+  const res = await fetch(`${apiBasePath2}/api/fabric-command?command=${encoded}`);
   let data2 = null;
   try {
     data2 = await res.json();
@@ -15900,21 +15915,951 @@ if (true) {
 var reactTable = reactTable$1.exports;
 var Menu = "";
 var Table$1 = "";
-var filterOff = "/static/k2verify/assets/filter_off.3d9ea484.svg";
-var filterOn = "/static/k2verify/assets/filter_on.6b5cc2ac.svg";
-var sortArrow = "/static/k2verify/assets/sort_arrows.cb2e47ea.svg";
-var sortArrowUp = "/static/k2verify/assets/sort_arrows_up.9ee7f9dd.svg";
-var sortArrowDown = "/static/k2verify/assets/sort_arrows_down.de425f0f.svg";
-var playOffIcon = "/static/k2verify/assets/play-off.68ab7835.svg";
-var playIcon = "/static/k2verify/assets/play.8b700136.svg";
-var stopcircleIcon = "/static/k2verify/assets/stop-circle.6a652e0f.svg";
-var stopcircleIconDisabled = "/static/k2verify/assets/stop-circle-disabled.30c62ec7.svg";
-var historyIcon = "/static/k2verify/assets/history.5f9764ca.svg";
-var deleteIcon = "/static/k2verify/assets/delete-icon.2b6e22b6.svg";
-var deleteIconDisabled = "/static/k2verify/assets/delete-icon-disabled.78d7fa3a.svg";
-var infoIcon = "/static/k2verify/assets/info.ed4c016e.svg";
-var optionsIcon = "/static/k2verify/assets/more_options.5c20aa42.svg";
-var clipboardIcon = "/static/k2verify/assets/clipboard.43887793.svg";
+const DEFAULT_ENV = "_dev";
+const DEFAULT_PARTITIONS = 10;
+const DEFAULT_PARTITION_METHOD = "bwGetBucketRows";
+const REQUIRED_FIELDS = ["source_environment", "source_interface", "source_schema", "source_table_name", "target_environment", "target_interface", "target_schema", "target_table_name"];
+const overrides = {
+  source_environment: "Source Environment",
+  source_interface: "Source Interface",
+  source_schema: "Source Schema",
+  source_table_name: "Source Table Name",
+  source_transformation_flow: "Source Transformation Flow",
+  source_ignore_null_columns: "Source Ignore-Null Columns",
+  target_environment: "Target Environment",
+  target_interface: "Target Interface",
+  target_schema: "Target Schema",
+  target_table_name: "Target Table Name",
+  target_transformation_flow: "Target Transformation Flow",
+  target_ignore_null_columns: "Target Ignore-Null Columns",
+  comparison_keys: "Comparison Keys",
+  pii_column_names: "PII Column Names",
+  excluded_columns_names: "Excluded Column Names",
+  rows_filter_condition: "Rows Filter Condition",
+  column_name_mapping: "Column Name Mapping",
+  partitions_count: "Partitions Count",
+  partitions_assignment_method: "Partitions Assignment Method",
+  active: "Active"
+};
+function formatLabel(field) {
+  if (!field)
+    return "";
+  if (overrides[field])
+    return overrides[field];
+  return String(field).replace(/_/g, " ").replace(/\b\w/g, (c2) => c2.toUpperCase());
+}
+function extractListFromMapTables(raw) {
+  var _a2, _b2, _c;
+  const list = (_c = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables) == null ? void 0 : _c[0];
+  return Array.isArray(list) ? list.map(String).filter(Boolean) : [];
+}
+function normalizeEnvList(envData) {
+  if (!Array.isArray(envData) || envData.length === 0)
+    return [];
+  return Array.from(new Set(envData.map((row) => {
+    var _a2;
+    return typeof row === "string" ? row : (_a2 = row == null ? void 0 : row.Environments) != null ? _a2 : "";
+  }).filter((v2) => v2 && String(v2).trim()).map((v2) => String(v2).trim()))).sort();
+}
+function isBlank(value) {
+  return !String(value != null ? value : "").trim();
+}
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  multiline = false,
+  min,
+  required = false,
+  error = false
+}) {
+  const borderColor = error ? "#ef4444" : "#d9d9d9";
+  if (multiline) {
+    return /* @__PURE__ */ jsxs("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 6
+      },
+      children: [/* @__PURE__ */ jsxs("label", {
+        style: {
+          fontSize: 12,
+          color: "#333"
+        },
+        children: [formatLabel(label), required ? " *" : ""]
+      }), /* @__PURE__ */ jsx("textarea", {
+        value: value != null ? value : "",
+        required,
+        onChange: (e) => onChange(e.target.value),
+        style: {
+          minHeight: 80,
+          padding: "8px 10px",
+          border: `1px solid ${borderColor}`,
+          borderRadius: 4,
+          resize: "vertical",
+          background: "white",
+          outline: "none"
+        }
+      })]
+    });
+  }
+  return /* @__PURE__ */ jsxs("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    },
+    children: [/* @__PURE__ */ jsxs("label", {
+      style: {
+        fontSize: 12,
+        color: "#333"
+      },
+      children: [formatLabel(label), required ? " *" : ""]
+    }), /* @__PURE__ */ jsx("input", {
+      type,
+      value: value != null ? value : "",
+      min,
+      required,
+      onChange: (e) => onChange(e.target.value),
+      style: {
+        height: 34,
+        padding: "6px 10px",
+        border: `1px solid ${borderColor}`,
+        borderRadius: 4,
+        background: "white",
+        outline: "none"
+      }
+    })]
+  });
+}
+function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+  disabled = false,
+  onOpen,
+  required = false,
+  error = false,
+  name
+}) {
+  const borderColor = error ? "#ef4444" : "#d9d9d9";
+  return /* @__PURE__ */ jsxs("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    },
+    children: [/* @__PURE__ */ jsxs("label", {
+      style: {
+        fontSize: 12,
+        color: "#333"
+      },
+      children: [formatLabel(label), required ? " *" : ""]
+    }), /* @__PURE__ */ jsx("select", {
+      name,
+      value: value != null ? value : "",
+      required,
+      disabled,
+      onChange: (e) => onChange(e.target.value),
+      onMouseDown: () => onOpen == null ? void 0 : onOpen(),
+      onFocus: () => onOpen == null ? void 0 : onOpen(),
+      style: {
+        height: 34,
+        padding: "6px 10px",
+        border: `1px solid ${borderColor}`,
+        borderRadius: 4,
+        background: disabled ? "#f3f3f3" : "white",
+        outline: "none"
+      },
+      children
+    })]
+  });
+}
+function Modal({
+  title,
+  children,
+  onClose,
+  onSubmit,
+  submitLabel = "Submit",
+  cancelLabel = "Discard"
+}) {
+  return /* @__PURE__ */ jsx("div", {
+    role: "dialog",
+    "aria-modal": "true",
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.45)",
+      zIndex: 9999,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24
+    },
+    onMouseDown: (e) => {
+      if (e.target === e.currentTarget)
+        onClose();
+    },
+    children: /* @__PURE__ */ jsxs("div", {
+      style: {
+        width: "min(980px, 100%)",
+        background: "white",
+        borderRadius: 8,
+        boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
+        overflow: "hidden"
+      },
+      onMouseDown: (e) => e.stopPropagation(),
+      children: [/* @__PURE__ */ jsx("div", {
+        style: {
+          padding: "18px 22px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        },
+        children: /* @__PURE__ */ jsx("div", {
+          style: {
+            fontSize: 22,
+            color: "#1483F3"
+          },
+          children: title
+        })
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          borderTop: "1px solid #eee"
+        }
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          padding: "18px 22px"
+        },
+        children
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          borderTop: "1px solid #eee"
+        }
+      }), /* @__PURE__ */ jsxs("div", {
+        style: {
+          padding: "14px 22px",
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 12
+        },
+        children: [/* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: onClose,
+          style: {
+            padding: "8px 16px",
+            borderRadius: 4,
+            border: "1px solid #1483F3",
+            background: "white",
+            color: "#1483F3",
+            cursor: "pointer",
+            minWidth: 100
+          },
+          children: cancelLabel
+        }), /* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: onSubmit,
+          style: {
+            padding: "8px 16px",
+            borderRadius: 4,
+            border: "1px solid #1483F3",
+            background: "#1483F3",
+            color: "white",
+            cursor: "pointer",
+            minWidth: 100
+          },
+          children: submitLabel
+        })]
+      })]
+    })
+  });
+}
+function normalizeInitialDraft(row) {
+  var _a2;
+  const next = {
+    ...row || {}
+  };
+  next.source_environment = String(next.source_environment || DEFAULT_ENV).trim();
+  next.target_environment = String(next.target_environment || DEFAULT_ENV).trim();
+  next.source_interface = String(next.source_interface || "").trim();
+  next.source_schema = String(next.source_schema || "").trim();
+  next.source_table_name = String(next.source_table_name || "").trim();
+  next.target_interface = String(next.target_interface || "").trim();
+  next.target_schema = String(next.target_schema || "").trim();
+  next.target_table_name = String(next.target_table_name || "").trim();
+  next.partitions_count = next.partitions_count == null ? DEFAULT_PARTITIONS : Number(next.partitions_count);
+  if (!Number.isFinite(next.partitions_count) || next.partitions_count <= 0) {
+    next.partitions_count = DEFAULT_PARTITIONS;
+  }
+  next.partitions_assignment_method = next.partitions_assignment_method || DEFAULT_PARTITION_METHOD;
+  if (typeof next.active !== "boolean") {
+    const rawActive = String((_a2 = next.active) != null ? _a2 : "").trim().toLowerCase();
+    next.active = rawActive === "" ? true : rawActive === "true";
+  }
+  ["source_transformation_flow", "source_ignore_null_columns", "target_transformation_flow", "target_ignore_null_columns", "comparison_keys", "pii_column_names", "excluded_columns_names", "rows_filter_condition", "column_name_mapping"].forEach((key) => {
+    if (next[key] == null)
+      next[key] = "";
+  });
+  return next;
+}
+function buildPayload(draft) {
+  return {
+    ...draft,
+    source_environment: String(draft.source_environment || "").trim(),
+    source_interface: String(draft.source_interface || "").trim(),
+    source_schema: String(draft.source_schema || "").trim(),
+    source_table_name: String(draft.source_table_name || "").trim(),
+    target_environment: String(draft.target_environment || "").trim(),
+    target_interface: String(draft.target_interface || "").trim(),
+    target_schema: String(draft.target_schema || "").trim(),
+    target_table_name: String(draft.target_table_name || "").trim(),
+    partitions_count: Number.isFinite(Number(draft.partitions_count)) && Number(draft.partitions_count) > 0 ? Number(draft.partitions_count) : DEFAULT_PARTITIONS,
+    partitions_assignment_method: draft.partitions_assignment_method || DEFAULT_PARTITION_METHOD,
+    active: !!draft.active
+  };
+}
+function ExpandedRowEditor({
+  row,
+  onClose,
+  onSave,
+  isEditMode
+}) {
+  var _a2, _b2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  const [draft, setDraft] = react.exports.useState({});
+  const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
+  const [saveAttempted, setSaveAttempted] = react.exports.useState(false);
+  const [envData, setEnvData] = react.exports.useState([]);
+  const [envsLoaded, setEnvsLoaded] = react.exports.useState(false);
+  const [envsLoading, setEnvsLoading] = react.exports.useState(false);
+  const [ifaceByEnv, setIfaceByEnv] = react.exports.useState({});
+  const [schemasByEnvIface, setSchemasByEnvIface] = react.exports.useState({});
+  const [tablesByKey, setTablesByKey] = react.exports.useState({});
+  const [ifaceLoadingKeys, setIfaceLoadingKeys] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [schemaLoadingKeys, setSchemaLoadingKeys] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [tablesLoadingKeys, setTablesLoadingKeys] = react.exports.useState(/* @__PURE__ */ new Set());
+  const allEnvironments = react.exports.useMemo(() => normalizeEnvList(envData), [envData]);
+  const fetchCmd = react.exports.useCallback(async (cmd) => {
+    const url = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+    const res = await fetch(url, {
+      credentials: "include"
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return await res.json();
+  }, [apiBasePath2]);
+  const ensureEnvsLoaded = react.exports.useCallback(async () => {
+    if (envsLoaded || envsLoading)
+      return;
+    setEnvsLoading(true);
+    try {
+      const raw = await fetchCmd("list envs");
+      setEnvData(Array.isArray(raw) ? raw : []);
+      setEnvsLoaded(true);
+    } catch (e) {
+      console.log(e);
+      setEnvData([]);
+      setEnvsLoaded(true);
+    } finally {
+      setEnvsLoading(false);
+    }
+  }, [envsLoaded, envsLoading, fetchCmd]);
+  const ensureInterfacesLoaded = react.exports.useCallback(async (envName) => {
+    const env = String(envName || "").trim();
+    if (!env)
+      return;
+    if (Array.isArray(ifaceByEnv[env]))
+      return;
+    if (ifaceLoadingKeys.has(env))
+      return;
+    setIfaceLoadingKeys((prev) => {
+      const next = new Set(prev);
+      next.add(env);
+      return next;
+    });
+    try {
+      const raw = await fetchCmd(`broadway verify.bwK2VerifyListInterfaces envName=${env} RESULT_STRUCTURE=CURSOR`);
+      const list = Array.isArray(raw) ? raw.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort() : [];
+      setIfaceByEnv((prev) => ({
+        ...prev,
+        [env]: list
+      }));
+    } catch (e) {
+      console.log(e);
+      setIfaceByEnv((prev) => ({
+        ...prev,
+        [env]: []
+      }));
+    } finally {
+      setIfaceLoadingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(env);
+        return next;
+      });
+    }
+  }, [fetchCmd, ifaceByEnv, ifaceLoadingKeys]);
+  const ensureSchemasLoaded = react.exports.useCallback(async (envName, interfaceName) => {
+    const env = String(envName || "").trim();
+    const iface = String(interfaceName || "").trim();
+    if (!env || !iface)
+      return;
+    const key = `${env}||${iface}`;
+    if (Array.isArray(schemasByEnvIface[key]))
+      return;
+    if (schemaLoadingKeys.has(key))
+      return;
+    setSchemaLoadingKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    try {
+      const raw = await fetchCmd(`broadway verify.bwK2VerifyFetchSchema interfaceName='${iface}' envName='${env}';`);
+      const schemas = extractListFromMapTables(raw).sort();
+      setSchemasByEnvIface((prev) => ({
+        ...prev,
+        [key]: schemas
+      }));
+    } catch (e) {
+      console.log(e);
+      setSchemasByEnvIface((prev) => ({
+        ...prev,
+        [key]: []
+      }));
+    } finally {
+      setSchemaLoadingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }, [fetchCmd, schemasByEnvIface, schemaLoadingKeys]);
+  const ensureTablesLoaded = react.exports.useCallback(async (envName, interfaceName, schemaName) => {
+    const env = String(envName || "").trim();
+    const iface = String(interfaceName || "").trim();
+    const schema = String(schemaName || "").trim();
+    if (!env || !iface || !schema)
+      return;
+    const key = `${env}||${iface}||${schema}`;
+    if (Array.isArray(tablesByKey[key]))
+      return;
+    if (tablesLoadingKeys.has(key))
+      return;
+    setTablesLoadingKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    try {
+      const raw = await fetchCmd(`broadway verify.bwK2VerifyFetchTablesFromSchemas interfaceName='${iface}' envName='${env}' schemaName='${schema}';`);
+      const tables = extractListFromMapTables(raw).sort();
+      setTablesByKey((prev) => ({
+        ...prev,
+        [key]: tables
+      }));
+    } catch (e) {
+      console.log(e);
+      setTablesByKey((prev) => ({
+        ...prev,
+        [key]: []
+      }));
+    } finally {
+      setTablesLoadingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }, [fetchCmd, tablesByKey, tablesLoadingKeys]);
+  react.exports.useEffect(() => {
+    if (!row)
+      return;
+    setDraft(normalizeInitialDraft(row));
+    setAdvancedOpen(false);
+    setSaveAttempted(false);
+  }, [row]);
+  const updateField = react.exports.useCallback((key, value) => {
+    setDraft((prev) => {
+      const next = {
+        ...prev,
+        [key]: value
+      };
+      if (key === "source_environment") {
+        next.source_interface = "";
+        next.source_schema = "";
+        next.source_table_name = "";
+      }
+      if (key === "source_interface") {
+        next.source_schema = "";
+        next.source_table_name = "";
+      }
+      if (key === "source_schema") {
+        next.source_table_name = "";
+      }
+      if (key === "target_environment") {
+        next.target_interface = "";
+        next.target_schema = "";
+        next.target_table_name = "";
+      }
+      if (key === "target_interface") {
+        next.target_schema = "";
+        next.target_table_name = "";
+      }
+      if (key === "target_schema") {
+        next.target_table_name = "";
+      }
+      return next;
+    });
+  }, []);
+  const srcEnv = String(draft.source_environment || DEFAULT_ENV).trim();
+  const tarEnv = String(draft.target_environment || DEFAULT_ENV).trim();
+  const srcIface = String(draft.source_interface || "").trim();
+  const tarIface = String(draft.target_interface || "").trim();
+  const srcSchema = String(draft.source_schema || "").trim();
+  const tarSchema = String(draft.target_schema || "").trim();
+  const srcSchemasKey = `${srcEnv}||${srcIface}`;
+  const tarSchemasKey = `${tarEnv}||${tarIface}`;
+  const srcTablesKey = `${srcEnv}||${srcIface}||${srcSchema}`;
+  const tarTablesKey = `${tarEnv}||${tarIface}||${tarSchema}`;
+  const srcIfaceLoading = ifaceLoadingKeys.has(srcEnv);
+  const tarIfaceLoading = ifaceLoadingKeys.has(tarEnv);
+  const srcSchemasLoading = schemaLoadingKeys.has(srcSchemasKey);
+  const tarSchemasLoading = schemaLoadingKeys.has(tarSchemasKey);
+  const srcTablesLoading = tablesLoadingKeys.has(srcTablesKey);
+  const tarTablesLoading = tablesLoadingKeys.has(tarTablesKey);
+  const srcInterfaces = Array.isArray(ifaceByEnv[srcEnv]) ? ifaceByEnv[srcEnv] : [];
+  const tarInterfaces = Array.isArray(ifaceByEnv[tarEnv]) ? ifaceByEnv[tarEnv] : [];
+  const srcSchemas = Array.isArray(schemasByEnvIface[srcSchemasKey]) ? schemasByEnvIface[srcSchemasKey] : [];
+  const tarSchemas = Array.isArray(schemasByEnvIface[tarSchemasKey]) ? schemasByEnvIface[tarSchemasKey] : [];
+  const srcTables = Array.isArray(tablesByKey[srcTablesKey]) ? tablesByKey[srcTablesKey] : [];
+  const tarTables = Array.isArray(tablesByKey[tarTablesKey]) ? tablesByKey[tarTablesKey] : [];
+  const invalidFields = react.exports.useMemo(() => {
+    const result = {};
+    for (const key of REQUIRED_FIELDS) {
+      result[key] = saveAttempted && isBlank(draft[key]);
+    }
+    return result;
+  }, [draft, saveAttempted]);
+  const validateDraft = react.exports.useCallback(() => {
+    return REQUIRED_FIELDS.every((key) => !isBlank(draft[key]));
+  }, [draft]);
+  const handleSave = react.exports.useCallback((e) => {
+    if (e)
+      e.preventDefault();
+    setSaveAttempted(true);
+    if (!validateDraft()) {
+      return;
+    }
+    onSave == null ? void 0 : onSave(buildPayload(draft));
+  }, [draft, onSave, validateDraft]);
+  const handleAdvancedSubmit = react.exports.useCallback(() => {
+    setSaveAttempted(true);
+    if (!validateDraft()) {
+      return;
+    }
+    setAdvancedOpen(false);
+    onSave == null ? void 0 : onSave(buildPayload(draft));
+  }, [draft, onSave, validateDraft]);
+  if (!row)
+    return null;
+  return /* @__PURE__ */ jsxs("div", {
+    style: {
+      padding: 16,
+      background: "#f3f3f3",
+      borderTop: "1px solid #ddd",
+      borderBottom: "1px solid #ddd"
+    },
+    children: [/* @__PURE__ */ jsxs("form", {
+      onSubmit: handleSave,
+      children: [/* @__PURE__ */ jsxs("div", {
+        style: {
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 16,
+          marginTop: 12,
+          alignItems: "start"
+        },
+        children: [/* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 16
+          },
+          children: [/* @__PURE__ */ jsxs(SelectField, {
+            name: "source_environment",
+            label: "source_environment",
+            value: draft.source_environment || "",
+            onChange: (v2) => updateField("source_environment", v2),
+            onOpen: ensureEnvsLoaded,
+            disabled: isEditMode,
+            required: true,
+            error: invalidFields.source_environment,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: envsLoading ? "Loading..." : "Select Environment"
+            }), (allEnvironments.length ? allEnvironments : [draft.source_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
+              value: e,
+              children: e
+            }, e))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "source_interface",
+            label: "source_interface",
+            value: draft.source_interface || "",
+            onChange: (v2) => updateField("source_interface", v2),
+            onOpen: () => ensureInterfacesLoaded(srcEnv),
+            disabled: !srcEnv || isEditMode,
+            required: true,
+            error: invalidFields.source_interface,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: srcIfaceLoading ? "Loading..." : "Select Interface"
+            }), (srcInterfaces.length ? srcInterfaces : [draft.source_interface].filter(Boolean)).map((x2) => /* @__PURE__ */ jsx("option", {
+              value: x2,
+              children: x2
+            }, x2))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "source_schema",
+            label: "source_schema",
+            value: draft.source_schema || "",
+            onChange: (v2) => updateField("source_schema", v2),
+            onOpen: () => ensureSchemasLoaded(srcEnv, srcIface),
+            disabled: !srcEnv || !srcIface || isEditMode,
+            required: true,
+            error: invalidFields.source_schema,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: srcSchemasLoading ? "Loading..." : "Select Schema"
+            }), (srcSchemas.length ? srcSchemas : [draft.source_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
+              value: s2,
+              children: s2
+            }, s2))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "source_table_name",
+            label: "source_table_name",
+            value: draft.source_table_name || "",
+            onChange: (v2) => updateField("source_table_name", v2),
+            onOpen: () => ensureTablesLoaded(srcEnv, srcIface, srcSchema),
+            disabled: !srcEnv || !srcIface || !srcSchema || isEditMode,
+            required: true,
+            error: invalidFields.source_table_name,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: srcTablesLoading ? "Loading..." : "Select Table"
+            }), (srcTables.length ? srcTables : [draft.source_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
+              value: t3,
+              children: t3
+            }, t3))]
+          })]
+        }), /* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 16
+          },
+          children: [/* @__PURE__ */ jsxs(SelectField, {
+            name: "target_environment",
+            label: "target_environment",
+            value: draft.target_environment || "",
+            onChange: (v2) => updateField("target_environment", v2),
+            onOpen: ensureEnvsLoaded,
+            disabled: isEditMode,
+            required: true,
+            error: invalidFields.target_environment,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: envsLoading ? "Loading..." : "Select Environment"
+            }), (allEnvironments.length ? allEnvironments : [draft.target_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
+              value: e,
+              children: e
+            }, e))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "target_interface",
+            label: "target_interface",
+            value: draft.target_interface || "",
+            onChange: (v2) => updateField("target_interface", v2),
+            onOpen: () => ensureInterfacesLoaded(tarEnv),
+            disabled: !tarEnv || isEditMode,
+            required: true,
+            error: invalidFields.target_interface,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: tarIfaceLoading ? "Loading..." : "Select Interface"
+            }), (tarInterfaces.length ? tarInterfaces : [draft.target_interface].filter(Boolean)).map((x2) => /* @__PURE__ */ jsx("option", {
+              value: x2,
+              children: x2
+            }, x2))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "target_schema",
+            label: "target_schema",
+            value: draft.target_schema || "",
+            onChange: (v2) => updateField("target_schema", v2),
+            onOpen: () => ensureSchemasLoaded(tarEnv, tarIface),
+            disabled: !tarEnv || !tarIface || isEditMode,
+            required: true,
+            error: invalidFields.target_schema,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: tarSchemasLoading ? "Loading..." : "Select Schema"
+            }), (tarSchemas.length ? tarSchemas : [draft.target_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
+              value: s2,
+              children: s2
+            }, s2))]
+          }), /* @__PURE__ */ jsxs(SelectField, {
+            name: "target_table_name",
+            label: "target_table_name",
+            value: draft.target_table_name || "",
+            onChange: (v2) => updateField("target_table_name", v2),
+            onOpen: () => ensureTablesLoaded(tarEnv, tarIface, tarSchema),
+            disabled: !tarEnv || !tarIface || !tarSchema || isEditMode,
+            required: true,
+            error: invalidFields.target_table_name,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              children: tarTablesLoading ? "Loading..." : "Select Table"
+            }), (tarTables.length ? tarTables : [draft.target_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
+              value: t3,
+              children: t3
+            }, t3))]
+          })]
+        }), /* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 16
+          },
+          children: [/* @__PURE__ */ jsxs(SelectField, {
+            name: "partitions_assignment_method",
+            label: "partitions_assignment_method",
+            value: draft.partitions_assignment_method || DEFAULT_PARTITION_METHOD,
+            onChange: (v2) => updateField("partitions_assignment_method", v2),
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "bwGetBucketRows",
+              children: "bwGetBucketRows"
+            }), /* @__PURE__ */ jsx("option", {
+              value: "bwGetBucketRange",
+              children: "bwGetBucketRange"
+            })]
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "partitions_count",
+            type: "number",
+            min: 1,
+            value: draft.partitions_count == null ? DEFAULT_PARTITIONS : draft.partitions_count,
+            onChange: (v2) => {
+              const n2 = parseInt(v2, 10);
+              updateField("partitions_count", Number.isFinite(n2) && n2 > 0 ? n2 : DEFAULT_PARTITIONS);
+            }
+          }), /* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 6
+            },
+            children: [/* @__PURE__ */ jsx("label", {
+              style: {
+                fontSize: 12,
+                color: "#333"
+              },
+              children: formatLabel("active")
+            }), /* @__PURE__ */ jsx("div", {
+              style: {
+                marginTop: 6
+              },
+              children: /* @__PURE__ */ jsx("input", {
+                type: "checkbox",
+                checked: !!draft.active,
+                onChange: (e) => updateField("active", e.target.checked)
+              })
+            })]
+          })]
+        })]
+      }), saveAttempted && !validateDraft() && /* @__PURE__ */ jsx("div", {
+        style: {
+          marginTop: 12,
+          color: "#ef4444",
+          fontSize: 13
+        },
+        children: "Please fill in all 8 compulsory fields."
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          display: "flex",
+          justifyContent: "center",
+          marginTop: 14
+        },
+        children: /* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: () => setAdvancedOpen(true),
+          style: {
+            padding: "6px 14px",
+            border: "1px solid #1483F3",
+            color: "#1483F3",
+            background: "white",
+            borderRadius: 4,
+            cursor: "pointer"
+          },
+          children: "Advanced \u25BE"
+        })
+      }), /* @__PURE__ */ jsxs("div", {
+        style: {
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 10,
+          marginTop: 16
+        },
+        children: [/* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: onClose,
+          children: "Cancel"
+        }), /* @__PURE__ */ jsx("button", {
+          type: "submit",
+          style: {
+            background: "#1483F3",
+            color: "white",
+            border: "none",
+            padding: "8px 14px",
+            borderRadius: 4,
+            cursor: "pointer"
+          },
+          children: "Save"
+        })]
+      })]
+    }), advancedOpen && /* @__PURE__ */ jsx(Modal, {
+      title: "Advanced Edit",
+      onClose: () => setAdvancedOpen(false),
+      onSubmit: handleAdvancedSubmit,
+      submitLabel: "Submit",
+      cancelLabel: "Discard",
+      children: /* @__PURE__ */ jsxs("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: 18
+        },
+        children: [/* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 14,
+            alignItems: "start"
+          },
+          children: [/* @__PURE__ */ jsx(Field, {
+            label: "source_transformation_flow",
+            value: draft.source_transformation_flow,
+            onChange: (v2) => updateField("source_transformation_flow", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "target_transformation_flow",
+            value: draft.target_transformation_flow,
+            onChange: (v2) => updateField("target_transformation_flow", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "source_ignore_null_columns",
+            value: draft.source_ignore_null_columns,
+            onChange: (v2) => updateField("source_ignore_null_columns", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "target_ignore_null_columns",
+            value: draft.target_ignore_null_columns,
+            onChange: (v2) => updateField("target_ignore_null_columns", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "comparison_keys",
+            value: draft.comparison_keys,
+            onChange: (v2) => updateField("comparison_keys", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "pii_column_names",
+            value: draft.pii_column_names,
+            onChange: (v2) => updateField("pii_column_names", v2)
+          }), /* @__PURE__ */ jsx(Field, {
+            label: "excluded_columns_names",
+            value: draft.excluded_columns_names,
+            onChange: (v2) => updateField("excluded_columns_names", v2)
+          }), /* @__PURE__ */ jsx("div", {})]
+        }), /* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 14,
+            alignItems: "start"
+          },
+          children: [/* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 6
+            },
+            children: [/* @__PURE__ */ jsx("label", {
+              style: {
+                fontSize: 12,
+                color: "#333"
+              },
+              children: formatLabel("rows_filter_condition")
+            }), /* @__PURE__ */ jsx("textarea", {
+              value: (_a2 = draft.rows_filter_condition) != null ? _a2 : "",
+              onChange: (e) => updateField("rows_filter_condition", e.target.value),
+              style: {
+                minHeight: 110,
+                padding: "8px 10px",
+                border: "1px solid #d9d9d9",
+                borderRadius: 4,
+                resize: "vertical",
+                background: "white",
+                outline: "none"
+              }
+            })]
+          }), /* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 6
+            },
+            children: [/* @__PURE__ */ jsx("label", {
+              style: {
+                fontSize: 12,
+                color: "#333"
+              },
+              children: formatLabel("column_name_mapping")
+            }), /* @__PURE__ */ jsx("textarea", {
+              value: (_b2 = draft.column_name_mapping) != null ? _b2 : "",
+              onChange: (e) => updateField("column_name_mapping", e.target.value),
+              style: {
+                minHeight: 110,
+                padding: "8px 10px",
+                border: "1px solid #d9d9d9",
+                borderRadius: 4,
+                resize: "vertical",
+                background: "white",
+                outline: "none"
+              }
+            })]
+          })]
+        })]
+      })
+    })]
+  });
+}
+var filterOff = window.__vite_asset_base__ + "filter_off.3d9ea484.svg";
+var filterOn = window.__vite_asset_base__ + "filter_on.6b5cc2ac.svg";
+var sortArrow = window.__vite_asset_base__ + "sort_arrows.cb2e47ea.svg";
+var sortArrowUp = window.__vite_asset_base__ + "sort_arrows_up.9ee7f9dd.svg";
+var sortArrowDown = window.__vite_asset_base__ + "sort_arrows_down.de425f0f.svg";
+var playOffIcon = window.__vite_asset_base__ + "play-off.68ab7835.svg";
+var playIcon = window.__vite_asset_base__ + "play.8b700136.svg";
+var stopcircleIcon = window.__vite_asset_base__ + "stop-circle.6a652e0f.svg";
+var stopcircleIconDisabled = window.__vite_asset_base__ + "stop-circle-disabled.30c62ec7.svg";
+var historyIcon = window.__vite_asset_base__ + "history.5f9764ca.svg";
+var deleteIcon$1 = window.__vite_asset_base__ + "delete-icon.2b6e22b6.svg";
+var deleteIconDisabled = window.__vite_asset_base__ + "delete-icon-disabled.78d7fa3a.svg";
+var infoIcon = window.__vite_asset_base__ + "info.ed4c016e.svg";
+var optionsIcon = window.__vite_asset_base__ + "more_options.5c20aa42.svg";
+var clipboardIcon = window.__vite_asset_base__ + "clipboard.43887793.svg";
+var editIcon = window.__vite_asset_base__ + "edit.b97072cb.svg";
 function useOutsideAlerter(ref, callback, isOn) {
   react.exports.useEffect(() => {
     function handleClickOutside(event) {
@@ -16046,16 +16991,24 @@ function ReactTable({
   },
   onHistory = () => {
   },
-  onSave = () => {
-  },
   onDelete = () => {
   },
+  onSave = () => {
+  },
   activeTaskIds = /* @__PURE__ */ new Set(),
+  openEditorRow = null,
+  onEditorClose = () => {
+  },
   infoParams = false,
   onInfoClick = () => {
   },
   isOptionsRequired = false,
   onOptionView = () => {
+  },
+  editParams = false,
+  onEdit = () => {
+  },
+  onDeleteRow = () => {
   },
   resultSvgRequired = false,
   onClickResult = () => {
@@ -16064,7 +17017,7 @@ function ReactTable({
   linkRouting = true,
   defaultMessage
 }) {
-  var _a2, _b2, _c;
+  var _a2, _b2, _c, _d;
   const navigate = useNavigate();
   const [allData, setAllData] = react.exports.useState([]);
   const [rowMenuOpen, setRowMenuOpen] = react.exports.useState(null);
@@ -16077,7 +17030,41 @@ function ReactTable({
   const containerRef = react.exports.useRef(null);
   const explicitSizeIdsRef = react.exports.useRef(/* @__PURE__ */ new Set());
   const [fitTick, setFitTick] = react.exports.useState(0);
+  const [expandedRowId, setExpandedRowId] = react.exports.useState(null);
+  const [editingRow, setEditingRow] = react.exports.useState(null);
   const isEmpty = !Array.isArray(data2) || data2.length === 0;
+  const getRowId = react.exports.useCallback((r2) => {
+    var _a3, _b3, _c2, _d2;
+    return (_d2 = (_c2 = (_b3 = (_a3 = r2 == null ? void 0 : r2.task_id) != null ? _a3 : r2 == null ? void 0 : r2.id) != null ? _b3 : r2 == null ? void 0 : r2._id) != null ? _c2 : r2 == null ? void 0 : r2._rowIdx) != null ? _d2 : null;
+  }, []);
+  const openEditor = react.exports.useCallback((row) => {
+    const id2 = getRowId(row);
+    setExpandedRowId(id2);
+    setEditingRow(row);
+  }, [getRowId]);
+  const closeEditor = react.exports.useCallback(() => {
+    setExpandedRowId(null);
+    setEditingRow((prev) => {
+      if (prev)
+        onEditorClose(prev);
+      return null;
+    });
+  }, [onEditorClose]);
+  react.exports.useEffect(() => {
+    var _a3;
+    if (!openEditorRow)
+      return;
+    const id2 = getRowId(openEditorRow);
+    if (id2 == null)
+      return;
+    if (expandedRowId === id2)
+      return;
+    const existing = (_a3 = (allData || []).find((r2) => getRowId(r2) === id2)) != null ? _a3 : openEditorRow;
+    if (existing) {
+      setExpandedRowId(id2);
+      setEditingRow(existing);
+    }
+  }, [openEditorRow, getRowId, allData]);
   const filterTypes = react.exports.useMemo(() => ({
     text: (rows2, id2, filterValue) => {
       if (filterValue == null || filterValue === "")
@@ -16096,57 +17083,145 @@ function ReactTable({
       });
     }
   }), []);
-  const t3 = (k3) => {
-    var _a3, _b3;
-    if ((_b3 = (_a3 = window == null ? void 0 : window.k2api) == null ? void 0 : _a3.i18n) == null ? void 0 : _b3.translate)
-      return window.k2api.i18n.translate(k3);
-    if (k3 === "table.loading")
-      return "Loading\u2026";
-    if (k3 === "table.empty")
-      return "No data";
-    return k3;
-  };
-  const isTaskActive = react.exports.useCallback((taskId) => {
-    return activeTaskIds.has(taskId);
-  }, [activeTaskIds]);
+  const isTaskActive = react.exports.useCallback((taskId) => activeTaskIds.has(taskId), [activeTaskIds]);
   const columnNames = react.exports.useMemo(() => {
     if (!Array.isArray(data2) || data2.length === 0)
       return [];
-    const columns = [];
+    const cols = [];
     const seen2 = /* @__PURE__ */ new Set();
     for (const row of data2) {
       if (row && typeof row === "object") {
         for (const key of Object.keys(row)) {
-          if (key === "taskParams" || key === "actions")
+          if (key === "taskParams" || key === "actions" || key === "infoParams" || key === "optionsParams" || key === "resultParams" || key === "editParams")
             continue;
           if (!seen2.has(key)) {
             seen2.add(key);
-            columns.push(key);
+            cols.push(key);
           }
         }
       }
     }
-    return columns;
+    return cols;
   }, [data2]);
+  const showMenu = react.exports.useCallback((e, rowObj) => {
+    let actions = [];
+    if (getActions)
+      actions = getActions(rowObj);
+    if (!actions || actions.length === 0)
+      return;
+    setRowActions(actions);
+    setRowMenuOpen(null);
+    const innerHeight = window.innerHeight;
+    const menuHeight = (actions.length + 1) * 30;
+    setY(e.clientY + menuHeight > innerHeight ? e.clientY - menuHeight - 10 : e.clientY);
+    setX(e.clientX);
+    setRowMenuOpen(rowObj);
+  }, [getActions]);
+  const hideMenu = () => setRowMenuOpen(null);
+  const actionClick = (action) => {
+    action.callback(rowMenuOpen);
+    setRowMenuOpen(null);
+  };
+  const mapActionsToElements = () => /* @__PURE__ */ jsx(MenuActions, {
+    show: rowMenuOpen,
+    handleClose: hideMenu,
+    x: x2,
+    y: y2,
+    children: /* @__PURE__ */ jsx("ul", {
+      className: "k2-context-menu",
+      children: rowActions.map((action, idx) => /* @__PURE__ */ jsx(MenuItem, {
+        item: action,
+        actionClick
+      }, idx))
+    })
+  });
   const convertDataToTable = react.exports.useCallback((payload) => {
     if (!Array.isArray(payload))
       return [];
-    return payload.map((row) => {
+    return payload.map((row, _rowIdx) => {
       const obj = {
-        ...row
+        ...row,
+        _rowIdx
       };
       if (getActions) {
-        obj["actions"] = /* @__PURE__ */ jsx("div", {
+        obj.actions = /* @__PURE__ */ jsx("div", {
           onClick: (e) => showMenu(e, row),
           className: "k2-context-btn"
+        });
+      }
+      if (editParams) {
+        obj.editParams = /* @__PURE__ */ jsx("div", {
+          className: "editparams-icons",
+          style: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%"
+          },
+          children: /* @__PURE__ */ jsx("img", {
+            src: editIcon,
+            alt: "Edit",
+            title: "Edit",
+            className: "icons",
+            style: {
+              cursor: "pointer",
+              transition: "transform 0.2s ease",
+              width: "20px",
+              height: "20px"
+            },
+            onMouseEnter: (e) => e.currentTarget.style.transform = "scale(1.2)",
+            onMouseLeave: (e) => e.currentTarget.style.transform = "scale(1)",
+            onClick: (e) => {
+              e.stopPropagation();
+              onEdit(row, e);
+              const id2 = getRowId(obj);
+              if (expandedRowId === id2) {
+                closeEditor();
+              } else {
+                if (expandedRowId != null)
+                  closeEditor();
+                openEditor(obj);
+              }
+            }
+          })
+        });
+      }
+      if (editParams) {
+        obj.deleteParams = /* @__PURE__ */ jsx("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%"
+          },
+          children: /* @__PURE__ */ jsx("img", {
+            src: deleteIcon$1,
+            alt: "Delete",
+            title: "Delete",
+            className: "icons",
+            style: {
+              cursor: "pointer",
+              transition: "transform 0.2s ease",
+              width: "20px",
+              height: "20px"
+            },
+            onMouseEnter: (e) => e.currentTarget.style.transform = "scale(1.2)",
+            onMouseLeave: (e) => e.currentTarget.style.transform = "scale(1)",
+            onClick: (e) => {
+              e.stopPropagation();
+              onDeleteRow(obj, e);
+            }
+          })
         });
       }
       if (taskParams) {
         const taskId = row.task_id;
         const isActive = isTaskActive(taskId);
         const hasStatus = row.task_status !== void 0 && row.task_status !== null;
-        const isInactiveStatus = hasStatus && row.task_status.toLowerCase() === "inactive";
-        obj["taskParams"] = /* @__PURE__ */ jsxs("div", {
+        const isInactiveStatus = hasStatus && String(row.task_status).toLowerCase() === "inactive";
+        obj.taskParams = /* @__PURE__ */ jsxs("div", {
           className: "taskparams-icons",
           style: {
             display: "flex",
@@ -16165,9 +17240,8 @@ function ReactTable({
                 opacity: isActive ? 0.5 : 1
               },
               onClick: (e) => {
-                if (!isActive) {
+                if (!isActive)
                   onPlay(obj, e);
-                }
               }
             }), /* @__PURE__ */ jsx("img", {
               src: isActive ? stopcircleIcon : stopcircleIconDisabled,
@@ -16179,9 +17253,8 @@ function ReactTable({
                 opacity: isActive ? 1 : 0.4
               },
               onClick: (e) => {
-                if (isActive) {
+                if (isActive)
                   onStop(obj, e);
-                }
               }
             })]
           }), /* @__PURE__ */ jsx("img", {
@@ -16195,15 +17268,14 @@ function ReactTable({
             },
             onClick: (e) => {
               e.stopPropagation();
-              const taskId2 = row.task_id || obj.task_id;
-              if (isActive) {
-                navigate(`/execution/${encodeURIComponent(taskId2)}`);
-              } else {
-                navigate(`/history/${encodeURIComponent(taskId2)}`);
-              }
+              const id2 = row.task_id || obj.task_id;
+              if (isActive)
+                navigate(`/execution/${encodeURIComponent(id2)}`);
+              else
+                navigate(`/history/${encodeURIComponent(id2)}`);
             }
           }), /* @__PURE__ */ jsx("img", {
-            src: isActive ? deleteIconDisabled : deleteIcon,
+            src: isActive ? deleteIconDisabled : deleteIcon$1,
             alt: "Delete",
             title: isActive ? "" : "Delete Task",
             className: "icons",
@@ -16212,15 +17284,14 @@ function ReactTable({
               opacity: isActive ? 0.5 : 1
             },
             onClick: (e) => {
-              if (!isActive) {
+              if (!isActive)
                 onDelete(obj, e);
-              }
             }
           })]
         });
       }
       if (infoParams) {
-        obj["infoParams"] = /* @__PURE__ */ jsx("div", {
+        obj.infoParams = /* @__PURE__ */ jsx("div", {
           className: "infoparams-icons",
           style: {
             display: "flex",
@@ -16252,7 +17323,9 @@ function ReactTable({
         });
       }
       if (resultSvgRequired) {
-        obj["resultParams"] = /* @__PURE__ */ jsx("div", {
+        const executionStatus = row.execution_status;
+        const isStopped = typeof executionStatus === "string" && executionStatus.toLowerCase() === "stopped";
+        obj.resultParams = !isStopped ? /* @__PURE__ */ jsx("div", {
           className: "resultparams-icons",
           style: {
             display: "flex",
@@ -16279,10 +17352,10 @@ function ReactTable({
               onClickResult(row, e);
             }
           })
-        });
+        }) : null;
       }
       if (isOptionsRequired) {
-        obj["optionsParams"] = /* @__PURE__ */ jsx("div", {
+        obj.optionsParams = /* @__PURE__ */ jsx("div", {
           className: "optionsparams-icons",
           style: {
             display: "flex",
@@ -16313,7 +17386,10 @@ function ReactTable({
       }
       return obj;
     });
-  }, [getActions, taskParams, onPlay, onStop, onHistory, onSave, onDelete, isTaskActive, infoParams, onInfoClick, onOptionView, resultSvgRequired]);
+  }, [getActions, showMenu, editParams, onEdit, expandedRowId, getRowId, openEditor, closeEditor, taskParams, isTaskActive, onPlay, onStop, onDelete, openEditorRow, navigate, infoParams, onInfoClick, resultSvgRequired, onClickResult, isOptionsRequired, onOptionView]);
+  react.exports.useEffect(() => {
+    setAllData(convertDataToTable(data2));
+  }, [convertDataToTable, data2]);
   const getRows = react.exports.useMemo(() => allData != null ? allData : [], [allData]);
   const defaultColumn = react.exports.useMemo(() => ({
     Filter: DefaultColumnFilter,
@@ -16334,7 +17410,7 @@ function ReactTable({
     if (!Array.isArray(userColumns) || userColumns.length === 0)
       return [];
     return userColumns.map((uc2) => {
-      var _a3, _b3, _c2, _d, _e2, _f, _g, _h;
+      var _a3, _b3, _c2, _d2, _e2, _f, _g, _h;
       const id2 = uc2.id || uc2.accessorKey || String(uc2.header || "");
       const accessor = uc2.accessorKey || uc2.accessor || id2;
       const hasExplicitSize = uc2.size != null;
@@ -16368,7 +17444,7 @@ function ReactTable({
           children: String(value != null ? value : "")
         });
       };
-      const baseWidth = staticWidth ? 380 : hasExplicitSize ? uc2.size : (_d = persisted != null ? persisted : fitted) != null ? _d : 300;
+      const baseWidth = staticWidth ? 380 : hasExplicitSize ? uc2.size : (_d2 = persisted != null ? persisted : fitted) != null ? _d2 : 300;
       return {
         id: id2,
         Header: (_e2 = uc2.header) != null ? _e2 : id2,
@@ -16390,6 +17466,18 @@ function ReactTable({
   }, [userColumns, staticWidth, linkRouting]);
   const getColumns = react.exports.useMemo(() => {
     const cols = [];
+    if (editParams) {
+      cols.push({
+        id: "editParams",
+        Header: "",
+        accessor: "editParams",
+        width: 60,
+        minWidth: 50,
+        disableResizing: true,
+        disableSortBy: true,
+        disableFilters: true
+      });
+    }
     if (getActions) {
       cols.push({
         id: "actions",
@@ -16474,8 +17562,20 @@ function ReactTable({
         });
       });
     }
+    if (editParams) {
+      cols.push({
+        id: "deleteParams",
+        Header: "",
+        accessor: "deleteParams",
+        width: 60,
+        minWidth: 50,
+        disableResizing: true,
+        disableSortBy: true,
+        disableFilters: true
+      });
+    }
     return cols;
-  }, [mappedUserColumns, columnNames, getActions, staticWidth, taskParams, infoParams, isOptionsRequired, resultSvgRequired, fitTick]);
+  }, [mappedUserColumns, columnNames, getActions, staticWidth, editParams, taskParams, infoParams, isOptionsRequired, resultSvgRequired, fitTick]);
   const {
     getTableProps,
     getTableBodyProps,
@@ -16488,7 +17588,6 @@ function ReactTable({
     preFilteredRows,
     state: {
       sortBy,
-      globalFilter,
       pageIndex,
       pageSize,
       columnResizing: {
@@ -16496,14 +17595,12 @@ function ReactTable({
       }
     },
     setFilter,
-    setGlobalFilter,
     gotoPage,
     nextPage: nextPage2,
     previousPage,
     canNextPage,
     canPreviousPage,
-    setPageSize,
-    totalColumnsWidth
+    setPageSize
   } = reactTable$1.exports.useTable({
     columns: getColumns,
     data: getRows,
@@ -16524,6 +17621,11 @@ function ReactTable({
       hiddenColumns
     }
   }, reactTable$1.exports.useFilters, reactTable$1.exports.useGlobalFilter, reactTable$1.exports.useSortBy, reactTable$1.exports.useBlockLayout, reactTable$1.exports.useResizeColumns, reactTable$1.exports.usePagination);
+  react.exports.useEffect(() => {
+    if (!openEditorRow)
+      return;
+    gotoPage(0);
+  }, [openEditorRow, gotoPage]);
   react.exports.useEffect(() => {
     if (JSON.stringify(columnsWidthRef.current) !== JSON.stringify(columnWidths) && columnWidths && Object.keys(columnWidths).length > 0) {
       const prev = columnsWidthRef.current;
@@ -16546,13 +17648,11 @@ function ReactTable({
     const explicitIds = explicitSizeIdsRef.current;
     const scrollBarFudge = 8;
     const available = Math.max(0, wrapper.clientWidth - scrollBarFudge);
-    const fixedUtility = (getActions ? 40 : 0) + (taskParams ? 150 : 0) + (infoParams ? 60 : 0) + (isOptionsRequired ? 60 : 0) + (resultSvgRequired ? 60 : 0);
-    ;
+    const fixedUtility = (editParams ? 60 : 0) + (editParams ? 60 : 0) + (getActions ? 40 : 0) + (taskParams ? 150 : 0) + (infoParams ? 60 : 0) + (isOptionsRequired ? 60 : 0) + (resultSvgRequired ? 60 : 0);
     let explicitTotal = 0;
     for (const col of mappedUserColumns) {
-      if (explicitIds.has(col.id)) {
+      if (explicitIds.has(col.id))
         explicitTotal += (_b3 = (_a3 = col.width) != null ? _a3 : col.minWidth) != null ? _b3 : 0;
-      }
     }
     const keysNeedingFit = keys.filter((k3) => !explicitIds.has(k3));
     const remaining = Math.max(0, available - fixedUtility - explicitTotal);
@@ -16561,44 +17661,8 @@ function ReactTable({
     for (const k3 of keysNeedingFit)
       next[k3] = even;
     computedFitWidthsRef.current = next;
-    setFitTick((t22) => t22 + 1);
-  }, [columnNames, mappedUserColumns, getActions, taskParams, infoParams, staticWidth, maxBodyHeight, isOptionsRequired, resultSvgRequired]);
-  const showMenu = react.exports.useCallback((e, rowObj) => {
-    let actions = [];
-    if (getActions)
-      actions = getActions(rowObj);
-    if (!actions || actions.length === 0)
-      return;
-    setRowActions(actions);
-    setRowMenuOpen(null);
-    const innerHeight = window.innerHeight;
-    const menuHeight = (actions.length + 1) * 30;
-    setY(e.clientY + menuHeight > innerHeight ? e.clientY - menuHeight - 10 : e.clientY);
-    setX(e.clientX);
-    setRowMenuOpen(rowObj);
-  }, [getActions]);
-  const hideMenu = () => setRowMenuOpen(null);
-  const actionClick = (action) => {
-    action.callback(rowMenuOpen);
-    setRowMenuOpen(null);
-  };
-  const mapActionsToElements = () => /* @__PURE__ */ jsx(MenuActions, {
-    show: rowMenuOpen,
-    handleClose: hideMenu,
-    x: x2,
-    y: y2,
-    children: /* @__PURE__ */ jsx("ul", {
-      className: "k2-context-menu",
-      children: rowActions.map((action, idx) => /* @__PURE__ */ jsx(MenuItem, {
-        item: action,
-        actionClick
-      }, idx))
-    })
-  });
-  react.exports.useEffect(() => {
-    const converted = convertDataToTable(data2);
-    setAllData(converted);
-  }, [convertDataToTable, data2]);
+    setFitTick((t3) => t3 + 1);
+  }, [columnNames, mappedUserColumns, getActions, taskParams, infoParams, editParams, staticWidth, maxBodyHeight, isOptionsRequired, resultSvgRequired]);
   const handleClickOnTD = (e, column, value, idx) => {
     if (!callback)
       return;
@@ -16612,11 +17676,10 @@ function ReactTable({
     }
     if (columnDef && columnDef[aKey] && columnDef[aKey].cellColoring) {
       const key = typeof row[aKey] === "string" ? row[aKey].toLowerCase() : String((_a3 = row[aKey]) != null ? _a3 : "").toLowerCase();
-      if (columnDef[aKey].cellColoring[key]) {
+      if (columnDef[aKey].cellColoring[key])
         classNames += columnDef[aKey].cellColoring[key];
-      } else {
+      else
         classNames += "failed";
-      }
     }
     return classNames;
   };
@@ -16660,6 +17723,29 @@ function ReactTable({
       cursor: "pointer"
     }
   }), [filterColumnsId, handleFilterClick]);
+  const cancelSorting = react.exports.useCallback((column) => {
+    setAllData(convertDataToTable(data2));
+    column.clearSortBy();
+  }, [convertDataToTable, data2]);
+  const handleSort = react.exports.useCallback((sortByArr) => {
+    const prevAllData = convertDataToTable(data2);
+    if (prevAllData && sortByArr && sortByArr.length > 0) {
+      const sortedData = prevAllData.sort((a2, b3) => {
+        const id2 = sortByArr[0].id;
+        const desc = sortByArr[0].desc;
+        const av = a2[id2];
+        const bv = b3[id2];
+        const cmp = (x22, y22) => (x22 == null) - (y22 == null) || (x22 > y22) - (x22 < y22);
+        return desc ? cmp(bv, av) : cmp(av, bv);
+      });
+      setAllData([...sortedData]);
+    } else if (prevAllData && sortByArr && sortByArr.length === 0) {
+      setAllData(prevAllData);
+    }
+  }, [convertDataToTable, data2]);
+  react.exports.useEffect(() => {
+    handleSort(sortBy);
+  }, [handleSort, sortBy]);
   const getProgressBar = react.exports.useCallback((row, cell) => {
     return /* @__PURE__ */ jsxs("div", {
       className: "completion",
@@ -16680,30 +17766,26 @@ function ReactTable({
   const getCellData = react.exports.useCallback((row, cell) => {
     var _a3, _b3;
     const header = cell.column.Header;
-    if (cell.column.id === "taskParams" || cell.column.id === "infoParams" || cell.column.id === "optionsParams" || cell.column.id === "resultParams") {
+    const utility = cell.column.id === "actions" || cell.column.id === "editParams" || cell.column.id === "deleteParams" || cell.column.id === "taskParams" || cell.column.id === "infoParams" || cell.column.id === "optionsParams" || cell.column.id === "resultParams";
+    if (utility)
       return cell.value;
-    }
-    if (columnDef && ((_a3 = columnDef[header]) == null ? void 0 : _a3.progress)) {
+    if (columnDef && ((_a3 = columnDef[header]) == null ? void 0 : _a3.progress))
       return getProgressBar(row, cell);
-    }
-    if (columnDef && ((_b3 = columnDef[header]) == null ? void 0 : _b3.progress) === false) {
+    if (columnDef && ((_b3 = columnDef[header]) == null ? void 0 : _b3.progress) === false)
       return /* @__PURE__ */ jsxs("span", {
         children: [cell.render("Cell"), "%"]
       });
-    }
-    if (row.original.highlight) {
+    if (row.original.highlight)
       return /* @__PURE__ */ jsx("span", {
         style: {
           fontWeight: "bold"
         },
         children: cell.render("Cell")
       });
-    }
-    if (typeof cell.value === "boolean") {
+    if (typeof cell.value === "boolean")
       return /* @__PURE__ */ jsx("span", {
         children: `${cell.value}`
       });
-    }
     if (typeof cell.value === "object" && header !== "") {
       const v2 = JSON.stringify(cell.value).split('"').join("");
       return /* @__PURE__ */ jsx("span", {
@@ -16713,39 +17795,19 @@ function ReactTable({
     return /* @__PURE__ */ jsx("span", {
       children: cell.render("Cell")
     });
-  }, [columnDef, getProgressBar]);
-  const handleSort = react.exports.useCallback((sortByArr) => {
-    const prevAllData = convertDataToTable(data2);
-    if (prevAllData && sortByArr && sortByArr.length > 0) {
-      const sortedData = prevAllData.sort((a2, b3) => {
-        const id2 = sortByArr[0]["id"];
-        const desc = sortByArr[0]["desc"];
-        const av = a2[id2];
-        const bv = b3[id2];
-        const cmp = (x22, y22) => (x22 == null) - (y22 == null) || (x22 > y22) - (x22 < y22);
-        return desc ? cmp(bv, av) : cmp(av, bv);
-      });
-      setAllData([...sortedData]);
-    } else if (prevAllData && sortByArr && sortByArr.length === 0) {
-      setAllData(prevAllData);
-    }
-  }, [convertDataToTable, data2]);
-  const cancelSorting = react.exports.useCallback((column) => {
-    const prevAllData = convertDataToTable(data2);
-    setAllData(prevAllData);
-    column.clearSortBy();
-  }, [convertDataToTable, data2]);
-  react.exports.useEffect(() => {
-    handleSort(sortBy);
-  }, [handleSort, sortBy]);
+  }, [columnDef, getProgressBar, getProgressBar]);
   const hasBackendError = getRows && getRows.length > 0 && ((_a2 = getRows[0]) == null ? void 0 : _a2.error) && typeof getRows[0].error === "string";
   const totalFilteredEntries = rows.length;
+  const totalTableWidth = (_d = (_c = (_b2 = headerGroups[0]) == null ? void 0 : _b2.headers) == null ? void 0 : _c.reduce((sum, col) => {
+    var _a3, _b3;
+    return sum + ((_b3 = (_a3 = col.totalWidth) != null ? _a3 : col.width) != null ? _b3 : 0);
+  }, 0)) != null ? _d : 0;
   return /* @__PURE__ */ jsxs("div", {
     className: "table-container",
     children: [rowActions && rowActions.length > 0 ? mapActionsToElements() : null, title ? /* @__PURE__ */ jsx("h3", {
       children: title
-    }) : null, isEmpty && !loading ? /* @__PURE__ */ jsx("span", {
-      children: defaultMessage ? defaultMessage : "No records found."
+    }) : null, !loading && isEmpty && !(userColumns == null ? void 0 : userColumns.length) && !columnNames.length ? /* @__PURE__ */ jsx("span", {
+      children: defaultMessage != null ? defaultMessage : "No records found."
     }) : /* @__PURE__ */ jsxs(react.exports.Fragment, {
       children: [/* @__PURE__ */ jsxs("div", {
         className: "hybrid-toolbar",
@@ -16769,16 +17831,7 @@ function ReactTable({
               children: ps
             }, ps))
           }), " ", "entries"]
-        }), /* @__PURE__ */ jsx("div", {
-          children: /* @__PURE__ */ jsxs("span", {
-            children: ["Search:", " ", /* @__PURE__ */ jsx("input", {
-              type: "text",
-              value: globalFilter || "",
-              onChange: (e) => setGlobalFilter(e.target.value),
-              placeholder: "Search all columns\u2026"
-            })]
-          })
-        }), /* @__PURE__ */ jsx("div", {
+        }), /* @__PURE__ */ jsx("div", {}), /* @__PURE__ */ jsx("div", {
           children: /* @__PURE__ */ jsxs("span", {
             children: ["Showing ", /* @__PURE__ */ jsx("strong", {
               children: pageIndex + 1
@@ -16799,15 +17852,15 @@ function ReactTable({
           className: "k2-table k2-refresh-fadeIn",
           ...getTableProps(),
           style: {
-            width: "100%",
+            width: isEmpty ? "auto" : "100%",
             borderCollapse: "separate",
             tableLayout: "fixed"
           },
           children: [headerGroups.length > 0 ? /* @__PURE__ */ jsx("colgroup", {
             children: headerGroups[0].headers.map((column) => {
-              var _a3, _b3, _c2, _d, _e2;
+              var _a3, _b3, _c2, _d2, _e2;
               const headerProps = column.getHeaderProps();
-              const colWidth = (_e2 = (_d = (_c2 = (_b3 = (_a3 = headerProps.style) == null ? void 0 : _a3.width) != null ? _b3 : column.totalWidth) != null ? _c2 : column.width) != null ? _d : column.minWidth) != null ? _e2 : 120;
+              const colWidth = (_e2 = (_d2 = (_c2 = (_b3 = (_a3 = headerProps.style) == null ? void 0 : _a3.width) != null ? _b3 : column.totalWidth) != null ? _c2 : column.width) != null ? _d2 : column.minWidth) != null ? _e2 : 120;
               return /* @__PURE__ */ jsx("col", {
                 style: {
                   width: colWidth
@@ -16828,6 +17881,7 @@ function ReactTable({
                 key: hgProps.key
               }, headerGroup.headers.map((column) => {
                 const headerProps = column.getHeaderProps();
+                const utilityHeader = column.id === "actions" || column.id === "editParams" || column.id === "deleteParams" || column.id === "taskParams" || column.id === "infoParams" || column.id === "optionsParams" || column.id === "resultParams";
                 return /* @__PURE__ */ react.exports.createElement("th", {
                   ...headerProps,
                   key: headerProps.key,
@@ -16857,7 +17911,7 @@ function ReactTable({
                       whiteSpace: "nowrap"
                     },
                     children: column.render("Header")
-                  }), (column == null ? void 0 : column.id) !== "actions" && (column == null ? void 0 : column.id) !== "taskParams" && (column == null ? void 0 : column.id) !== "optionsParams" && (column == null ? void 0 : column.id) !== "resultParams" ? /* @__PURE__ */ jsxs("span", {
+                  }), !utilityHeader ? /* @__PURE__ */ jsxs("span", {
                     className: "icons-wrapper",
                     style: {
                       display: "flex",
@@ -16873,16 +17927,44 @@ function ReactTable({
                   style: {
                     marginTop: 6
                   },
-                  children: (column == null ? void 0 : column.id) !== "actions" && (column == null ? void 0 : column.id) !== "taskParams" && (column == null ? void 0 : column.id) !== "optionsParams" && !column.disableFilters && filterColumnsId[column.id] ? column.render("Filter") : null
+                  children: !utilityHeader && !column.disableFilters && filterColumnsId[column.id] ? column.render("Filter") : null
                 }));
               }));
             })
-          }), /* @__PURE__ */ jsx("tbody", {
+          }), /* @__PURE__ */ jsxs("tbody", {
             ...getTableBodyProps(),
-            children: loading ? /* @__PURE__ */ jsx("tr", {
+            children: [!loading && expandedRowId != null && !page.some((r2) => getRowId(r2.original) === expandedRowId) && /* @__PURE__ */ jsx("tr", {
+              style: {
+                display: "block",
+                width: totalTableWidth
+              },
               children: /* @__PURE__ */ jsx("td", {
-                colSpan: ((_c = (_b2 = headerGroups[0]) == null ? void 0 : _b2.headers) == null ? void 0 : _c.length) || 1,
                 style: {
+                  display: "block",
+                  width: totalTableWidth,
+                  padding: 0,
+                  background: "#f6f6f6",
+                  borderBottom: "1px solid #ddd"
+                },
+                onClick: (e) => e.stopPropagation(),
+                children: /* @__PURE__ */ jsx(ExpandedRowEditor, {
+                  row: editingRow,
+                  onClose: closeEditor,
+                  onSave: (draft) => {
+                    onSave(draft);
+                    closeEditor();
+                  }
+                })
+              })
+            }), loading ? /* @__PURE__ */ jsx("tr", {
+              style: {
+                display: "block",
+                width: totalTableWidth
+              },
+              children: /* @__PURE__ */ jsx("td", {
+                style: {
+                  display: "block",
+                  width: totalTableWidth,
                   textAlign: "center",
                   padding: 20
                 },
@@ -16900,9 +17982,14 @@ function ReactTable({
                 })
               })
             }) : hasBackendError ? /* @__PURE__ */ jsx("tr", {
+              style: {
+                display: "block",
+                width: totalTableWidth
+              },
               children: /* @__PURE__ */ jsx("td", {
-                colSpan: columnNames.length || 1,
                 style: {
+                  display: "block",
+                  width: totalTableWidth,
                   color: "red",
                   padding: 8
                 },
@@ -16911,39 +17998,75 @@ function ReactTable({
             }) : page.length > 0 ? page.map((row) => {
               prepareRow(row);
               const rowProps = row.getRowProps();
-              return /* @__PURE__ */ react.exports.createElement("tr", {
-                ...rowProps,
-                key: rowProps.key
-              }, row.cells.map((cell) => {
-                const cellProps = cell.getCellProps();
-                const headerLabel = cell.column.Header;
-                return /* @__PURE__ */ react.exports.createElement("td", {
-                  ...cellProps,
-                  key: cellProps.key,
-                  title: cell.column.id === "taskParams" || cell.column.id === "actions" || cell.column.id === "infoParams" || cell.column.id === "optionsParams" || cell.column.id === "resultParams" ? void 0 : typeof row.original[headerLabel] === "string" || typeof row.original[headerLabel] === "number" ? row.original[headerLabel] : void 0,
-                  className: `${getTDClassName(row.original, headerLabel)} cell`,
-                  onClick: cell.column.id === "taskParams" || cell.column.id === "actions" || cell.column.id === "infoParams" || cell.column.id === "optionsParams" || cell.column.id === "resultParams" ? void 0 : (e) => handleClickOnTD(e, headerLabel, row.original[headerLabel], row.index),
+              const id2 = getRowId(row.original);
+              const isExpanded = expandedRowId != null && id2 === expandedRowId;
+              return /* @__PURE__ */ jsxs(react.exports.Fragment, {
+                children: [/* @__PURE__ */ jsx("tr", {
+                  ...rowProps,
+                  children: row.cells.map((cell) => {
+                    var _a3;
+                    const cellProps = cell.getCellProps();
+                    const headerLabel = cell.column.Header;
+                    const isUtilityCol = cell.column.id === "taskParams" || cell.column.id === "actions" || cell.column.id === "editParams" || cell.column.id === "deleteParams" || cell.column.id === "infoParams" || cell.column.id === "optionsParams" || cell.column.id === "resultParams";
+                    const raw = (_a3 = row.original) == null ? void 0 : _a3[headerLabel];
+                    return /* @__PURE__ */ react.exports.createElement("td", {
+                      ...cellProps,
+                      key: cellProps.key,
+                      title: isUtilityCol ? void 0 : typeof raw === "string" || typeof raw === "number" ? raw : void 0,
+                      className: `${getTDClassName(row.original, headerLabel)} cell`,
+                      onClick: isUtilityCol ? void 0 : (e) => handleClickOnTD(e, headerLabel, raw, row.index),
+                      style: {
+                        ...cellProps.style,
+                        cursor: callback ? "pointer" : "auto",
+                        boxSizing: "border-box",
+                        padding: "8px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }
+                    }, getCellData(row, cell));
+                  })
+                }), isExpanded && /* @__PURE__ */ jsx("tr", {
                   style: {
-                    ...cellProps.style,
-                    cursor: callback ? "pointer" : "auto",
-                    boxSizing: "border-box",
-                    padding: "8px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap"
-                  }
-                }, getCellData(row, cell));
-              }));
+                    display: "block",
+                    width: totalTableWidth
+                  },
+                  children: /* @__PURE__ */ jsx("td", {
+                    style: {
+                      display: "block",
+                      width: totalTableWidth,
+                      padding: 0,
+                      background: "#f6f6f6",
+                      borderTop: "1px solid #ddd",
+                      borderBottom: "1px solid #ddd"
+                    },
+                    children: /* @__PURE__ */ jsx(ExpandedRowEditor, {
+                      row: editingRow,
+                      onClose: closeEditor,
+                      onSave: (draft) => {
+                        onSave(draft);
+                        closeEditor();
+                      },
+                      isEditMode: true
+                    })
+                  })
+                })]
+              }, rowProps.key);
             }) : /* @__PURE__ */ jsx("tr", {
+              style: {
+                display: "block",
+                width: totalTableWidth
+              },
               children: /* @__PURE__ */ jsx("td", {
-                colSpan: columnNames.length || 1,
                 style: {
+                  display: "block",
+                  width: totalTableWidth,
                   textAlign: "center",
                   padding: 12
                 },
-                children: (preFilteredRows == null ? void 0 : preFilteredRows.length) ? "There are no rows that match your criteria" : ""
+                children: isEmpty ? defaultMessage != null ? defaultMessage : "No records found." : (preFilteredRows == null ? void 0 : preFilteredRows.length) ? "There are no rows that match your criteria" : ""
               })
-            })
+            })]
           })]
         })
       }), /* @__PURE__ */ jsx("div", {
@@ -17927,6 +19050,7 @@ eventManager.on(
 );
 var ReactToastify = "";
 function K2VerifyHomePage() {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const navigate = useNavigate();
   window.k2api = window.k2api || window.parent.k2api;
   const t3 = window.k2api.i18n.translate;
@@ -17937,7 +19061,7 @@ function K2VerifyHomePage() {
     fetchData: fetchTaskData,
     loading: fetchLoading,
     error: fetchError
-  } = useFetchData("/api/fabric-command?command=broadway%20verify.bwK2VerifyTasks%20mode%20=%20'Active'%20RESULT_STRUCTURE=CURSOR");
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=broadway%20verify.bwK2VerifyTasks%20mode%20=%20'Active'%20RESULT_STRUCTURE=CURSOR`);
   const {
     activeTaskIds
   } = useActiveTasksPolling(3e3);
@@ -18028,12 +19152,16 @@ function K2VerifyHomePage() {
       if (!task_id)
         return void toast.error(t3("k2verifyHome.toasts.missingTaskId"));
       const validateCmd = `broadway verify.bwK2VerifyValidateMTable task_id='${task_id}';`;
+      toast.success(`Task ID ${task_id} verification started.`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       try {
         await runFabricCommand(validateCmd);
       } catch (ve2) {
         setPlayError((ve2 == null ? void 0 : ve2.message) || t3("k2verifyHome.toasts.validationFailed") || "Validation failed");
         return;
       }
+      toast.success(`Task ID ${task_id} verification completed successfully. Starting the task..`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const argsStr = JSON.stringify({
         task_id
       });
@@ -18069,9 +19197,7 @@ function K2VerifyHomePage() {
       const command = `broadway verify.bwK2VerifyDeleteTask task_id='${task_id}';`;
       await runFabricCommand(command);
       setTaskRows((prev) => prev.filter((tt2) => tt2.task_id !== task_id));
-      toast.success(t3("k2verifyHome.toasts.deletedOk", {
-        taskId: task_id
-      }) || `Task ${task_id} deleted`);
+      toast.success(`Task ID ${task_id} deleted successfully.`);
     } catch (err2) {
       toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyHome.toasts.deleteFailed"));
       console.error(err2);
@@ -18195,6 +19321,762 @@ function K2VerifyHomePage() {
     })]
   });
 }
+var BuildMapModal$1 = "";
+var databaseIcon = window.__vite_asset_base__ + "database.3af57eef.svg";
+var folderIcon = window.__vite_asset_base__ + "folder.7584a421.svg";
+var tableIcon = window.__vite_asset_base__ + "table.10415a97.svg";
+var deleteIcon = window.__vite_asset_base__ + "delete-icon-2.c48157bc.svg";
+function useSchemaTree({
+  apiBasePath: apiBasePath2,
+  srcInterface,
+  srcEnv,
+  tarInterface,
+  tarEnv,
+  targetExpanded,
+  srcSearch,
+  tarSearch
+}) {
+  const [srcSchemas, setSrcSchemas] = react.exports.useState([]);
+  const [tarSchemas, setTarSchemas] = react.exports.useState([]);
+  const [srcSchemasLoading, setSrcSchemasLoading] = react.exports.useState(false);
+  const [tarSchemasLoading, setTarSchemasLoading] = react.exports.useState(false);
+  const [error, setError] = react.exports.useState(null);
+  const [srcTablesBySchema, setSrcTablesBySchema] = react.exports.useState({});
+  const [tarTablesBySchema, setTarTablesBySchema] = react.exports.useState({});
+  const [srcTablesLoading, setSrcTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [tarTablesLoading, setTarTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [srcTablesError, setSrcTablesError] = react.exports.useState({});
+  const [tarTablesError, setTarTablesError] = react.exports.useState({});
+  const [srcExpandedSchemas, setSrcExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [tarExpandedSchemas, setTarExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
+  const extractListFromMapTables2 = react.exports.useCallback((raw) => {
+    var _a2, _b2, _c;
+    const list = (_c = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables) == null ? void 0 : _c[0];
+    return Array.isArray(list) ? list.map(String).filter(Boolean) : [];
+  }, []);
+  const fetchSchemas = react.exports.useCallback(
+    async (side) => {
+      const isSrc = side === "src";
+      const interfaceName = isSrc ? srcInterface : tarInterface;
+      const envName = isSrc ? srcEnv : tarEnv;
+      if (!interfaceName || !envName)
+        return;
+      if (isSrc)
+        setSrcSchemasLoading(true);
+      else
+        setTarSchemasLoading(true);
+      setError(null);
+      try {
+        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
+          `broadway verify.bwK2VerifyFetchSchema interfaceName='${interfaceName}' envName='${envName}';`
+        )}`;
+        const res = await fetch(cmdUrl, { credentials: "include" });
+        if (!res.ok)
+          throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+        const schemas = extractListFromMapTables2(raw);
+        if (isSrc)
+          setSrcSchemas(schemas);
+        else
+          setTarSchemas(schemas);
+      } catch (e) {
+        setError((e == null ? void 0 : e.message) || String(e));
+      } finally {
+        if (isSrc)
+          setSrcSchemasLoading(false);
+        else
+          setTarSchemasLoading(false);
+      }
+    },
+    [apiBasePath2, srcInterface, srcEnv, tarInterface, tarEnv, extractListFromMapTables2]
+  );
+  react.exports.useEffect(() => {
+    fetchSchemas("src");
+  }, [fetchSchemas]);
+  react.exports.useEffect(() => {
+    if (!targetExpanded)
+      return;
+    fetchSchemas("tar");
+  }, [targetExpanded, fetchSchemas]);
+  const ensureTablesLoaded = react.exports.useCallback(
+    async (side, schemaName) => {
+      const isSrc = side === "src";
+      const interfaceName = isSrc ? srcInterface : tarInterface;
+      const envName = isSrc ? srcEnv : tarEnv;
+      if (!interfaceName || !envName || !schemaName)
+        return [];
+      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
+      if (Array.isArray(cache[schemaName]))
+        return cache[schemaName];
+      if (isSrc) {
+        setSrcTablesLoading((prev) => new Set(prev).add(schemaName));
+        setSrcTablesError((prev) => ({ ...prev, [schemaName]: null }));
+      } else {
+        setTarTablesLoading((prev) => new Set(prev).add(schemaName));
+        setTarTablesError((prev) => ({ ...prev, [schemaName]: null }));
+      }
+      try {
+        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
+          `broadway verify.bwK2VerifyFetchTablesFromSchemas interfaceName='${interfaceName}' envName='${envName}' schemaName='${schemaName}';`
+        )}`;
+        const res = await fetch(cmdUrl, { credentials: "include" });
+        if (!res.ok)
+          throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+        const tables = extractListFromMapTables2(raw);
+        if (isSrc)
+          setSrcTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
+        else
+          setTarTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
+        return tables;
+      } catch (e) {
+        const msg = (e == null ? void 0 : e.message) || String(e);
+        if (isSrc)
+          setSrcTablesError((prev) => ({ ...prev, [schemaName]: msg }));
+        else
+          setTarTablesError((prev) => ({ ...prev, [schemaName]: msg }));
+        return [];
+      } finally {
+        if (isSrc) {
+          setSrcTablesLoading((prev) => {
+            const next = new Set(prev);
+            next.delete(schemaName);
+            return next;
+          });
+        } else {
+          setTarTablesLoading((prev) => {
+            const next = new Set(prev);
+            next.delete(schemaName);
+            return next;
+          });
+        }
+      }
+    },
+    [
+      apiBasePath2,
+      srcInterface,
+      srcEnv,
+      tarInterface,
+      tarEnv,
+      srcTablesBySchema,
+      tarTablesBySchema,
+      extractListFromMapTables2
+    ]
+  );
+  const toggleSchemaExpand = react.exports.useCallback(
+    (schema, side) => {
+      if (side === "src") {
+        setSrcExpandedSchemas((prev) => {
+          const next = new Set(prev);
+          const willExpand = !next.has(schema);
+          willExpand ? next.add(schema) : next.delete(schema);
+          if (willExpand)
+            ensureTablesLoaded("src", schema);
+          return next;
+        });
+      } else {
+        setTarExpandedSchemas((prev) => {
+          const next = new Set(prev);
+          const willExpand = !next.has(schema);
+          willExpand ? next.add(schema) : next.delete(schema);
+          if (willExpand)
+            ensureTablesLoaded("tar", schema);
+          return next;
+        });
+      }
+    },
+    [ensureTablesLoaded]
+  );
+  const getTables = react.exports.useCallback(
+    (side, schema) => {
+      const isSrc = side === "src";
+      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
+      return Array.isArray(cache[schema]) ? cache[schema] : [];
+    },
+    [srcTablesBySchema, tarTablesBySchema]
+  );
+  const filteredSrcSchemas = react.exports.useMemo(() => {
+    if (!srcSearch.trim())
+      return srcSchemas;
+    const q2 = srcSearch.toLowerCase();
+    return (srcSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
+  }, [srcSchemas, srcSearch]);
+  const filteredTarSchemas = react.exports.useMemo(() => {
+    if (!tarSearch.trim())
+      return tarSchemas;
+    const q2 = tarSearch.toLowerCase();
+    return (tarSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
+  }, [tarSchemas, tarSearch]);
+  react.exports.useEffect(() => {
+    if (!srcSearch.trim())
+      return;
+    setSrcExpandedSchemas(new Set(filteredSrcSchemas));
+  }, [srcSearch, filteredSrcSchemas]);
+  react.exports.useEffect(() => {
+    if (!tarSearch.trim())
+      return;
+    setTarExpandedSchemas(new Set(filteredTarSchemas));
+  }, [tarSearch, filteredTarSchemas]);
+  return {
+    srcSchemas,
+    tarSchemas,
+    filteredSrcSchemas,
+    filteredTarSchemas,
+    srcSchemasLoading,
+    tarSchemasLoading,
+    srcExpandedSchemas,
+    tarExpandedSchemas,
+    toggleSchemaExpand,
+    ensureTablesLoaded,
+    getTables,
+    srcTablesBySchema,
+    tarTablesBySchema,
+    srcTablesLoading,
+    tarTablesLoading,
+    srcTablesError,
+    tarTablesError,
+    error
+  };
+}
+const pairKey = (sSchema, sTable, tSchema, tTable) => `${sSchema}.${sTable}\u2192${tSchema}.${tTable}`;
+function usePairBuilder({
+  targetExpanded,
+  srcInterface,
+  tarInterface,
+  defaultBuckets,
+  ensureTablesLoaded,
+  getTables
+}) {
+  const [pairs, setPairs] = react.exports.useState([]);
+  const [pendingSrc, setPendingSrc] = react.exports.useState(null);
+  const [selectedSrcTables, setSelectedSrcTables] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [selectedTarTables, setSelectedTarTables] = react.exports.useState(/* @__PURE__ */ new Set());
+  const addPair = react.exports.useCallback(
+    (sSchema, sTable, tSchema, tTable) => {
+      const key = pairKey(sSchema, sTable, tSchema, tTable);
+      setPairs((prev) => {
+        const withoutSameKey = prev.filter(
+          (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
+        );
+        return [
+          ...withoutSameKey,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            Source_Interface: srcInterface,
+            Source_Schema: sSchema,
+            Source_Table: sTable,
+            Target_Interface: targetExpanded ? tarInterface : srcInterface,
+            Target_Schema: tSchema,
+            Target_Table: tTable,
+            Buckets: (defaultBuckets != null ? defaultBuckets : "10").toString()
+          }
+        ];
+      });
+    },
+    [srcInterface, tarInterface, targetExpanded, defaultBuckets]
+  );
+  const removePair = react.exports.useCallback((id2) => {
+    setPairs((prev) => prev.filter((p2) => p2.id !== id2));
+  }, []);
+  const removeSourceOnlyPair = react.exports.useCallback((schema, table) => {
+    const key = pairKey(schema, table, schema, table);
+    setPairs(
+      (prev) => prev.filter(
+        (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
+      )
+    );
+  }, []);
+  const toggleSourceOnlyTable = react.exports.useCallback(
+    (schema, table, nextChecked) => {
+      const key = `${schema}.${table}`;
+      setSelectedSrcTables((prev) => {
+        const next = new Set(prev);
+        if (nextChecked)
+          next.add(key);
+        else
+          next.delete(key);
+        return next;
+      });
+      if (nextChecked)
+        addPair(schema, table, schema, table);
+      else
+        removeSourceOnlyPair(schema, table);
+    },
+    [addPair, removeSourceOnlyPair]
+  );
+  const handleTableClick = react.exports.useCallback(
+    (schema, table, side) => {
+      if (!targetExpanded) {
+        if (side !== "src")
+          return;
+        const key = `${schema}.${table}`;
+        const isSelected = selectedSrcTables.has(key);
+        toggleSourceOnlyTable(schema, table, !isSelected);
+        return;
+      }
+      if (side === "src") {
+        setPendingSrc({ schema, table });
+        return;
+      }
+      if (pendingSrc) {
+        addPair(pendingSrc.schema, pendingSrc.table, schema, table);
+        setPendingSrc(null);
+      }
+    },
+    [targetExpanded, selectedSrcTables, toggleSourceOnlyTable, pendingSrc, addPair]
+  );
+  const handleSchemaCheckbox = react.exports.useCallback(
+    async (schema, side, nextChecked) => {
+      if (targetExpanded)
+        return;
+      if (side !== "src")
+        return;
+      const tables = await ensureTablesLoaded("src", schema);
+      (tables || []).forEach((t3) => toggleSourceOnlyTable(schema, t3, nextChecked));
+    },
+    [targetExpanded, ensureTablesLoaded, toggleSourceOnlyTable]
+  );
+  const resetOnToggleTarget = react.exports.useCallback(() => {
+    setPendingSrc(null);
+    setSelectedTarTables(/* @__PURE__ */ new Set());
+  }, []);
+  const updatePairBuckets = react.exports.useCallback((id2, buckets) => {
+    setPairs(
+      (prev) => prev.map((p2) => p2.id === id2 ? { ...p2, Buckets: (buckets != null ? buckets : "10").toString() } : p2)
+    );
+  }, []);
+  const canConfirm = react.exports.useMemo(() => pairs.length > 0, [pairs.length]);
+  return {
+    pairs,
+    pendingSrc,
+    selectedSrcTables,
+    selectedTarTables,
+    addPair,
+    removePair,
+    toggleSourceOnlyTable,
+    handleTableClick,
+    handleSchemaCheckbox,
+    resetOnToggleTarget,
+    updatePairBuckets,
+    canConfirm
+  };
+}
+function BuildMapModal({
+  srcInterface,
+  srcEnv,
+  tarInterface,
+  tarEnv,
+  onConfirm,
+  onClose
+}) {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  const [srcSearch, setSrcSearch] = react.exports.useState("");
+  const [tarSearch, setTarSearch] = react.exports.useState("");
+  const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
+  const targetExpanded = advancedOpen;
+  const [defaultBuckets, setDefaultBuckets] = react.exports.useState("10");
+  const [editingPairId, setEditingPairId] = react.exports.useState(null);
+  const [draftBuckets, setDraftBuckets] = react.exports.useState("10");
+  const tree = useSchemaTree({
+    apiBasePath: apiBasePath2,
+    srcInterface,
+    srcEnv,
+    tarInterface,
+    tarEnv,
+    targetExpanded,
+    srcSearch,
+    tarSearch
+  });
+  const pair = usePairBuilder({
+    targetExpanded,
+    srcInterface,
+    tarInterface,
+    defaultBuckets,
+    ensureTablesLoaded: tree.ensureTablesLoaded,
+    getTables: tree.getTables
+  });
+  const handleToggleAdvanced = react.exports.useCallback(() => {
+    pair.resetOnToggleTarget();
+    setAdvancedOpen((v2) => !v2);
+  }, [pair]);
+  const handleConfirm = react.exports.useCallback(() => {
+    onConfirm(pair.pairs.map(({
+      id: id2,
+      ...rest
+    }) => rest));
+  }, [pair.pairs, onConfirm]);
+  const renderTree = (schemas, side) => {
+    const expandedSchemas = side === "src" ? tree.srcExpandedSchemas : tree.tarExpandedSchemas;
+    const tablesLoading = side === "src" ? tree.srcTablesLoading : tree.tarTablesLoading;
+    const tablesError = side === "src" ? tree.srcTablesError : tree.tarTablesError;
+    return (Array.isArray(schemas) ? schemas : []).map((schema) => {
+      const isExpanded = expandedSchemas.has(schema);
+      const tables = tree.getTables(side, schema);
+      const tableKeys = tables.map((t3) => `${schema}.${t3}`);
+      const selectedTables = side === "src" ? pair.selectedSrcTables : pair.selectedTarTables;
+      const allTablesSelected = !targetExpanded && side === "src" && tableKeys.length > 0 && tableKeys.every((k3) => selectedTables.has(k3));
+      const someTablesSelected = !targetExpanded && side === "src" && tableKeys.some((k3) => selectedTables.has(k3)) && !allTablesSelected;
+      return /* @__PURE__ */ jsxs("div", {
+        className: "bm-schemaBlock",
+        children: [/* @__PURE__ */ jsxs("div", {
+          className: "bm-schemaRow",
+          children: [/* @__PURE__ */ jsx("input", {
+            type: "checkbox",
+            checked: !targetExpanded && side === "src" ? allTablesSelected : false,
+            ref: (input) => {
+              if (input) {
+                input.indeterminate = !targetExpanded && side === "src" ? someTablesSelected : false;
+              }
+            },
+            disabled: targetExpanded || side !== "src",
+            onChange: (e) => {
+              if (targetExpanded || side !== "src")
+                return;
+              pair.handleSchemaCheckbox(schema, "src", e.target.checked);
+            },
+            onClick: (e) => e.stopPropagation(),
+            className: "bm-checkbox",
+            style: {
+              visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
+            },
+            "aria-hidden": targetExpanded || side !== "src"
+          }), /* @__PURE__ */ jsxs("div", {
+            className: "bm-schemaToggle",
+            onClick: () => tree.toggleSchemaExpand(schema, side),
+            title: schema,
+            children: [/* @__PURE__ */ jsx("span", {
+              className: "bm-caret",
+              style: {
+                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)"
+              },
+              children: "\u25B6"
+            }), /* @__PURE__ */ jsx("img", {
+              src: folderIcon,
+              alt: "folder",
+              className: "bm-iconFolder"
+            }), /* @__PURE__ */ jsx("span", {
+              className: "bm-schemaLabel",
+              children: schema
+            })]
+          })]
+        }), isExpanded && /* @__PURE__ */ jsx("div", {
+          style: {
+            paddingLeft: 28
+          },
+          children: tablesLoading.has(schema) ? /* @__PURE__ */ jsx("div", {
+            className: "bm-centered",
+            style: {
+              padding: "6px 0"
+            },
+            children: "Loading tables\u2026"
+          }) : (tablesError == null ? void 0 : tablesError[schema]) ? /* @__PURE__ */ jsx("div", {
+            className: "bm-centered bm-error",
+            style: {
+              padding: "6px 0"
+            },
+            children: tablesError[schema]
+          }) : tables.length === 0 ? /* @__PURE__ */ jsx("div", {
+            className: "bm-emptySearch",
+            style: {
+              padding: "6px 0"
+            },
+            children: "No tables found."
+          }) : tables.map((table) => {
+            var _a2, _b2;
+            const key = `${schema}.${table}`;
+            const isSelectedSourceOnly = !targetExpanded && side === "src" && pair.selectedSrcTables.has(key);
+            const isPending = targetExpanded && side === "src" && ((_a2 = pair.pendingSrc) == null ? void 0 : _a2.schema) === schema && ((_b2 = pair.pendingSrc) == null ? void 0 : _b2.table) === table;
+            return /* @__PURE__ */ jsxs("div", {
+              className: `bm-tableRow ${isSelectedSourceOnly ? "is-selected" : ""} ${isPending ? "is-pending" : ""}`,
+              onClick: () => pair.handleTableClick(schema, table, side),
+              title: table,
+              children: [/* @__PURE__ */ jsx("input", {
+                type: "checkbox",
+                checked: isSelectedSourceOnly,
+                onChange: (e) => {
+                  if (targetExpanded || side !== "src")
+                    return;
+                  pair.toggleSourceOnlyTable(schema, table, e.target.checked);
+                },
+                onClick: (e) => e.stopPropagation(),
+                className: "bm-checkbox",
+                style: {
+                  visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
+                },
+                "aria-hidden": targetExpanded || side !== "src"
+              }), /* @__PURE__ */ jsx("img", {
+                src: tableIcon,
+                alt: "table",
+                className: "bm-iconTable"
+              }), /* @__PURE__ */ jsx("span", {
+                className: "bm-tableLabel",
+                children: table
+              })]
+            }, table);
+          })
+        })]
+      }, schema);
+    });
+  };
+  const renderDbTreeBox = (side) => {
+    const isSrc = side === "src";
+    const schemas = isSrc ? tree.filteredSrcSchemas : tree.filteredTarSchemas;
+    const search = isSrc ? srcSearch : tarSearch;
+    const setSearch = isSrc ? setSrcSearch : setTarSearch;
+    const dbName = isSrc ? srcInterface : tarInterface;
+    const showLocalLoading = !isSrc && targetExpanded && tree.tarSchemasLoading && (!schemas || schemas.length === 0);
+    return /* @__PURE__ */ jsxs("div", {
+      className: "bm-dbBox",
+      children: [/* @__PURE__ */ jsx("input", {
+        type: "text",
+        placeholder: "Type to filter schemas...",
+        value: search,
+        onChange: (e) => setSearch(e.target.value),
+        className: "bm-filterInput"
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "bm-dbRow",
+        children: [/* @__PURE__ */ jsx("img", {
+          src: databaseIcon,
+          alt: "db",
+          className: "bm-iconDb"
+        }), /* @__PURE__ */ jsx("span", {
+          className: "bm-dbLabel",
+          children: dbName
+        })]
+      }), showLocalLoading ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered",
+        children: "Loading schemas\u2026"
+      }) : schemas.length === 0 && search.trim() ? /* @__PURE__ */ jsxs("div", {
+        className: "bm-emptySearch",
+        children: ['No results for "', search, '"']
+      }) : /* @__PURE__ */ jsx("div", {
+        className: "bm-treeBody bm-scroll",
+        children: renderTree(schemas, side)
+      })]
+    });
+  };
+  const showFullLoading = tree.srcSchemasLoading && (!tree.srcSchemas || tree.srcSchemas.length === 0);
+  const cleanDigits = (val) => (val != null ? val : "").toString().replace(/[^\d]/g, "");
+  const commitBucketsEdit = react.exports.useCallback((pairId) => {
+    const cleaned = cleanDigits(draftBuckets);
+    const next = cleaned === "" ? cleanDigits(defaultBuckets) || "10" : cleaned;
+    if (typeof pair.updatePairBuckets === "function") {
+      pair.updatePairBuckets(pairId, next);
+    }
+    setEditingPairId(null);
+  }, [draftBuckets, defaultBuckets, pair]);
+  const cancelBucketsEdit = react.exports.useCallback(() => {
+    setEditingPairId(null);
+  }, []);
+  return /* @__PURE__ */ jsx("div", {
+    className: "bm-overlay",
+    children: /* @__PURE__ */ jsxs("div", {
+      className: "bm-modal",
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "bm-header",
+        children: [/* @__PURE__ */ jsx("div", {
+          className: "bm-headerLeft",
+          children: /* @__PURE__ */ jsx("h2", {
+            className: "bm-title",
+            children: "Add tables"
+          })
+        }), /* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginLeft: "auto",
+            marginRight: 12
+          },
+          title: "Applies to newly added pairs",
+          children: [/* @__PURE__ */ jsx("span", {
+            style: {
+              fontSize: 13,
+              whiteSpace: "nowrap"
+            },
+            children: "Default Partitions"
+          }), /* @__PURE__ */ jsx("input", {
+            className: "bm-control",
+            type: "number",
+            min: "1",
+            step: "1",
+            value: defaultBuckets,
+            onChange: (e) => setDefaultBuckets(e.target.value),
+            onBlur: (e) => {
+              const n2 = Math.max(1, Math.floor(Number(e.target.value) || 1));
+              setDefaultBuckets(String(n2));
+            }
+          })]
+        }), /* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: handleToggleAdvanced,
+          className: `bm-toggleModeBtn ${advancedOpen ? "is-selected" : ""}`,
+          "aria-pressed": advancedOpen,
+          title: advancedOpen ? "Pairing mode (Source + Target)" : "Source-only mode",
+          style: {
+            background: advancedOpen ? "#1483F3" : "#ffffff",
+            borderColor: advancedOpen ? "#1483F3" : "#000000",
+            color: advancedOpen ? "#ffffff" : "#000000"
+          },
+          children: "Advanced Settings"
+        })]
+      }), showFullLoading ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered",
+        children: "Loading schemas\u2026"
+      }) : tree.error ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered bm-error",
+        children: tree.error
+      }) : /* @__PURE__ */ jsxs("div", {
+        className: "bm-columns",
+        children: [/* @__PURE__ */ jsx("div", {
+          className: "bm-column",
+          children: renderDbTreeBox("src")
+        }), targetExpanded && /* @__PURE__ */ jsxs(Fragment, {
+          children: [/* @__PURE__ */ jsx("div", {
+            className: "bm-gap"
+          }), /* @__PURE__ */ jsx("div", {
+            className: "bm-column",
+            children: renderDbTreeBox("tar")
+          })]
+        }), /* @__PURE__ */ jsx("div", {
+          className: "bm-divider"
+        }), /* @__PURE__ */ jsx("div", {
+          className: "bm-pairsColumn",
+          children: pair.pairs.length === 0 ? /* @__PURE__ */ jsx("div", {
+            className: "bm-emptyPairs",
+            children: targetExpanded ? `Pick one source table, then one target table to add a pair (default partitions: ${cleanDigits(defaultBuckets) || "10"})` : `Select tables (or schema) to add pairs (default partitions: ${cleanDigits(defaultBuckets) || "10"})`
+          }) : /* @__PURE__ */ jsxs("div", {
+            className: "bm-pairsWrap",
+            children: [/* @__PURE__ */ jsxs("div", {
+              style: {
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 8px",
+                fontSize: 12,
+                color: "#6b7280",
+                borderBottom: "1px solid #e5e7eb",
+                marginBottom: 6
+              },
+              children: [/* @__PURE__ */ jsx("span", {
+                style: {
+                  flex: 1,
+                  minWidth: 0
+                },
+                children: "Source"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 20,
+                  textAlign: "center"
+                }
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  flex: 1,
+                  minWidth: 0
+                },
+                children: "Target"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 90,
+                  textAlign: "right"
+                },
+                children: "Partitions"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 34
+                }
+              })]
+            }), pair.pairs.map((p2) => {
+              var _a2;
+              const isEditing = editingPairId === p2.id;
+              const bucketsVal = (((_a2 = p2.Buckets) != null ? _a2 : cleanDigits(defaultBuckets)) || "10").toString().replace(/[^\d]/g, "");
+              return /* @__PURE__ */ jsxs("div", {
+                className: "bm-pairRow bm-pairRowDeletable",
+                children: [/* @__PURE__ */ jsxs("span", {
+                  className: "bm-pairSide",
+                  style: {
+                    flex: 1,
+                    minWidth: 0
+                  },
+                  children: [p2.Source_Schema, ".", p2.Source_Table]
+                }), /* @__PURE__ */ jsxs("span", {
+                  className: "bm-pairSide",
+                  style: {
+                    flex: 1,
+                    minWidth: 0
+                  },
+                  children: [p2.Target_Schema, ".", p2.Target_Table]
+                }), /* @__PURE__ */ jsx("span", {
+                  style: {
+                    width: 90,
+                    textAlign: "right",
+                    cursor: "pointer",
+                    userSelect: "none"
+                  },
+                  title: "Double-click to edit buckets",
+                  onDoubleClick: () => {
+                    setEditingPairId(p2.id);
+                    setDraftBuckets(bucketsVal);
+                  },
+                  children: isEditing ? /* @__PURE__ */ jsx("input", {
+                    className: "k2-table-input",
+                    style: {
+                      width: 80,
+                      textAlign: "right"
+                    },
+                    inputMode: "numeric",
+                    pattern: "[0-9]*",
+                    autoFocus: true,
+                    value: draftBuckets,
+                    onChange: (e) => setDraftBuckets(cleanDigits(e.target.value)),
+                    onBlur: () => commitBucketsEdit(p2.id),
+                    onKeyDown: (e) => {
+                      if (e.key === "Enter")
+                        commitBucketsEdit(p2.id);
+                      if (e.key === "Escape")
+                        cancelBucketsEdit();
+                    }
+                  }) : /* @__PURE__ */ jsx("span", {
+                    children: bucketsVal || cleanDigits(defaultBuckets) || "10"
+                  })
+                }), /* @__PURE__ */ jsx("button", {
+                  type: "button",
+                  className: "bm-pairDelete",
+                  onClick: () => {
+                    if (editingPairId === p2.id)
+                      setEditingPairId(null);
+                    pair.removePair(p2.id);
+                  },
+                  title: "Remove",
+                  style: {
+                    width: 34
+                  },
+                  children: /* @__PURE__ */ jsx("img", {
+                    src: deleteIcon,
+                    alt: "delete",
+                    className: "bm-deleteIcon"
+                  })
+                })]
+              }, p2.id);
+            })]
+          })
+        })]
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "bm-footer",
+        children: [/* @__PURE__ */ jsxs("button", {
+          className: `btn btnPrimary${!pair.canConfirm ? " disabled" : ""}`,
+          onClick: handleConfirm,
+          disabled: !pair.canConfirm,
+          children: ["Confirm (", pair.pairs.length, " ", pair.pairs.length === 1 ? "pair" : "pairs", ")"]
+        }), /* @__PURE__ */ jsx("button", {
+          className: "btn btnCancel",
+          onClick: onClose,
+          children: "Cancel"
+        })]
+      })]
+    })
+  });
+}
 function TableMappingMultiSelect({
   params,
   mtableData,
@@ -18206,29 +20088,72 @@ function TableMappingMultiSelect({
 }) {
   const srcIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_SRC) || "").trim();
   const tarIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_TAR) || "").trim();
-  const srcSC = ((params == null ? void 0 : params.K2VERIFY_SCHEMA_SRC) || "").trim();
-  const tarSC = ((params == null ? void 0 : params.K2VERIFY_SCHEMA_TAR) || "").trim();
-  const currentList = Array.isArray(params == null ? void 0 : params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST : [];
-  const haveFilters = !!(srcIF && tarIF && srcSC && tarSC);
+  const srcEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_SRC) || "").trim();
+  const tarEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_TAR) || "").trim();
+  const currentList = react.exports.useMemo(() => {
+    const raw = Array.isArray(params == null ? void 0 : params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST : [];
+    return raw.filter((p2) => (p2 == null ? void 0 : p2.src) && (p2 == null ? void 0 : p2.tar)).map((p2) => {
+      var _a2;
+      return {
+        src: p2.src,
+        tar: p2.tar,
+        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString()
+      };
+    });
+  }, [params == null ? void 0 : params.K2VERIFY_TABLE_LIST]);
+  const haveFilters = !!(srcIF && tarIF);
+  const canBuildMap = !!(srcIF && tarIF && srcEnv && tarEnv);
   const mrows = Array.isArray(mtableData) ? mtableData : [];
+  const [buildMapOpen, setBuildMapOpen] = react.exports.useState(false);
+  const [extraRows, setExtraRows] = react.exports.useState([]);
   const mkKey = (s2, t3) => `${s2}__\u2192__${t3}`;
-  const listHas = (list, pair) => list.some((p2) => p2.src === pair.src && p2.tar === pair.tar);
+  const listHas = react.exports.useCallback((list, pair) => list.some((p2) => p2.src === pair.src && p2.tar === pair.tar), []);
+  const updateList = react.exports.useCallback((nextList) => {
+    handleInputChange({
+      target: {
+        name: "K2VERIFY_TABLE_LIST",
+        value: nextList
+      }
+    });
+  }, [handleInputChange]);
   const tablePairs = react.exports.useMemo(() => {
     if (!haveFilters)
       return [];
-    const pairs = mrows.filter((r2) => r2.Source_Interface === srcIF && r2.Target_Interface === tarIF && r2.Source_Schema === srcSC && r2.Target_Schema === tarSC).map((r2) => ({
-      src: r2.Source_Table_Name,
-      tar: r2.Target_Table_Name,
-      key: mkKey(r2.Source_Table_Name, r2.Target_Table_Name)
-    }));
-    const seen2 = /* @__PURE__ */ new Set();
-    return pairs.filter((p2) => {
-      if (seen2.has(p2.key))
-        return false;
-      seen2.add(p2.key);
-      return true;
+    const fromMtable = mrows.filter((r2) => r2.Source_Interface === srcIF && r2.Target_Interface === tarIF).map((r2) => {
+      var _a2;
+      const src = `${r2.Source_Schema}.${r2.Source_Table_Name}`;
+      const tar = `${r2.Target_Schema}.${r2.Target_Table_Name}`;
+      return {
+        src,
+        tar,
+        buckets: ((_a2 = r2.Buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(src, tar)
+      };
     });
-  }, [mrows, srcIF, tarIF, srcSC, tarSC, haveFilters]);
+    const fromExtra = extraRows.map((r2) => {
+      var _a2;
+      return {
+        src: r2.src,
+        tar: r2.tar,
+        buckets: ((_a2 = r2.buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(r2.src, r2.tar)
+      };
+    });
+    const fromCurrent = currentList.map((p2) => {
+      var _a2;
+      return {
+        src: p2.src,
+        tar: p2.tar,
+        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(p2.src, p2.tar)
+      };
+    });
+    const byKey = /* @__PURE__ */ new Map();
+    fromMtable.forEach((p2) => byKey.set(p2.key, p2));
+    fromExtra.forEach((p2) => byKey.set(p2.key, p2));
+    fromCurrent.forEach((p2) => byKey.set(p2.key, p2));
+    return Array.from(byKey.values());
+  }, [mrows, srcIF, tarIF, haveFilters, extraRows, currentList]);
   const [showSelectedOnly, setShowSelectedOnly] = react.exports.useState(false);
   const [filterOpen, setFilterOpen] = react.exports.useState({
     src: false,
@@ -18238,58 +20163,113 @@ function TableMappingMultiSelect({
     src: "",
     tar: ""
   });
-  const toggleFilter = react.exports.useCallback((col) => {
-    setFilterOpen((prev) => ({
-      ...prev,
-      [col]: !prev[col]
-    }));
-  }, []);
-  const setFilterValue = react.exports.useCallback((col, val) => {
-    setFilters((prev) => ({
-      ...prev,
-      [col]: val
-    }));
-  }, []);
-  react.exports.useEffect(() => {
-    if (!haveFilters)
+  const toggleFilter = react.exports.useCallback((col) => setFilterOpen((p2) => ({
+    ...p2,
+    [col]: !p2[col]
+  })), []);
+  const setFilterValue = react.exports.useCallback((col, val) => setFilters((p2) => ({
+    ...p2,
+    [col]: val
+  })), []);
+  const [editingKey, setEditingKey] = react.exports.useState(null);
+  const [draftBuckets, setDraftBuckets] = react.exports.useState("10");
+  const getBuckets = react.exports.useCallback((pair, fallback = "10") => {
+    var _a2, _b2;
+    const found = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    return ((_b2 = (_a2 = found == null ? void 0 : found.buckets) != null ? _a2 : fallback) != null ? _b2 : "10").toString();
+  }, [currentList]);
+  const updateBucketsIfSelected = react.exports.useCallback((pair, val) => {
+    const cleaned = (val != null ? val : "").toString().replace(/[^\d]/g, "");
+    const nextBuckets = cleaned === "" ? "10" : cleaned;
+    const idx = currentList.findIndex((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    if (idx < 0)
       return;
-    if (!currentList.length)
-      return;
-    const validKeys = new Set(tablePairs.map((p2) => p2.key));
-    const pruned = currentList.filter((p2) => validKeys.has(mkKey(p2.src, p2.tar)));
-    if (pruned.length !== currentList.length) {
-      handleInputChange({
-        target: {
-          name: "K2VERIFY_TABLE_LIST",
-          value: pruned
-        }
-      });
-    }
-  }, [tablePairs, haveFilters]);
-  const updateList = react.exports.useCallback((nextList) => {
-    handleInputChange({
-      target: {
-        name: "K2VERIFY_TABLE_LIST",
-        value: nextList
+    const next = [...currentList];
+    next[idx] = {
+      ...next[idx],
+      buckets: nextBuckets
+    };
+    updateList(next);
+  }, [currentList, updateList]);
+  const startEditBuckets = react.exports.useCallback((p2) => {
+    setEditingKey(p2.key);
+    setDraftBuckets(getBuckets(p2, p2.buckets));
+  }, [getBuckets]);
+  const commitEditBuckets = react.exports.useCallback((p2) => {
+    updateBucketsIfSelected(p2, draftBuckets);
+    setEditingKey(null);
+  }, [updateBucketsIfSelected, draftBuckets]);
+  const cancelEditBuckets = react.exports.useCallback(() => {
+    setEditingKey(null);
+  }, []);
+  const handleBuildMapConfirm = react.exports.useCallback((tableList) => {
+    const newExtras = [];
+    const merged = [...currentList];
+    tableList.forEach((r2) => {
+      var _a2;
+      const bucketsFromModal = ((_a2 = r2.Buckets) != null ? _a2 : "10").toString();
+      const src = `${r2.Source_Schema}.${r2.Source_Table}`;
+      if (r2.Target_Interface && r2.Target_Schema && r2.Target_Table) {
+        const tar = `${r2.Target_Schema}.${r2.Target_Table}`;
+        const pair = {
+          src,
+          tar
+        };
+        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, tar));
+        if (!alreadyInTable)
+          newExtras.push({
+            src,
+            tar,
+            buckets: bucketsFromModal
+          });
+        if (!listHas(merged, pair))
+          merged.push({
+            ...pair,
+            buckets: bucketsFromModal
+          });
+      } else {
+        const pair = {
+          src,
+          tar: src
+        };
+        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, src));
+        if (!alreadyInTable)
+          newExtras.push({
+            src,
+            tar: src,
+            buckets: bucketsFromModal
+          });
+        if (!listHas(merged, pair))
+          merged.push({
+            ...pair,
+            buckets: bucketsFromModal
+          });
       }
     });
-  }, [handleInputChange]);
+    if (newExtras.length)
+      setExtraRows((prev) => [...prev, ...newExtras]);
+    updateList(merged);
+    setBuildMapOpen(false);
+  }, [currentList, tablePairs, updateList, listHas]);
   const togglePair = react.exports.useCallback((pair) => {
-    if (listHas(currentList, pair)) {
+    const exists = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    if (exists) {
       updateList(currentList.filter((p2) => !(p2.src === pair.src && p2.tar === pair.tar)));
     } else {
       updateList([...currentList, {
         src: pair.src,
-        tar: pair.tar
+        tar: pair.tar,
+        buckets: getBuckets(pair, pair.buckets)
       }]);
     }
-  }, [currentList, updateList]);
+  }, [currentList, updateList, getBuckets]);
   const selectAll = react.exports.useCallback(() => {
     updateList(tablePairs.map((p2) => ({
       src: p2.src,
-      tar: p2.tar
+      tar: p2.tar,
+      buckets: getBuckets(p2, p2.buckets)
     })));
-  }, [tablePairs, updateList]);
+  }, [tablePairs, updateList, getBuckets]);
   const clearAll = react.exports.useCallback(() => updateList([]), [updateList]);
   const filteredPairs = react.exports.useMemo(() => {
     const srcNeedle = filters.src.trim().toLowerCase();
@@ -18308,201 +20288,921 @@ function TableMappingMultiSelect({
     return filteredPairs.filter((p2) => selectedKeys.has(p2.key));
   }, [showSelectedOnly, filteredPairs, currentList]);
   const checkedCount = currentList.length;
-  return /* @__PURE__ */ jsxs("div", {
-    className,
-    children: [/* @__PURE__ */ jsxs("label", {
-      className: "label",
-      children: [title, /* @__PURE__ */ jsx("span", {
-        className: "required",
-        children: "*"
-      })]
-    }), !haveFilters ? /* @__PURE__ */ jsx("div", {
-      className: "miniTableBox",
-      children: /* @__PURE__ */ jsx("div", {
-        className: "miniTableWrap miniTableWrapPlaceholder",
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [buildMapOpen && /* @__PURE__ */ jsx(BuildMapModal, {
+      srcInterface: srcIF,
+      srcEnv,
+      tarInterface: tarIF,
+      tarEnv,
+      onConfirm: handleBuildMapConfirm,
+      onClose: () => setBuildMapOpen(false)
+    }), /* @__PURE__ */ jsxs("div", {
+      className,
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "label",
+        style: {
+          display: "flex",
+          alignItems: "center"
+        },
+        children: [/* @__PURE__ */ jsxs("span", {
+          children: [title, /* @__PURE__ */ jsx("span", {
+            className: "required",
+            children: "*"
+          })]
+        }), /* @__PURE__ */ jsx("button", {
+          type: "button",
+          disabled: !canBuildMap,
+          onClick: () => setBuildMapOpen(true),
+          title: !canBuildMap ? "Select source & target interfaces and environments first" : "",
+          style: {
+            background: "none",
+            border: "none",
+            padding: 0,
+            color: canBuildMap ? "#1a56db" : "#aaa",
+            cursor: canBuildMap ? "pointer" : "not-allowed",
+            fontSize: "inherit",
+            textDecoration: canBuildMap ? "underline" : "none",
+            marginLeft: "auto"
+          },
+          children: "+ Add tables"
+        })]
+      }), !haveFilters ? /* @__PURE__ */ jsx("div", {
+        className: "miniTableBox",
+        children: /* @__PURE__ */ jsx("div", {
+          className: "miniTableWrap miniTableWrapPlaceholder",
+          children: /* @__PURE__ */ jsx("div", {
+            style: {
+              padding: "10px 8px",
+              color: "#6b7280",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              textAlign: "center"
+            },
+            children: "Select Source & Target interfaces to load table pairs."
+          })
+        })
+      }) : mtableLoading ? /* @__PURE__ */ jsx("div", {
+        className: "note",
+        children: "Loading table mappings\u2026"
+      }) : mtableError ? /* @__PURE__ */ jsx("div", {
+        className: "error",
+        children: "Error loading table mappings"
+      }) : tablePairs.length === 0 ? /* @__PURE__ */ jsx("div", {
+        className: "miniTableBox",
         children: /* @__PURE__ */ jsx("div", {
           style: {
             padding: "10px 8px",
-            color: "#6b7280",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            textAlign: "center"
+            color: "#6b7280"
           },
-          children: "Select Source/Target Interface and Schema to load table pairs."
+          children: "No table pairs found for the selected interfaces."
         })
-      })
-    }) : mtableLoading ? /* @__PURE__ */ jsx("div", {
-      className: "note",
-      children: "Loading table mappings\u2026"
-    }) : mtableError ? /* @__PURE__ */ jsx("div", {
-      className: "error",
-      children: "Error loading table mappings"
-    }) : tablePairs.length === 0 ? /* @__PURE__ */ jsx("div", {
-      className: "miniTableBox",
-      children: /* @__PURE__ */ jsx("div", {
-        style: {
-          padding: "10px 8px",
-          color: "#6b7280"
-        },
-        children: "No table pairs found for the chosen interface + schema combination."
-      })
-    }) : /* @__PURE__ */ jsxs("div", {
-      className: "miniTableBox",
-      children: [/* @__PURE__ */ jsxs("div", {
-        className: "miniTableActions",
-        children: [/* @__PURE__ */ jsx("button", {
-          type: "button",
-          className: "btn btnAll",
-          onClick: selectAll,
-          children: "Select all"
-        }), /* @__PURE__ */ jsx("button", {
-          type: "button",
-          className: "btn btnClearAll",
-          onClick: clearAll,
-          children: "Clear all"
-        }), /* @__PURE__ */ jsxs("label", {
-          style: {
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            marginLeft: 8,
-            cursor: "pointer",
-            userSelect: "none",
-            fontSize: "0.9rem",
-            color: "#374151",
-            whiteSpace: "nowrap"
-          },
-          title: "Show only selected table pairs",
-          children: [/* @__PURE__ */ jsx("input", {
-            type: "checkbox",
-            checked: showSelectedOnly,
-            onChange: () => setShowSelectedOnly((v2) => !v2)
-          }), "Show selected only"]
-        }), /* @__PURE__ */ jsxs("span", {
-          style: {
-            marginLeft: "auto",
-            fontSize: "0.9rem"
-          },
-          children: ["Selected: ", /* @__PURE__ */ jsx("strong", {
-            children: checkedCount
-          }), " / ", tablePairs.length]
-        })]
-      }), /* @__PURE__ */ jsx("div", {
-        className: "miniTableWrap",
-        children: /* @__PURE__ */ jsxs("table", {
-          className: "miniTable",
-          children: [/* @__PURE__ */ jsx("thead", {
-            children: /* @__PURE__ */ jsxs("tr", {
-              children: [/* @__PURE__ */ jsx("th", {
-                style: {
-                  width: 36
-                }
-              }), /* @__PURE__ */ jsxs("th", {
-                children: [/* @__PURE__ */ jsxs("div", {
+      }) : /* @__PURE__ */ jsxs("div", {
+        className: "miniTableBox",
+        children: [/* @__PURE__ */ jsxs("div", {
+          className: "miniTableActions",
+          children: [/* @__PURE__ */ jsx("button", {
+            type: "button",
+            className: "btn btnAll",
+            onClick: selectAll,
+            children: "Select all"
+          }), /* @__PURE__ */ jsx("button", {
+            type: "button",
+            className: "btn btnClearAll",
+            onClick: clearAll,
+            children: "Clear all"
+          }), /* @__PURE__ */ jsxs("label", {
+            style: {
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              marginLeft: 8,
+              cursor: "pointer",
+              userSelect: "none",
+              fontSize: "0.9rem",
+              color: "#374151",
+              whiteSpace: "nowrap"
+            },
+            title: "Show only selected table pairs",
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              checked: showSelectedOnly,
+              onChange: () => setShowSelectedOnly((v2) => !v2)
+            }), "Show selected only"]
+          }), /* @__PURE__ */ jsxs("span", {
+            style: {
+              marginLeft: "auto",
+              fontSize: "0.9rem"
+            },
+            children: ["Selected: ", /* @__PURE__ */ jsx("strong", {
+              children: checkedCount
+            }), " / ", tablePairs.length]
+          })]
+        }), /* @__PURE__ */ jsx("div", {
+          className: "miniTableWrap",
+          children: /* @__PURE__ */ jsxs("table", {
+            className: "miniTable",
+            children: [/* @__PURE__ */ jsx("thead", {
+              children: /* @__PURE__ */ jsxs("tr", {
+                children: [/* @__PURE__ */ jsx("th", {
                   style: {
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 6
-                  },
-                  children: [/* @__PURE__ */ jsx("span", {
+                    width: 36
+                  }
+                }), /* @__PURE__ */ jsxs("th", {
+                  children: [/* @__PURE__ */ jsxs("div", {
                     style: {
-                      whiteSpace: "nowrap"
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 6
                     },
-                    children: "Source table"
-                  }), /* @__PURE__ */ jsx("img", {
-                    src: filterOpen.src ? filterOn : filterOff,
-                    alt: filterOpen.src ? "Filter On" : "Filter Off",
-                    title: "Filter Source",
-                    className: "icons",
+                    children: [/* @__PURE__ */ jsx("span", {
+                      style: {
+                        whiteSpace: "nowrap"
+                      },
+                      children: "Source table"
+                    }), /* @__PURE__ */ jsx("img", {
+                      src: filterOpen.src ? filterOn : filterOff,
+                      alt: filterOpen.src ? "Filter On" : "Filter Off",
+                      title: "Filter Source",
+                      className: "icons",
+                      style: {
+                        cursor: "pointer",
+                        width: 16,
+                        height: 16
+                      },
+                      onClick: () => toggleFilter("src")
+                    })]
+                  }), filterOpen.src && /* @__PURE__ */ jsx("div", {
                     style: {
-                      cursor: "pointer",
-                      width: 16,
-                      height: 16
+                      marginTop: 6
                     },
-                    onClick: () => toggleFilter("src")
+                    children: /* @__PURE__ */ jsx("input", {
+                      className: "k2-table-input",
+                      placeholder: "Search source\u2026",
+                      value: filters.src,
+                      onChange: (e) => setFilterValue("src", e.target.value),
+                      autoFocus: true
+                    })
                   })]
-                }), filterOpen.src && /* @__PURE__ */ jsx("div", {
-                  style: {
-                    marginTop: 6
-                  },
-                  children: /* @__PURE__ */ jsx("input", {
-                    className: "k2-table-input",
-                    placeholder: "Search source\u2026",
-                    value: filters.src,
-                    onChange: (e) => setFilterValue("src", e.target.value),
-                    autoFocus: true
-                  })
-                })]
-              }), /* @__PURE__ */ jsxs("th", {
-                children: [/* @__PURE__ */ jsxs("div", {
-                  style: {
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 6
-                  },
-                  children: [/* @__PURE__ */ jsx("span", {
+                }), /* @__PURE__ */ jsxs("th", {
+                  children: [/* @__PURE__ */ jsxs("div", {
                     style: {
-                      whiteSpace: "nowrap"
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 6
                     },
-                    children: "Target table"
-                  }), /* @__PURE__ */ jsx("img", {
-                    src: filterOpen.tar ? filterOn : filterOff,
-                    alt: filterOpen.tar ? "Filter On" : "Filter Off",
-                    title: "Filter Target",
-                    className: "icons",
+                    children: [/* @__PURE__ */ jsx("span", {
+                      style: {
+                        whiteSpace: "nowrap"
+                      },
+                      children: "Target table"
+                    }), /* @__PURE__ */ jsx("img", {
+                      src: filterOpen.tar ? filterOn : filterOff,
+                      alt: filterOpen.tar ? "Filter On" : "Filter Off",
+                      title: "Filter Target",
+                      className: "icons",
+                      style: {
+                        cursor: "pointer",
+                        width: 16,
+                        height: 16
+                      },
+                      onClick: () => toggleFilter("tar")
+                    })]
+                  }), filterOpen.tar && /* @__PURE__ */ jsx("div", {
                     style: {
-                      cursor: "pointer",
-                      width: 16,
-                      height: 16
+                      marginTop: 6
                     },
-                    onClick: () => toggleFilter("tar")
+                    children: /* @__PURE__ */ jsx("input", {
+                      className: "k2-table-input",
+                      placeholder: "Search target\u2026",
+                      value: filters.tar,
+                      onChange: (e) => setFilterValue("tar", e.target.value)
+                    })
                   })]
-                }), filterOpen.tar && /* @__PURE__ */ jsx("div", {
+                }), /* @__PURE__ */ jsx("th", {
                   style: {
-                    marginTop: 6
+                    whiteSpace: "nowrap"
                   },
-                  children: /* @__PURE__ */ jsx("input", {
-                    className: "k2-table-input",
-                    placeholder: "Search target\u2026",
-                    value: filters.tar,
-                    onChange: (e) => setFilterValue("tar", e.target.value)
-                  })
+                  children: "Partitions"
                 })]
-              })]
-            })
-          }), /* @__PURE__ */ jsxs("tbody", {
-            children: [visiblePairs.map((p2) => {
-              const checked = listHas(currentList, p2);
-              return /* @__PURE__ */ jsxs("tr", {
-                children: [/* @__PURE__ */ jsx("td", {
-                  children: /* @__PURE__ */ jsx("input", {
-                    type: "checkbox",
-                    checked,
-                    onChange: () => togglePair(p2)
-                  })
-                }), /* @__PURE__ */ jsx("td", {
-                  children: p2.src
-                }), /* @__PURE__ */ jsx("td", {
-                  children: p2.tar
-                })]
-              }, p2.key);
-            }), visiblePairs.length === 0 && /* @__PURE__ */ jsx("tr", {
-              children: /* @__PURE__ */ jsx("td", {
-                colSpan: 3,
-                style: {
-                  padding: 12,
-                  color: "#6b7280"
-                },
-                children: showSelectedOnly ? "No selected pairs to display." : "No pairs match your filter(s)."
               })
+            }), /* @__PURE__ */ jsxs("tbody", {
+              children: [visiblePairs.map((p2) => {
+                const checked = listHas(currentList, p2);
+                const isEditing = editingKey === p2.key;
+                const bucketsVal = getBuckets(p2, p2.buckets);
+                return /* @__PURE__ */ jsxs("tr", {
+                  children: [/* @__PURE__ */ jsx("td", {
+                    children: /* @__PURE__ */ jsx("input", {
+                      type: "checkbox",
+                      checked,
+                      onChange: () => togglePair(p2)
+                    })
+                  }), /* @__PURE__ */ jsx("td", {
+                    children: p2.src
+                  }), /* @__PURE__ */ jsx("td", {
+                    children: p2.tar
+                  }), /* @__PURE__ */ jsx("td", {
+                    onDoubleClick: () => startEditBuckets(p2),
+                    title: checked ? "Double-click to edit buckets" : "Select the row to edit buckets",
+                    style: {
+                      cursor: "pointer"
+                    },
+                    children: isEditing ? /* @__PURE__ */ jsx("input", {
+                      className: "k2-table-input",
+                      style: {
+                        width: 80
+                      },
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                      autoFocus: true,
+                      value: draftBuckets,
+                      onChange: (e) => {
+                        var _a2;
+                        return setDraftBuckets(((_a2 = e.target.value) != null ? _a2 : "").toString().replace(/[^\d]/g, ""));
+                      },
+                      onBlur: () => commitEditBuckets(p2),
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter")
+                          commitEditBuckets(p2);
+                        if (e.key === "Escape")
+                          cancelEditBuckets();
+                      }
+                    }) : /* @__PURE__ */ jsx("span", {
+                      children: bucketsVal
+                    })
+                  })]
+                }, p2.key);
+              }), visiblePairs.length === 0 && /* @__PURE__ */ jsx("tr", {
+                children: /* @__PURE__ */ jsx("td", {
+                  colSpan: 4,
+                  style: {
+                    padding: 12,
+                    color: "#6b7280"
+                  },
+                  children: showSelectedOnly ? "No selected pairs to display." : "No pairs match your filter(s)."
+                })
+              })]
+            })]
+          })
+        })]
+      })]
+    })]
+  });
+}
+function K2VerifyProcessTab({
+  mode,
+  processes,
+  setProcesses
+}) {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  const isPre = mode === "pre";
+  const tag = isPre ? "verify_pre_execution" : "verify_post_execution";
+  const title = isPre ? "Pre execution process" : "Post execution process";
+  const {
+    fetchData,
+    loading,
+    error
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwLookUpPrePostProcess luName=verify tag=${tag} RESULT_STRUCTURE=CURSOR`)}`);
+  const [list, setList] = react.exports.useState([]);
+  const loadedRef = react.exports.useRef(false);
+  const [isModalOpen, setIsModalOpen] = react.exports.useState(false);
+  const [selectedToAdd, setSelectedToAdd] = react.exports.useState("");
+  const safeProcesses = react.exports.useMemo(() => Array.isArray(processes) ? processes : [], [processes]);
+  react.exports.useEffect(() => {
+    if (loadedRef.current)
+      return;
+    loadedRef.current = true;
+    (async () => {
+      const data2 = await fetchData();
+      setList(Array.isArray(data2) ? data2 : []);
+    })();
+  }, [fetchData]);
+  const availableNames = react.exports.useMemo(() => {
+    return (Array.isArray(list) ? list : []).map((r2) => r2 == null ? void 0 : r2.Process_name).filter((v2) => typeof v2 === "string" && v2.trim()).map((v2) => v2.trim());
+  }, [list]);
+  const options = react.exports.useMemo(() => {
+    const selected = new Set(safeProcesses.map((p2) => p2 == null ? void 0 : p2.process_name).filter((v2) => typeof v2 === "string" && v2.trim()).map((v2) => v2.trim()));
+    return Array.from(new Set(availableNames)).filter((name) => !selected.has(name)).sort();
+  }, [availableNames, safeProcesses]);
+  const renumber = (arr) => (Array.isArray(arr) ? arr : []).map((c2, idx) => ({
+    ...c2,
+    execution_order: idx + 1
+  }));
+  const openModal = () => {
+    var _a2;
+    setSelectedToAdd((_a2 = options[0]) != null ? _a2 : "");
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedToAdd("");
+  };
+  const addProcess = () => {
+    if (!selectedToAdd)
+      return;
+    setProcesses((prev) => {
+      const current = Array.isArray(prev) ? prev : [];
+      if (current.some((c2) => (c2 == null ? void 0 : c2.process_name) === selectedToAdd))
+        return current;
+      const next = [...current, {
+        process_name: selectedToAdd,
+        execution_order: 0
+      }];
+      return renumber(next);
+    });
+    closeModal();
+  };
+  const removeProcess = (processName) => {
+    setProcesses((prev) => {
+      const current = Array.isArray(prev) ? prev : [];
+      const next = current.filter((c2) => (c2 == null ? void 0 : c2.process_name) !== processName);
+      return renumber(next);
+    });
+  };
+  const changeOrder = (processName, value) => {
+    const desired = Math.max(1, Number(value || 1));
+    setProcesses((prev) => {
+      const current = Array.isArray(prev) ? [...prev] : [];
+      const idx = current.findIndex((c2) => (c2 == null ? void 0 : c2.process_name) === processName);
+      if (idx === -1)
+        return current;
+      const [item] = current.splice(idx, 1);
+      const insertAt = Math.min(current.length, desired - 1);
+      current.splice(insertAt, 0, item);
+      return renumber(current);
+    });
+  };
+  const gridHeaderStyle = {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 40px",
+    alignItems: "center",
+    padding: "8px 12px",
+    color: "#666",
+    fontSize: 15,
+    fontWeight: 600
+  };
+  const gridRowStyle = {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 40px",
+    alignItems: "center",
+    gap: 10,
+    border: "1px solid #e6e6e6",
+    borderRadius: 10,
+    padding: "10px 12px",
+    marginTop: 8,
+    background: "#fafafa"
+  };
+  const orderInputStyle = {
+    width: "100%",
+    padding: "6px 8px",
+    borderRadius: 6,
+    border: "1px solid #ddd",
+    textAlign: "center"
+  };
+  const iconBtnStyle = {
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    color: "#888",
+    fontSize: 18,
+    lineHeight: 1
+  };
+  const modalOverlayStyle = {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.25)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    paddingTop: 80,
+    zIndex: 9999
+  };
+  const modalStyle = {
+    width: 520,
+    background: "white",
+    borderRadius: 10,
+    border: "1px solid #e6e6e6",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+    overflow: "hidden"
+  };
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsxs("section", {
+      className: "splitLeft",
+      children: [/* @__PURE__ */ jsxs("div", {
+        style: {
+          padding: 8
+        },
+        children: [/* @__PURE__ */ jsx("div", {
+          style: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 10
+          },
+          children: /* @__PURE__ */ jsxs("button", {
+            type: "button",
+            className: "new-task-btn",
+            onClick: openModal,
+            disabled: false,
+            title: "Add process",
+            children: [/* @__PURE__ */ jsx("span", {
+              children: "Add Process"
+            }), " ", /* @__PURE__ */ jsx("i", {
+              className: "fa fa-plus"
+            })]
+          })
+        }), loading && /* @__PURE__ */ jsx("div", {
+          children: "Loading..."
+        }), error && /* @__PURE__ */ jsx("div", {
+          style: {
+            color: "red"
+          },
+          children: "Failed to load"
+        }), !loading && !error && /* @__PURE__ */ jsx(Fragment, {
+          children: safeProcesses.length > 0 ? /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsxs("div", {
+              style: gridHeaderStyle,
+              children: [/* @__PURE__ */ jsx("div", {
+                children: "Process name"
+              }), /* @__PURE__ */ jsx("div", {
+                children: "Execution order"
+              }), /* @__PURE__ */ jsx("div", {})]
+            }), safeProcesses.map((item) => /* @__PURE__ */ jsxs("div", {
+              style: gridRowStyle,
+              children: [/* @__PURE__ */ jsx("div", {
+                children: item.process_name
+              }), /* @__PURE__ */ jsx("input", {
+                type: "number",
+                min: "1",
+                style: orderInputStyle,
+                value: item.execution_order,
+                onChange: (e) => changeOrder(item.process_name, e.target.value)
+              }), /* @__PURE__ */ jsx("button", {
+                type: "button",
+                style: iconBtnStyle,
+                onClick: () => removeProcess(item.process_name),
+                title: "Remove",
+                children: /* @__PURE__ */ jsx("img", {
+                  src: deleteIcon$1,
+                  alt: "Remove",
+                  style: {
+                    width: 25,
+                    height: 25,
+                    transition: "transform 0.2s ease",
+                    cursor: "pointer"
+                  },
+                  onMouseEnter: (e) => e.currentTarget.style.transform = "scale(1.2)",
+                  onMouseLeave: (e) => e.currentTarget.style.transform = "scale(1)"
+                })
+              })]
+            }, item.process_name))]
+          }) : /* @__PURE__ */ jsx("div", {
+            style: {
+              marginTop: 10,
+              color: "#777"
+            },
+            children: "No processes selected yet."
+          })
+        })]
+      }), isModalOpen && /* @__PURE__ */ jsx("div", {
+        style: modalOverlayStyle,
+        onMouseDown: closeModal,
+        children: /* @__PURE__ */ jsxs("div", {
+          style: modalStyle,
+          onMouseDown: (e) => e.stopPropagation(),
+          children: [/* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "14px 16px"
+            },
+            children: [/* @__PURE__ */ jsx("div", {
+              style: {
+                color: "#2a72d4"
+              },
+              children: title
+            }), /* @__PURE__ */ jsx("button", {
+              type: "button",
+              style: iconBtnStyle,
+              onClick: closeModal,
+              children: "\u2715"
+            })]
+          }), /* @__PURE__ */ jsx("div", {
+            style: {
+              padding: 16
+            },
+            children: /* @__PURE__ */ jsx("select", {
+              value: selectedToAdd,
+              onChange: (e) => setSelectedToAdd(e.target.value),
+              disabled: options.length === 0,
+              style: {
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                background: options.length === 0 ? "#f7f7f7" : "white",
+                color: options.length === 0 ? "#777" : "inherit"
+              },
+              children: options.length === 0 ? /* @__PURE__ */ jsx("option", {
+                value: "",
+                disabled: true,
+                children: "No processes found!"
+              }) : /* @__PURE__ */ jsxs(Fragment, {
+                children: [/* @__PURE__ */ jsx("option", {
+                  value: "",
+                  disabled: true,
+                  children: "Select a process..."
+                }), options.map((name) => /* @__PURE__ */ jsx("option", {
+                  value: name,
+                  children: name
+                }, name))]
+              })
+            })
+          }), /* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 10,
+              padding: "12px 16px"
+            },
+            children: [/* @__PURE__ */ jsx("button", {
+              type: "button",
+              onClick: closeModal,
+              style: {
+                border: "none",
+                background: "transparent",
+                color: "#4b93ff",
+                fontWeight: 600
+              },
+              children: "Cancel"
+            }), /* @__PURE__ */ jsx("button", {
+              type: "button",
+              onClick: addProcess,
+              disabled: !selectedToAdd || options.length === 0,
+              style: {
+                border: "none",
+                background: "#4b93ff",
+                color: "white",
+                fontWeight: 700,
+                padding: "8px 14px",
+                borderRadius: 6
+              },
+              children: "Save"
             })]
           })]
         })
       })]
+    }), /* @__PURE__ */ jsx("section", {
+      className: "splitRight"
+    })]
+  });
+}
+function K2VerifyGeneralTab({
+  params,
+  mtableData,
+  mtableLoading,
+  mtableError,
+  handleInputChange,
+  tablesRequiredRef,
+  tablesChosenCount,
+  selectedSrc,
+  selectedTar,
+  selectedEnvSrc,
+  selectedEnvTar,
+  envLoading,
+  envError,
+  allEnvironments,
+  ifaceSrcLoading,
+  ifaceSrcError,
+  ifaceTarLoading,
+  ifaceTarError,
+  activeInterfacesSrc,
+  activeInterfacesTar
+}) {
+  var _a2;
+  window.k2api = window.k2api || window.parent.k2api;
+  const t3 = window.k2api.i18n.translate;
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsxs("section", {
+      className: "splitLeft",
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "group2",
+        children: [/* @__PURE__ */ jsxs("label", {
+          className: "label",
+          htmlFor: "K2VERIFY_TASK_TITLE",
+          children: [t3("k2verifyTaskOptions.taskTitleLabel"), /* @__PURE__ */ jsx("span", {
+            className: "required",
+            children: "*"
+          })]
+        }), /* @__PURE__ */ jsx("input", {
+          id: "K2VERIFY_TASK_TITLE",
+          name: "K2VERIFY_TASK_TITLE",
+          className: "input",
+          type: "text",
+          value: params.K2VERIFY_TASK_TITLE,
+          onChange: handleInputChange,
+          placeholder: t3("k2verifyTaskOptions.taskTitlePlaceholder"),
+          required: true
+        })]
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "group2",
+        children: [/* @__PURE__ */ jsx("label", {
+          className: "label",
+          htmlFor: "K2VERIFY_TASK_DESCRIPTION",
+          children: t3("k2verifyTaskOptions.taskDescriptionLabel")
+        }), /* @__PURE__ */ jsx("textarea", {
+          id: "K2VERIFY_TASK_DESCRIPTION",
+          name: "K2VERIFY_TASK_DESCRIPTION",
+          className: "textarea",
+          value: params.K2VERIFY_TASK_DESCRIPTION,
+          onChange: handleInputChange,
+          placeholder: t3("k2verifyTaskOptions.taskDescriptionPlaceholder")
+        })]
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "grid2",
+        children: [/* @__PURE__ */ jsxs("div", {
+          className: "group",
+          children: [/* @__PURE__ */ jsxs("label", {
+            className: "label",
+            children: ["Source Environment", /* @__PURE__ */ jsx("span", {
+              className: "required",
+              children: "*"
+            })]
+          }), /* @__PURE__ */ jsxs("select", {
+            name: "K2VERIFY_ENV_SRC",
+            value: params.K2VERIFY_ENV_SRC,
+            onChange: handleInputChange,
+            className: "select",
+            required: true,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              hidden: true,
+              children: t3("k2verifyTaskOptions.sourceEnvironmentSelectPlaceholder")
+            }), envLoading ? /* @__PURE__ */ jsx("option", {
+              children: t3("k2verifyTaskOptions.loading")
+            }) : envError ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.loadingEnvironments")
+            }) : allEnvironments.length === 0 ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.noEnvironmentsFound")
+            }) : allEnvironments.map((env) => /* @__PURE__ */ jsx("option", {
+              value: env,
+              children: env
+            }, `src-env-${env}`))]
+          })]
+        }), /* @__PURE__ */ jsxs("div", {
+          className: "group",
+          children: [/* @__PURE__ */ jsxs("label", {
+            className: "label",
+            children: ["Target Environment", /* @__PURE__ */ jsx("span", {
+              className: "required",
+              children: "*"
+            })]
+          }), /* @__PURE__ */ jsxs("select", {
+            name: "K2VERIFY_ENV_TAR",
+            value: params.K2VERIFY_ENV_TAR,
+            onChange: handleInputChange,
+            className: "select",
+            required: true,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              hidden: true,
+              children: t3("k2verifyTaskOptions.targetEnvironmentSelectPlaceholder")
+            }), envLoading ? /* @__PURE__ */ jsx("option", {
+              children: t3("k2verifyTaskOptions.loading")
+            }) : envError ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.loadingEnvironments")
+            }) : allEnvironments.length === 0 ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.noEnvironmentsFound")
+            }) : allEnvironments.map((env) => /* @__PURE__ */ jsx("option", {
+              value: env,
+              children: env
+            }, `tar-env-${env}`))]
+          })]
+        }), /* @__PURE__ */ jsxs("div", {
+          className: "group",
+          children: [/* @__PURE__ */ jsxs("label", {
+            className: "label",
+            children: [t3("k2verifyTaskOptions.sourceInterfaceLabel"), /* @__PURE__ */ jsx("span", {
+              className: "required",
+              children: "*"
+            })]
+          }), /* @__PURE__ */ jsxs("select", {
+            name: "K2VERIFY_INTERFACE_SRC",
+            value: params.K2VERIFY_INTERFACE_SRC,
+            onChange: handleInputChange,
+            className: "select",
+            required: true,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              hidden: true,
+              children: t3("k2verifyTaskOptions.sourceInterfaceSelectPlaceholder")
+            }), ifaceSrcLoading ? /* @__PURE__ */ jsx("option", {
+              children: t3("k2verifyTaskOptions.loading")
+            }) : ifaceSrcError ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.loadingInterfaces")
+            }) : activeInterfacesSrc.length === 0 ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.noSourceFound")
+            }) : activeInterfacesSrc.map((iface) => /* @__PURE__ */ jsx("option", {
+              value: iface,
+              children: iface
+            }, `src-${iface}`))]
+          })]
+        }), /* @__PURE__ */ jsxs("div", {
+          className: "group",
+          children: [/* @__PURE__ */ jsxs("label", {
+            className: "label",
+            children: [t3("k2verifyTaskOptions.targetInterfaceLabel"), /* @__PURE__ */ jsx("span", {
+              className: "required",
+              children: "*"
+            })]
+          }), /* @__PURE__ */ jsxs("select", {
+            name: "K2VERIFY_INTERFACE_TAR",
+            value: params.K2VERIFY_INTERFACE_TAR,
+            onChange: handleInputChange,
+            className: "select",
+            required: true,
+            children: [/* @__PURE__ */ jsx("option", {
+              value: "",
+              disabled: true,
+              hidden: true,
+              children: t3("k2verifyTaskOptions.targetInterfaceSelectPlaceholder")
+            }), ifaceTarLoading ? /* @__PURE__ */ jsx("option", {
+              children: t3("k2verifyTaskOptions.loading")
+            }) : ifaceTarError ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.loadingInterfaces")
+            }) : activeInterfacesTar.length === 0 ? /* @__PURE__ */ jsx("option", {
+              disabled: true,
+              value: "",
+              children: t3("k2verifyTaskOptions.errors.noTargetFound")
+            }) : activeInterfacesTar.map((iface) => /* @__PURE__ */ jsx("option", {
+              value: iface,
+              children: iface
+            }, `tar-${iface}`))]
+          })]
+        })]
+      }), /* @__PURE__ */ jsx("input", {
+        ref: tablesRequiredRef,
+        name: "__required_table_selection",
+        value: tablesChosenCount > 0 ? "has-tables" : "",
+        onChange: () => {
+        },
+        style: {
+          position: "absolute",
+          opacity: 0,
+          width: 0,
+          height: 0,
+          pointerEvents: "none"
+        },
+        "aria-hidden": "true",
+        tabIndex: -1
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "grid2",
+        style: {
+          marginTop: 16
+        },
+        children: [/* @__PURE__ */ jsx("div", {
+          className: "group",
+          style: {
+            display: "flex",
+            marginTop: "auto"
+          },
+          children: /* @__PURE__ */ jsxs("label", {
+            className: "label",
+            style: {
+              display: "flex",
+              alignItems: "center"
+            },
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              name: "K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA",
+              checked: !!params.K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA,
+              onChange: handleInputChange,
+              disabled: !selectedSrc,
+              style: {
+                transform: "scale(0.7)",
+                marginRight: 8
+              }
+            }), "Source contains sensitive data"]
+          })
+        }), /* @__PURE__ */ jsx("div", {
+          className: "group",
+          style: {
+            display: "flex",
+            marginTop: "auto"
+          },
+          children: /* @__PURE__ */ jsxs("label", {
+            className: "label",
+            style: {
+              display: "flex",
+              alignItems: "center"
+            },
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              name: "K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA",
+              checked: !!params.K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA,
+              onChange: handleInputChange,
+              disabled: !selectedTar,
+              style: {
+                transform: "scale(0.7)",
+                marginRight: 8
+              }
+            }), "Target contains sensitive data"]
+          })
+        }), /* @__PURE__ */ jsx("div", {
+          className: "group",
+          style: {
+            display: "flex",
+            marginTop: "auto"
+          },
+          children: /* @__PURE__ */ jsxs("label", {
+            className: "label",
+            style: {
+              display: "flex",
+              alignItems: "center"
+            },
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              name: "K2VERIFY_PII_ONLY_COMPARISON",
+              checked: !!params.K2VERIFY_PII_ONLY_COMPARISON,
+              onChange: handleInputChange,
+              style: {
+                transform: "scale(0.7)",
+                marginRight: 8
+              }
+            }), t3("k2verifyTaskOptions.piiOnlyLabel")]
+          })
+        }), /* @__PURE__ */ jsx("div", {
+          className: "group",
+          style: {
+            display: "flex",
+            marginTop: "auto"
+          },
+          children: /* @__PURE__ */ jsxs("label", {
+            className: "label",
+            style: {
+              display: "flex",
+              alignItems: "center"
+            },
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              name: "K2VERIFY_LOGPASS",
+              checked: !!params.K2VERIFY_LOGPASS,
+              onChange: handleInputChange,
+              style: {
+                transform: "scale(0.7)",
+                marginRight: 8
+              }
+            }), t3("k2verifyTaskOptions.logPassLabel")]
+          })
+        }), /* @__PURE__ */ jsxs("div", {
+          className: "group",
+          children: [/* @__PURE__ */ jsx("label", {
+            className: "label",
+            htmlFor: "K2VERIFY_MAXWORKERSPERNODE",
+            children: t3("k2verifyTaskOptions.concurrencyLabel")
+          }), /* @__PURE__ */ jsx("input", {
+            id: "K2VERIFY_MAXWORKERSPERNODE",
+            name: "K2VERIFY_MAXWORKERSPERNODE",
+            className: "input",
+            type: "number",
+            min: "1",
+            step: "1",
+            placeholder: t3("k2verifyTaskOptions.concurrencyPlaceholder"),
+            value: (_a2 = params.K2VERIFY_MAXWORKERSPERNODE) != null ? _a2 : "",
+            onChange: handleInputChange
+          })]
+        })]
+      })]
+    }), /* @__PURE__ */ jsx("section", {
+      className: "splitRight",
+      children: /* @__PURE__ */ jsx(TableMappingMultiSelect, {
+        params,
+        mtableData,
+        mtableLoading,
+        mtableError,
+        handleInputChange
+      })
     })]
   });
 }
@@ -18511,21 +21211,43 @@ function K2VerifyTaskOptions({
   mtableData,
   mtableLoading,
   mtableError,
+  ifaceSrcData,
+  ifaceSrcLoading,
+  ifaceSrcError,
+  ifaceTarData,
+  ifaceTarLoading,
+  ifaceTarError,
+  envData,
+  envLoading,
+  envError,
   handleInputChange,
+  setParamValue,
   handleReset,
   handleCancel,
   handleExecution
 }) {
-  var _a2;
   window.k2api = window.k2api || window.parent.k2api;
   const t3 = window.k2api.i18n.translate;
+  const [activeTab, setActiveTab] = react.exports.useState("general");
+  const formRef = react.exports.useRef(null);
+  const pendingSaveRef = react.exports.useRef(false);
   const tablesRequiredRef = react.exports.useRef(null);
   const selectedSrc = (params.K2VERIFY_INTERFACE_SRC || "").trim();
   const selectedTar = (params.K2VERIFY_INTERFACE_TAR || "").trim();
-  const selectedSrcSchema = (params.K2VERIFY_SCHEMA_SRC || "").trim();
-  const selectedTarSchema = (params.K2VERIFY_SCHEMA_TAR || "").trim();
-  const tablePickerVisible = !!(selectedSrc && selectedTar && selectedSrcSchema && selectedTarSchema);
+  const selectedEnvSrc = (params.K2VERIFY_ENV_SRC || "").trim();
+  const selectedEnvTar = (params.K2VERIFY_ENV_TAR || "").trim();
+  const tablePickerVisible = !!(selectedSrc && selectedTar && selectedEnvSrc && selectedEnvTar);
   const tablesChosenCount = Array.isArray(params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST.length : 0;
+  const preProcesses = Array.isArray(params.K2VERIFY_PRE_EXECUTION_PROCESSES) ? params.K2VERIFY_PRE_EXECUTION_PROCESSES : [];
+  const postProcesses = Array.isArray(params.K2VERIFY_POST_EXECUTION_PROCESSES) ? params.K2VERIFY_POST_EXECUTION_PROCESSES : [];
+  const setPreProcesses = (next) => {
+    const nextValue = typeof next === "function" ? next(preProcesses) : next;
+    setParamValue("K2VERIFY_PRE_EXECUTION_PROCESSES", nextValue);
+  };
+  const setPostProcesses = (next) => {
+    const nextValue = typeof next === "function" ? next(postProcesses) : next;
+    setParamValue("K2VERIFY_POST_EXECUTION_PROCESSES", nextValue);
+  };
   react.exports.useEffect(() => {
     const el2 = tablesRequiredRef.current;
     if (!el2)
@@ -18537,339 +21259,170 @@ function K2VerifyTaskOptions({
     }
     el2.required = true;
     el2.setCustomValidity(tablesChosenCount === 0 ? t3("k2verifyTaskOptions.validation.selectAtLeastOnePair") : "");
-  }, [tablePickerVisible, tablesChosenCount]);
+  }, [tablePickerVisible, tablesChosenCount, t3]);
   const preventFormSubmission = (e) => e.preventDefault();
   const preventEnterSubmission = (e) => {
     if (e.key === "Enter" && e.target.tagName !== "TEXTAREA")
       e.preventDefault();
   };
-  const handleRunProcess = () => {
-    const form = document.querySelector("form");
+  const validateAndRun = () => {
+    const form = formRef.current;
+    if (!form)
+      return;
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
+    const paramsWithProcesses = {
+      ...params,
+      K2VERIFY_PRE_EXECUTION_PROCESSES: preProcesses,
+      K2VERIFY_POST_EXECUTION_PROCESSES: postProcesses
+    };
     handleExecution();
   };
-  const allowedSourceSet = selectedTar ? new Set(mtableData.filter((r2) => r2.Target_Interface === selectedTar).map((r2) => r2.Source_Interface)) : null;
-  const allowedTargetSet = selectedSrc ? new Set(mtableData.filter((r2) => r2.Source_Interface === selectedSrc).map((r2) => r2.Target_Interface)) : null;
-  const allSourceInterfaces = react.exports.useMemo(() => {
-    if (!Array.isArray(mtableData))
+  const handleRunProcess = () => {
+    if (activeTab !== "general") {
+      pendingSaveRef.current = true;
+      setActiveTab("general");
+      return;
+    }
+    validateAndRun();
+  };
+  react.exports.useEffect(() => {
+    if (activeTab === "general" && pendingSaveRef.current) {
+      pendingSaveRef.current = false;
+      requestAnimationFrame(() => validateAndRun());
+    }
+  }, [activeTab]);
+  const activeInterfacesSrc = react.exports.useMemo(() => {
+    if (!Array.isArray(ifaceSrcData))
       return [];
-    return Array.from(new Set(mtableData.map((r2) => r2.Source_Interface).filter((v2) => typeof v2 === "string" && v2.trim()))).sort();
-  }, [mtableData]);
-  const allTargetInterfaces = react.exports.useMemo(() => {
-    if (!Array.isArray(mtableData))
+    return ifaceSrcData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort();
+  }, [ifaceSrcData]);
+  const activeInterfacesTar = react.exports.useMemo(() => {
+    if (!Array.isArray(ifaceTarData))
       return [];
-    return Array.from(new Set(mtableData.map((r2) => r2.Target_Interface).filter((v2) => typeof v2 === "string" && v2.trim()))).sort();
-  }, [mtableData]);
-  const filteredSourceInterfaces = react.exports.useMemo(() => {
-    if (!allowedSourceSet)
-      return allSourceInterfaces;
-    return allSourceInterfaces.filter((i2) => allowedSourceSet.has(i2));
-  }, [allSourceInterfaces, allowedSourceSet]);
-  const filteredTargetInterfaces = react.exports.useMemo(() => {
-    if (!allowedTargetSet)
-      return allTargetInterfaces;
-    return allTargetInterfaces.filter((i2) => allowedTargetSet.has(i2));
-  }, [allTargetInterfaces, allowedTargetSet]);
-  const srcSchemas = react.exports.useMemo(() => {
-    var _a3;
-    if (!((_a3 = params.K2VERIFY_INTERFACE_SRC) == null ? void 0 : _a3.trim()))
+    return ifaceTarData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort();
+  }, [ifaceTarData]);
+  const allEnvironments = react.exports.useMemo(() => {
+    if (!Array.isArray(envData) || envData.length === 0)
       return [];
-    return [...new Set(mtableData.filter((r2) => r2.Source_Interface === selectedSrc).map((r2) => r2.Source_Schema))];
-  }, [mtableData, selectedSrc, params.K2VERIFY_INTERFACE_SRC]);
-  const tarSchemas = react.exports.useMemo(() => {
-    var _a3;
-    if (!((_a3 = params.K2VERIFY_INTERFACE_TAR) == null ? void 0 : _a3.trim()))
-      return [];
-    return [...new Set(mtableData.filter((r2) => r2.Target_Interface === selectedTar).map((r2) => r2.Target_Schema))];
-  }, [mtableData, selectedTar, params.K2VERIFY_INTERFACE_TAR]);
+    return Array.from(new Set(envData.map((row) => {
+      var _a2;
+      return typeof row === "string" ? row : (_a2 = row == null ? void 0 : row.Environments) != null ? _a2 : "";
+    }).filter((v2) => v2 && v2.trim()))).sort();
+  }, [envData]);
   return /* @__PURE__ */ jsxs("form", {
+    ref: formRef,
     className: "card",
     onSubmit: preventFormSubmission,
     onKeyDown: preventEnterSubmission,
     noValidate: false,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      minHeight: 780
+    },
     children: [/* @__PURE__ */ jsx("h1", {
       children: t3("k2verifyTaskOptions.title")
+    }), /* @__PURE__ */ jsxs("div", {
+      style: {
+        display: "flex",
+        gap: 18,
+        marginTop: 12
+      },
+      children: [/* @__PURE__ */ jsx("button", {
+        type: "button",
+        onClick: () => setActiveTab("general"),
+        style: {
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          color: activeTab === "general" ? "#1976d2" : "#6b6b6b",
+          fontWeight: activeTab === "general" ? 400 : 400,
+          cursor: "pointer"
+        },
+        children: "General"
+      }), /* @__PURE__ */ jsx("button", {
+        type: "button",
+        onClick: () => setActiveTab("pre"),
+        style: {
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          color: activeTab === "pre" ? "#1976d2" : "#6b6b6b",
+          fontWeight: activeTab === "pre" ? 400 : 400,
+          cursor: "pointer"
+        },
+        children: "Pre Processes"
+      }), /* @__PURE__ */ jsx("button", {
+        type: "button",
+        onClick: () => setActiveTab("post"),
+        style: {
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          color: activeTab === "post" ? "#1976d2" : "#6b6b6b",
+          fontWeight: activeTab === "post" ? 400 : 400,
+          cursor: "pointer"
+        },
+        children: "Post Processes"
+      })]
     }), /* @__PURE__ */ jsx("hr", {
       style: {
-        margin: "25px 0",
+        margin: "18px 0",
         border: "1px solid #EAEAEA",
         color: "#EAEAEA"
       }
     }), /* @__PURE__ */ jsxs("div", {
-      className: "splitLayout",
-      children: [/* @__PURE__ */ jsxs("section", {
-        className: "splitLeft",
-        children: [/* @__PURE__ */ jsxs("div", {
-          className: "group2",
-          children: [/* @__PURE__ */ jsxs("label", {
-            className: "label",
-            htmlFor: "K2VERIFY_TASK_TITLE",
-            children: [t3("k2verifyTaskOptions.taskTitleLabel"), /* @__PURE__ */ jsx("span", {
-              className: "required",
-              children: "*"
-            })]
-          }), /* @__PURE__ */ jsx("input", {
-            id: "K2VERIFY_TASK_TITLE",
-            name: "K2VERIFY_TASK_TITLE",
-            className: "input",
-            type: "text",
-            value: params.K2VERIFY_TASK_TITLE,
-            onChange: handleInputChange,
-            placeholder: t3("k2verifyTaskOptions.taskTitlePlaceholder"),
-            required: true
-          })]
-        }), /* @__PURE__ */ jsxs("div", {
-          className: "group2",
-          children: [/* @__PURE__ */ jsx("label", {
-            className: "label",
-            htmlFor: "K2VERIFY_TASK_DESCRIPTION",
-            children: t3("k2verifyTaskOptions.taskDescriptionLabel")
-          }), /* @__PURE__ */ jsx("textarea", {
-            id: "K2VERIFY_TASK_DESCRIPTION",
-            name: "K2VERIFY_TASK_DESCRIPTION",
-            className: "textarea",
-            value: params.K2VERIFY_TASK_DESCRIPTION,
-            onChange: handleInputChange,
-            placeholder: t3("k2verifyTaskOptions.taskDescriptionPlaceholder")
-          })]
-        }), /* @__PURE__ */ jsxs("div", {
-          className: "grid2",
-          children: [/* @__PURE__ */ jsxs("div", {
-            className: "group",
-            children: [/* @__PURE__ */ jsxs("label", {
-              className: "label",
-              children: [t3("k2verifyTaskOptions.sourceInterfaceLabel"), /* @__PURE__ */ jsx("span", {
-                className: "required",
-                children: "*"
-              })]
-            }), /* @__PURE__ */ jsxs("select", {
-              name: "K2VERIFY_INTERFACE_SRC",
-              value: params.K2VERIFY_INTERFACE_SRC,
-              onChange: handleInputChange,
-              className: "select",
-              required: true,
-              children: [/* @__PURE__ */ jsx("option", {
-                value: "",
-                disabled: true,
-                hidden: true,
-                children: t3("k2verifyTaskOptions.sourceInterfaceSelectPlaceholder")
-              }), mtableLoading ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.loading")
-              }) : mtableError ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.errors.loadingInterfaces")
-              }) : filteredSourceInterfaces.length === 0 ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: selectedTar ? t3("k2verifyTaskOptions.errors.noCompatibleSource") : t3("k2verifyTaskOptions.errors.noSourceFound")
-              }) : filteredSourceInterfaces.map((iface) => /* @__PURE__ */ jsx("option", {
-                value: iface,
-                children: iface
-              }, `src-${iface}`))]
-            })]
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "group",
-            children: [/* @__PURE__ */ jsxs("label", {
-              className: "label",
-              children: [t3("k2verifyTaskOptions.targetInterfaceLabel"), /* @__PURE__ */ jsx("span", {
-                className: "required",
-                children: "*"
-              })]
-            }), /* @__PURE__ */ jsxs("select", {
-              name: "K2VERIFY_INTERFACE_TAR",
-              value: params.K2VERIFY_INTERFACE_TAR,
-              onChange: handleInputChange,
-              className: "select",
-              required: true,
-              children: [/* @__PURE__ */ jsx("option", {
-                value: "",
-                disabled: true,
-                hidden: true,
-                children: t3("k2verifyTaskOptions.targetInterfaceSelectPlaceholder")
-              }), mtableLoading ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.loading")
-              }) : mtableError ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.errors.loadingInterfaces")
-              }) : filteredTargetInterfaces.length === 0 ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: selectedSrc ? t3("k2verifyTaskOptions.errors.noCompatibleTarget") : t3("k2verifyTaskOptions.errors.noTargetFound")
-              }) : filteredTargetInterfaces.map((iface) => /* @__PURE__ */ jsx("option", {
-                value: iface,
-                children: iface
-              }, `tar-${iface}`))]
-            })]
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "group",
-            children: [/* @__PURE__ */ jsxs("label", {
-              className: "label",
-              children: [t3("k2verifyTaskOptions.sourceSchemaLabel"), /* @__PURE__ */ jsx("span", {
-                className: "required",
-                children: "*"
-              })]
-            }), /* @__PURE__ */ jsxs("select", {
-              name: "K2VERIFY_SCHEMA_SRC",
-              value: params.K2VERIFY_SCHEMA_SRC,
-              onChange: handleInputChange,
-              className: "select",
-              required: true,
-              children: [/* @__PURE__ */ jsx("option", {
-                value: "",
-                disabled: true,
-                hidden: true,
-                children: t3("k2verifyTaskOptions.sourceSchemaSelectPlaceholder")
-              }), mtableLoading ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.loading")
-              }) : mtableError ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.errors.loadingSchemas")
-              }) : !selectedSrc ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: t3("k2verifyTaskOptions.errors.selectSourceInterfaceFirst")
-              }) : srcSchemas.length === 0 ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: t3("k2verifyTaskOptions.errors.noSourceSchema")
-              }) : srcSchemas.map((s2, i2) => /* @__PURE__ */ jsx("option", {
-                value: s2,
-                children: s2
-              }, `src-schema-${i2}`))]
-            })]
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "group",
-            children: [/* @__PURE__ */ jsxs("label", {
-              className: "label",
-              children: [t3("k2verifyTaskOptions.targetSchemaLabel"), /* @__PURE__ */ jsx("span", {
-                className: "required",
-                children: "*"
-              })]
-            }), /* @__PURE__ */ jsxs("select", {
-              name: "K2VERIFY_SCHEMA_TAR",
-              value: params.K2VERIFY_SCHEMA_TAR,
-              onChange: handleInputChange,
-              className: "select",
-              required: true,
-              children: [/* @__PURE__ */ jsx("option", {
-                value: "",
-                disabled: true,
-                hidden: true,
-                children: t3("k2verifyTaskOptions.targetSchemaSelectPlaceholder")
-              }), mtableLoading ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.loading")
-              }) : mtableError ? /* @__PURE__ */ jsx("option", {
-                children: t3("k2verifyTaskOptions.errors.loadingSchemas")
-              }) : !selectedTar ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: t3("k2verifyTaskOptions.errors.selectTargetInterfaceFirst")
-              }) : tarSchemas.length === 0 ? /* @__PURE__ */ jsx("option", {
-                disabled: true,
-                value: "",
-                children: t3("k2verifyTaskOptions.errors.noTargetSchema")
-              }) : tarSchemas.map((s2, i2) => /* @__PURE__ */ jsx("option", {
-                value: s2,
-                children: s2
-              }, `tar-schema-${i2}`))]
-            })]
-          })]
-        }), /* @__PURE__ */ jsx("input", {
-          ref: tablesRequiredRef,
-          name: "__required_table_selection",
-          value: tablesChosenCount > 0 ? "has-tables" : "",
-          onChange: () => {
-          },
-          style: {
-            position: "absolute",
-            opacity: 0,
-            width: 0,
-            height: 0,
-            pointerEvents: "none"
-          },
-          "aria-hidden": "true",
-          tabIndex: -1
-        }), /* @__PURE__ */ jsxs("div", {
-          className: "grid2",
-          style: {
-            marginTop: 16
-          },
-          children: [/* @__PURE__ */ jsxs("div", {
-            className: "group",
-            style: {
-              display: "flex",
-              marginTop: "auto"
-            },
-            children: [/* @__PURE__ */ jsx("label", {
-              className: "label",
-              htmlFor: "K2VERIFY_PII_ONLY_COMPARISON",
-              style: {
-                marginRight: 8
-              },
-              children: t3("k2verifyTaskOptions.piiOnlyLabel")
-            }), /* @__PURE__ */ jsx("input", {
-              id: "K2VERIFY_PII_ONLY_COMPARISON",
-              name: "K2VERIFY_PII_ONLY_COMPARISON",
-              type: "checkbox",
-              checked: !!params.K2VERIFY_PII_ONLY_COMPARISON,
-              onChange: handleInputChange,
-              style: {
-                transform: "scale(0.7)"
-              }
-            })]
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "group",
-            style: {
-              display: "flex",
-              marginTop: "auto"
-            },
-            children: [/* @__PURE__ */ jsx("label", {
-              className: "label",
-              htmlFor: "K2VERIFY_LOGPASS",
-              style: {
-                marginRight: 8
-              },
-              children: t3("k2verifyTaskOptions.logPassLabel")
-            }), /* @__PURE__ */ jsx("input", {
-              id: "K2VERIFY_LOGPASS",
-              name: "K2VERIFY_LOGPASS",
-              type: "checkbox",
-              checked: !!params.K2VERIFY_LOGPASS,
-              onChange: handleInputChange,
-              style: {
-                transform: "scale(0.7)"
-              }
-            })]
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "group",
-            children: [/* @__PURE__ */ jsx("label", {
-              className: "label",
-              htmlFor: "K2VERIFY_MAXWORKERSPERNODE",
-              children: t3("k2verifyTaskOptions.concurrencyLabel")
-            }), /* @__PURE__ */ jsx("input", {
-              id: "K2VERIFY_MAXWORKERSPERNODE",
-              name: "K2VERIFY_MAXWORKERSPERNODE",
-              className: "input",
-              type: "number",
-              min: "1",
-              step: "1",
-              placeholder: t3("k2verifyTaskOptions.concurrencyPlaceholder"),
-              value: (_a2 = params.K2VERIFY_MAXWORKERSPERNODE) != null ? _a2 : "",
-              onChange: handleInputChange
-            })]
-          })]
-        })]
-      }), /* @__PURE__ */ jsx("section", {
-        className: "splitRight",
-        children: /* @__PURE__ */ jsx(TableMappingMultiSelect, {
+      style: {
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 520
+      },
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "splitLayout",
+        style: {
+          flex: 1
+        },
+        children: [activeTab === "general" && /* @__PURE__ */ jsx(K2VerifyGeneralTab, {
           params,
           mtableData,
           mtableLoading,
           mtableError,
-          handleInputChange
-        })
+          handleInputChange,
+          tablesRequiredRef,
+          tablesChosenCount,
+          tablePickerVisible,
+          selectedSrc,
+          selectedTar,
+          selectedEnvSrc,
+          selectedEnvTar,
+          envData,
+          envLoading,
+          envError,
+          allEnvironments,
+          ifaceSrcLoading,
+          ifaceSrcError,
+          ifaceTarLoading,
+          ifaceTarError,
+          activeInterfacesSrc,
+          activeInterfacesTar
+        }), activeTab === "pre" && /* @__PURE__ */ jsx(K2VerifyProcessTab, {
+          mode: "pre",
+          processes: preProcesses,
+          setProcesses: setPreProcesses
+        }), activeTab === "post" && /* @__PURE__ */ jsx(K2VerifyProcessTab, {
+          mode: "post",
+          processes: postProcesses,
+          setProcesses: setPostProcesses
+        })]
       }), /* @__PURE__ */ jsx("div", {
         className: "splitFooter",
+        style: {
+          marginTop: "auto"
+        },
         children: /* @__PURE__ */ jsxs("div", {
           className: "buttons",
           children: [/* @__PURE__ */ jsx("button", {
@@ -18895,6 +21448,7 @@ function K2VerifyTaskOptions({
 }
 function K2VerifyTaskCreation() {
   var _a2, _b2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const navigate = useNavigate();
   const location2 = useLocation();
   const taskId = ((_a2 = location2.state) == null ? void 0 : _a2.task_id) || "";
@@ -18922,24 +21476,32 @@ function K2VerifyTaskCreation() {
     K2VERIFY_TASK_DESCRIPTION: "",
     K2VERIFY_INTERFACE_SRC: "",
     K2VERIFY_INTERFACE_TAR: "",
-    K2VERIFY_SCHEMA_SRC: "",
-    K2VERIFY_SCHEMA_TAR: "",
+    K2VERIFY_ENV_SRC: "_dev",
+    K2VERIFY_ENV_TAR: "_dev",
+    K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA: false,
+    K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA: false,
     K2VERIFY_TABLE_LIST: [],
+    K2VERIFY_PRE_EXECUTION_PROCESSES: [],
+    K2VERIFY_POST_EXECUTION_PROCESSES: [],
     K2VERIFY_MAXWORKERSPERNODE: null,
     K2VERIFY_LOGPASS: false,
     K2VERIFY_PII_ONLY_COMPARISON: false
   };
   const initialParams = react.exports.useMemo(() => {
-    if (properties)
+    if (properties) {
       return {
         ...defaultParams,
-        ...properties
+        ...properties,
+        K2VERIFY_TABLE_LIST: []
       };
+    }
     return defaultParams;
   }, [properties]);
   const [params, setParams] = react.exports.useState(initialParams);
-  const [encodedCommand, setEncodedCommand] = react.exports.useState(null);
   const [mtableData, setmtableData] = react.exports.useState([]);
+  const [envData, setEnvData] = react.exports.useState([]);
+  const [ifaceSrcData, setIfaceSrcData] = react.exports.useState([]);
+  const [ifaceTarData, setIfaceTarData] = react.exports.useState([]);
   const [execError, setExecError] = react.exports.useState("");
   react.exports.useEffect(() => {
     setParams(initialParams);
@@ -18948,15 +21510,128 @@ function K2VerifyTaskCreation() {
     fetchData: fetchmtableData,
     loading: mtableLoading,
     error: mtableError
-  } = useFetchData("/api/fabric-command?command=broadway%20verify.bwLookupTableNames%20RESULT_STRUCTURE=CURSOR");
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=broadway%20verify.bwLookupTableNames%20RESULT_STRUCTURE=CURSOR`);
+  const {
+    fetchData: fetchEnvData,
+    loading: envLoading,
+    error: envError
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=list%20envs%20`);
+  const taskTablesUrl = react.exports.useMemo(() => {
+    if (!taskId)
+      return "";
+    const cmd = `broadway verify.bwK2VerifyFetchTablesForATask task_id='${taskId}' RESULT_STRUCTURE=CURSOR`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+  }, [apiBasePath2, taskId]);
+  const {
+    fetchData: fetchTaskTables,
+    loading: taskTablesLoading,
+    error: taskTablesError
+  } = useFetchData(taskTablesUrl);
+  const srcEnv = (params.K2VERIFY_ENV_SRC || "").trim();
+  const tarEnv = (params.K2VERIFY_ENV_TAR || "").trim();
+  const srcIfaceUrl = react.exports.useMemo(() => {
+    const env = srcEnv || "_dev";
+    const cmd = `broadway verify.bwK2VerifyListInterfaces envName=${env} RESULT_STRUCTURE=CURSOR`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+  }, [apiBasePath2, srcEnv]);
+  const tarIfaceUrl = react.exports.useMemo(() => {
+    const env = tarEnv || "_dev";
+    const cmd = `broadway verify.bwK2VerifyListInterfaces envName=${env} RESULT_STRUCTURE=CURSOR`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+  }, [apiBasePath2, tarEnv]);
+  const {
+    fetchData: fetchIfaceSrcData,
+    loading: ifaceSrcLoading,
+    error: ifaceSrcError
+  } = useFetchData(srcIfaceUrl);
+  const {
+    fetchData: fetchIfaceTarData,
+    loading: ifaceTarLoading,
+    error: ifaceTarError
+  } = useFetchData(tarIfaceUrl);
   react.exports.useEffect(() => {
     if (mtableError) {
       toast.error((mtableError == null ? void 0 : mtableError.message) || t3("k2verifyTaskCreation.toasts.mtableFailed"));
     }
-  }, [mtableError]);
+  }, [mtableError, t3]);
   react.exports.useEffect(() => {
-    (async () => setmtableData(await fetchmtableData()))();
+    if (envError) {
+      toast.error((envError == null ? void 0 : envError.message) || t3("k2verifyTaskCreation.toasts.envFailed"));
+    }
+  }, [envError, t3]);
+  react.exports.useEffect(() => {
+    if (ifaceSrcError) {
+      toast.error((ifaceSrcError == null ? void 0 : ifaceSrcError.message) || t3("k2verifyTaskCreation.toasts.ifaceFailed"));
+    }
+  }, [ifaceSrcError, t3]);
+  react.exports.useEffect(() => {
+    if (ifaceTarError) {
+      toast.error((ifaceTarError == null ? void 0 : ifaceTarError.message) || t3("k2verifyTaskCreation.toasts.ifaceFailed"));
+    }
+  }, [ifaceTarError, t3]);
+  react.exports.useEffect(() => {
+    if (taskTablesError) {
+      toast.error((taskTablesError == null ? void 0 : taskTablesError.message) || t3("k2verifyTaskCreation.toasts.tableFetchFailed"));
+    }
+  }, [taskTablesError, t3]);
+  react.exports.useEffect(() => {
+    (async () => {
+      const res = await fetchmtableData();
+      setmtableData(Array.isArray(res) ? res : []);
+    })();
   }, [fetchmtableData]);
+  react.exports.useEffect(() => {
+    (async () => {
+      const res = await fetchEnvData();
+      setEnvData(Array.isArray(res) ? res : []);
+    })();
+  }, [fetchEnvData]);
+  react.exports.useEffect(() => {
+    if (!taskId)
+      return;
+    (async () => {
+      try {
+        const res = await fetchTaskTables();
+        const parsedTables = Array.isArray(res) ? res.map((item) => {
+          try {
+            const parsed = JSON.parse(item.table_properties);
+            return {
+              src: (parsed == null ? void 0 : parsed.src) || "",
+              tar: (parsed == null ? void 0 : parsed.tar) || "",
+              buckets: (parsed == null ? void 0 : parsed.buckets) != null ? String(parsed.buckets) : "10"
+            };
+          } catch (e) {
+            console.error("Failed to parse table_properties:", item.table_properties, e);
+            return null;
+          }
+        }).filter((row) => (row == null ? void 0 : row.src) && (row == null ? void 0 : row.tar)) : [];
+        setParams((prev) => ({
+          ...prev,
+          K2VERIFY_TABLE_LIST: parsedTables
+        }));
+      } catch (err2) {
+        toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyTaskCreation.toasts.tableFetchFailed"));
+      }
+    })();
+  }, [taskId, fetchTaskTables, t3]);
+  react.exports.useEffect(() => {
+    (async () => {
+      const res = await fetchIfaceSrcData();
+      setIfaceSrcData(Array.isArray(res) ? res : []);
+    })();
+  }, [fetchIfaceSrcData]);
+  react.exports.useEffect(() => {
+    (async () => {
+      const res = await fetchIfaceTarData();
+      setIfaceTarData(Array.isArray(res) ? res : []);
+    })();
+  }, [fetchIfaceTarData]);
+  const setParamValue = (name, value) => {
+    setParams((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   const handleInputChange = (e) => {
     const {
       name,
@@ -18971,6 +21646,24 @@ function K2VerifyTaskCreation() {
       newValue = !!checked;
     else
       newValue = value;
+    if (name === "K2VERIFY_ENV_SRC") {
+      setIfaceSrcData([]);
+      setParams((prev) => ({
+        ...prev,
+        K2VERIFY_ENV_SRC: newValue,
+        K2VERIFY_INTERFACE_SRC: ""
+      }));
+      return;
+    }
+    if (name === "K2VERIFY_ENV_TAR") {
+      setIfaceTarData([]);
+      setParams((prev) => ({
+        ...prev,
+        K2VERIFY_ENV_TAR: newValue,
+        K2VERIFY_INTERFACE_TAR: ""
+      }));
+      return;
+    }
     setParams((prev) => ({
       ...prev,
       [name]: newValue
@@ -18982,18 +21675,15 @@ function K2VerifyTaskCreation() {
     navigate("/cli-process");
   };
   const handleExecution = async () => {
-    const cmds = [];
     const paramsString = JSON.stringify(params);
-    cmds.push(`broadway verify.bwK2VerifyTaskCreation task_params='${paramsString}' old_task_id='${taskId}';`);
-    const command = cmds.join("\n");
+    const command = `broadway verify.bwK2VerifyTaskCreation task_params='${paramsString}' old_task_id='${taskId}';`;
     const encoded = encodeURIComponent(command);
-    setEncodedCommand(encoded);
     try {
       setExecError("");
-      const res = await fetch(`/api/fabric-command?command=${encoded}&allResultSets=false`);
+      const res = await fetch(`${apiBasePath2}/api/fabric-command?command=${encoded}&allResultSets=false`);
       const body = await res.json();
       if (!res.ok) {
-        const match = body.match(/"([^"]+)"/);
+        const match = typeof body === "string" ? body.match(/"([^"]+)"/) : null;
         const msg = match ? match[1] : body;
         throw new Error(msg);
       }
@@ -19011,9 +21701,19 @@ function K2VerifyTaskCreation() {
     }), /* @__PURE__ */ jsx(K2VerifyTaskOptions, {
       params,
       mtableData,
-      mtableLoading,
-      mtableError,
+      mtableLoading: mtableLoading || taskTablesLoading,
+      mtableError: mtableError || taskTablesError,
+      envData,
+      envLoading,
+      envError,
+      ifaceSrcData,
+      ifaceSrcLoading,
+      ifaceSrcError,
+      ifaceTarData,
+      ifaceTarLoading,
+      ifaceTarError,
       handleInputChange,
+      setParamValue,
       handleReset,
       handleCancel,
       handleExecution
@@ -19024,6 +21724,7 @@ function K2VerifyTaskCreation() {
   });
 }
 function K2VerifyTaskHistory() {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const navigate = useNavigate();
   const {
     taskId
@@ -19037,22 +21738,34 @@ function K2VerifyTaskHistory() {
       return taskId || "";
     }
   }, [taskId]);
-  const columns = [{
+  const columns = react.exports.useMemo(() => [{
     header: "Execution ID",
     accessorKey: "execution_id",
     size: 150,
     enableSorting: true,
     enableColumnFilter: true,
     cell: ({
-      value
-    }) => /* @__PURE__ */ jsx(Link, {
-      to: `detailed/${value}`,
-      style: {
-        color: "#1483F3",
-        textDecoration: "none"
-      },
-      children: value
-    })
+      value,
+      row
+    }) => {
+      var _a2, _b2;
+      const totalFailed = Number((_b2 = (_a2 = row == null ? void 0 : row.original) == null ? void 0 : _a2.failed_execution_tables) != null ? _b2 : 0);
+      const isRestartEligible = totalFailed > 0;
+      const safeState = {
+        execution_id: row.original.execution_id,
+        task_id: row.original.task_id,
+        isRestartEligible
+      };
+      return /* @__PURE__ */ jsx(Link, {
+        to: `detailed/${value}`,
+        state: safeState,
+        style: {
+          color: "#1483F3",
+          textDecoration: "none"
+        },
+        children: value
+      });
+    }
   }, {
     header: "Task Id",
     accessorKey: "task_id",
@@ -19123,13 +21836,13 @@ function K2VerifyTaskHistory() {
     cell: ({
       value
     }) => value ? value : "\u2014"
-  }];
+  }], []);
   const [taskHistoryData, setTaskHistoryData] = react.exports.useState([]);
   const {
     fetchData: fetchTaskHistoryData,
     loading: taskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistory task_id='${decodedTaskId}' RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistory task_id='${decodedTaskId}' RESULT_STRUCTURE=CURSOR`)}`);
   react.exports.useEffect(() => {
     if (!decodedTaskId)
       return;
@@ -19227,13 +21940,14 @@ function K2VerifyTaskHistory() {
   });
 }
 function K2VerifyExecution() {
-  var _a2, _b2;
+  var _a2, _b2, _c;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const {
     taskId: taskIdParam
   } = useParams();
   const location2 = useLocation();
   const navigate = useNavigate();
-  const rawTaskId = (_b2 = (_a2 = location2.state && location2.state.task_id) != null ? _a2 : taskIdParam) != null ? _b2 : "";
+  const rawTaskId = (_c = (_b2 = (_a2 = location2.state) == null ? void 0 : _a2.task_id) != null ? _b2 : taskIdParam) != null ? _c : "";
   window.k2api = window.k2api || window.parent.k2api;
   const t3 = window.k2api.i18n.translate;
   const decodedTaskId = react.exports.useMemo(() => {
@@ -19271,136 +21985,46 @@ function K2VerifyExecution() {
       prevExecutionIdRef.current = "";
     }
   }, [executionId, decodedTaskId, navigate, location2.pathname]);
-  const endpoint = react.exports.useMemo(() => {
-    if (!decodedTaskId || !executionId)
-      return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
-  }, [decodedTaskId, executionId]);
-  const {
-    fetchData: fetchTaskHistoryData,
-    error: detailError
-  } = useFetchData(endpoint);
-  const [taskHistoryData, setTaskHistoryData] = react.exports.useState([]);
-  const inFlightRef = react.exports.useRef(false);
-  const intervalRef = react.exports.useRef(null);
-  const [tableName, setTableName] = react.exports.useState("");
-  const [infoData, setInfoData] = react.exports.useState([]);
-  const infoInFlightRef = react.exports.useRef(false);
-  const infoIntervalRef = react.exports.useRef(null);
-  const handleStopExecution = react.exports.useCallback(async () => {
-    var _a3;
-    try {
-      if (!decodedTaskId)
-        return void toast.error(t3("k2verifyExecution.toasts.missingTaskId"));
-      const command = `broadway verify.bwK2VerifyCancelTask task_id='${decodedTaskId}';`;
-      const encoded = encodeURIComponent(command);
-      const res = await fetch(`/api/fabric-command?command=${encoded}`);
-      const result = await res.json().catch(() => null);
-      if (!res.ok) {
-        const msg = ((_a3 = result == null ? void 0 : result.error) == null ? void 0 : _a3.message) || (result == null ? void 0 : result.message) || (typeof result === "string" ? result : null) || t3("k2verifyExecution.toasts.executionFailed");
-        toast.error(t3("k2verifyExecution.toasts.stopFailedWithMsg", {
-          taskId: decodedTaskId,
-          msg
-        }) || `Failed to stop Task #${decodedTaskId}: ${msg}`);
-        return;
-      }
-      toast.success(t3("k2verifyExecution.toasts.cancelRequested", {
-        taskId: decodedTaskId
-      }) || `Cancellation requested for Task #${decodedTaskId}`);
-    } catch (err2) {
-      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyExecution.toasts.executionFailed"));
-      console.error(err2);
-    }
-  }, [decodedTaskId]);
-  const handleInfoClick = react.exports.useCallback((row) => {
-    var _a3, _b3, _c;
-    const name = (_c = (_b3 = (_a3 = row == null ? void 0 : row.original) == null ? void 0 : _a3.table_name) != null ? _b3 : row == null ? void 0 : row.table_name) != null ? _c : "";
-    if (!name)
-      return void toast.error(t3("k2verifyExecution.toasts.noTableName"));
-    if (name === tableName) {
-      setTableName("");
-      setInfoData([]);
-      if (infoIntervalRef.current) {
-        window.clearInterval(infoIntervalRef.current);
-        infoIntervalRef.current = null;
-      }
-      return;
-    }
-    setTableName(name);
-    setInfoData([]);
-  }, [tableName]);
-  react.exports.useEffect(() => {
-    if (!endpoint)
-      return;
-    let isActive = true;
-    const tick = async () => {
-      if (inFlightRef.current)
-        return;
-      inFlightRef.current = true;
-      try {
-        const rows = await fetchTaskHistoryData();
-        if (isActive)
-          setTaskHistoryData(rows || []);
-      } catch (err2) {
-        toast.error(detailError || t3("k2verifyExecution.toasts.fetchExecutionFailed"));
-        console.error("execution details fetch error:", err2);
-      } finally {
-        inFlightRef.current = false;
-      }
+  const statusPill = react.exports.useCallback((value) => {
+    const v2 = String(value != null ? value : "").trim().toLowerCase();
+    const norm = v2.replace(/[\s-]+/g, "_");
+    const styles = norm === "failed" ? {
+      bg: "#FDECEC",
+      text: "#B42323",
+      border: "#F2B8B8"
+    } : norm === "completed" ? {
+      bg: "#E8F7EE",
+      text: "#1F7A3E",
+      border: "#BFE6CE"
+    } : norm === "stopped" ? {
+      bg: "#FFF4E5",
+      text: "#B45309",
+      border: "#FAD9A6"
+    } : norm === "in_progress" ? {
+      bg: "#E8F1FE",
+      text: "#1D4ED8",
+      border: "#C7DBFD"
+    } : {
+      bg: "#F4F5F7",
+      text: "#444",
+      border: "#E1E4E8"
     };
-    tick();
-    intervalRef.current = window.setInterval(() => {
-      if (!document.hidden)
-        tick();
-    }, 3e3);
-    return () => {
-      isActive = false;
-      if (intervalRef.current)
-        window.clearInterval(intervalRef.current);
-    };
-  }, [endpoint, fetchTaskHistoryData, detailError]);
-  const endpoint2 = react.exports.useMemo(() => {
-    if (!decodedTaskId || !executionId || !tableName)
-      return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${executionId}' table_name='${tableName}' RESULT_STRUCTURE=CURSOR`)}`;
-  }, [decodedTaskId, executionId, tableName]);
-  const {
-    fetchData: fetchBucketDetailsData
-  } = useFetchData(endpoint2);
-  react.exports.useEffect(() => {
-    if (infoIntervalRef.current) {
-      window.clearInterval(infoIntervalRef.current);
-      infoIntervalRef.current = null;
-    }
-    if (!endpoint2)
-      return;
-    let isActive = true;
-    const tick = async () => {
-      if (infoInFlightRef.current)
-        return;
-      infoInFlightRef.current = true;
-      try {
-        const rows = await fetchBucketDetailsData();
-        if (isActive)
-          setInfoData(rows || []);
-      } catch (err2) {
-        toast.error(t3("k2verifyExecution.toasts.fetchBucketFailed"));
-        console.error("bucket details fetch error:", err2);
-      } finally {
-        infoInFlightRef.current = false;
-      }
-    };
-    tick();
-    infoIntervalRef.current = window.setInterval(() => {
-      if (!document.hidden)
-        tick();
-    }, 3e3);
-    return () => {
-      isActive = false;
-      if (infoIntervalRef.current)
-        window.clearInterval(infoIntervalRef.current);
-    };
-  }, [endpoint2, fetchBucketDetailsData]);
+    return /* @__PURE__ */ jsx("span", {
+      style: {
+        padding: "2px 10px",
+        borderRadius: 6,
+        backgroundColor: styles.bg,
+        color: styles.text,
+        fontSize: "0.8rem",
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+        border: `1px solid ${styles.border}`,
+        lineHeight: 1.4,
+        display: "inline-block"
+      },
+      children: value != null ? value : "\u2014"
+    });
+  }, []);
   const columns = react.exports.useMemo(() => [{
     header: "Table Name",
     accessorKey: "table_name",
@@ -19409,8 +22033,22 @@ function K2VerifyExecution() {
   }, {
     header: "Batch ID",
     accessorKey: "batch_id",
+    size: 300,
     enableSorting: true,
-    enableColumnFilter: true
+    enableColumnFilter: true,
+    cell: ({
+      value
+    }) => value ? /* @__PURE__ */ jsx("a", {
+      href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        color: "#2563eb",
+        textDecoration: "underline",
+        fontWeight: 500
+      },
+      children: value
+    }) : "-"
   }, {
     header: "Status",
     accessorKey: "status",
@@ -19418,46 +22056,7 @@ function K2VerifyExecution() {
     enableColumnFilter: true,
     cell: ({
       value
-    }) => {
-      const v2 = String(value != null ? value : "").trim().toLowerCase();
-      const norm = v2.replace(/[\s-]+/g, "_");
-      const styles = norm === "failed" ? {
-        bg: "#FDECEC",
-        text: "#B42323",
-        border: "#F2B8B8"
-      } : norm === "completed" ? {
-        bg: "#E8F7EE",
-        text: "#1F7A3E",
-        border: "#BFE6CE"
-      } : norm === "stopped" ? {
-        bg: "#FFF4E5",
-        text: "#B45309",
-        border: "#FAD9A6"
-      } : norm === "in_progress" ? {
-        bg: "#E8F1FE",
-        text: "#1D4ED8",
-        border: "#C7DBFD"
-      } : {
-        bg: "#F4F5F7",
-        text: "#444",
-        border: "#E1E4E8"
-      };
-      return /* @__PURE__ */ jsx("span", {
-        style: {
-          padding: "2px 10px",
-          borderRadius: "6px",
-          backgroundColor: styles.bg,
-          color: styles.text,
-          fontSize: "0.8rem",
-          fontWeight: 500,
-          whiteSpace: "nowrap",
-          border: `1px solid ${styles.border}`,
-          lineHeight: 1.4,
-          display: "inline-block"
-        },
-        children: value != null ? value : "\u2014"
-      });
-    }
+    }) => statusPill(value)
   }, {
     header: "Start Time",
     accessorKey: "start_time",
@@ -19469,7 +22068,7 @@ function K2VerifyExecution() {
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Bucket Completion Summary",
+    header: "Partition Completion Summary",
     accessorKey: "bucket_completion_summary",
     enableSorting: true,
     enableColumnFilter: true,
@@ -19484,7 +22083,7 @@ function K2VerifyExecution() {
     accessorKey: "failed_records",
     enableSorting: true,
     enableColumnFilter: true
-  }], []);
+  }], [apiBasePath2, statusPill]);
   const infoColumns = react.exports.useMemo(() => [{
     header: "Bucket Id",
     accessorKey: "bucket_id",
@@ -19498,46 +22097,7 @@ function K2VerifyExecution() {
     enableColumnFilter: true,
     cell: ({
       value
-    }) => {
-      const v2 = String(value != null ? value : "").trim().toLowerCase();
-      const norm = v2.replace(/[\s-]+/g, "_");
-      const styles = norm === "failed" ? {
-        bg: "#FDECEC",
-        text: "#B42323",
-        border: "#F2B8B8"
-      } : norm === "completed" ? {
-        bg: "#E8F7EE",
-        text: "#1F7A3E",
-        border: "#BFE6CE"
-      } : norm === "stopped" ? {
-        bg: "#FFF4E5",
-        text: "#B45309",
-        border: "#FAD9A6"
-      } : norm === "in_progress" ? {
-        bg: "#E8F1FE",
-        text: "#1D4ED8",
-        border: "#C7DBFD"
-      } : {
-        bg: "#F4F5F7",
-        text: "#444",
-        border: "#E1E4E8"
-      };
-      return /* @__PURE__ */ jsx("span", {
-        style: {
-          padding: "2px 10px",
-          borderRadius: "6px",
-          backgroundColor: styles.bg,
-          color: styles.text,
-          fontSize: "0.8rem",
-          fontWeight: 500,
-          whiteSpace: "nowrap",
-          border: `1px solid ${styles.border}`,
-          lineHeight: 1.4,
-          display: "inline-block"
-        },
-        children: value != null ? value : "\u2014"
-      });
-    }
+    }) => statusPill(value)
   }, {
     header: "Start Time",
     accessorKey: "start_time",
@@ -19571,16 +22131,146 @@ function K2VerifyExecution() {
     accessorKey: "error_info",
     enableSorting: true,
     enableColumnFilter: true
-  }], []);
+  }], [statusPill]);
+  const endpoint = react.exports.useMemo(() => {
+    if (!decodedTaskId || !executionId)
+      return null;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
+  }, [apiBasePath2, decodedTaskId, executionId]);
+  const {
+    fetchData: fetchTaskHistoryData,
+    error: detailError
+  } = useFetchData(endpoint || "");
+  const [taskHistoryData, setTaskHistoryData] = react.exports.useState([]);
+  const inFlightRef = react.exports.useRef(false);
+  const intervalRef = react.exports.useRef(null);
+  const [tableName, setTableName] = react.exports.useState("");
+  const [infoData, setInfoData] = react.exports.useState([]);
+  const infoInFlightRef = react.exports.useRef(false);
+  const infoIntervalRef = react.exports.useRef(null);
+  const handleStopExecution = react.exports.useCallback(async () => {
+    var _a3;
+    try {
+      if (!decodedTaskId)
+        return void toast.error(t3("k2verifyExecution.toasts.missingTaskId"));
+      const command = `broadway verify.bwK2VerifyCancelTask task_id='${decodedTaskId}';`;
+      const encoded = encodeURIComponent(command);
+      const res = await fetch(`${apiBasePath2}/api/fabric-command?command=${encoded}`);
+      const result = await res.json().catch(() => null);
+      if (!res.ok) {
+        const msg = ((_a3 = result == null ? void 0 : result.error) == null ? void 0 : _a3.message) || (result == null ? void 0 : result.message) || (typeof result === "string" ? result : null) || t3("k2verifyExecution.toasts.executionFailed");
+        toast.error(t3("k2verifyExecution.toasts.stopFailedWithMsg", {
+          taskId: decodedTaskId,
+          msg
+        }) || `Failed to stop Task #${decodedTaskId}: ${msg}`);
+        return;
+      }
+      toast.success(`Cancellation requested for Task #${decodedTaskId}`);
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyExecution.toasts.executionFailed"));
+      console.error(err2);
+    }
+  }, [apiBasePath2, decodedTaskId, t3]);
+  const handleInfoClick = react.exports.useCallback((row) => {
+    var _a3, _b3, _c2;
+    const name = (_c2 = (_b3 = (_a3 = row == null ? void 0 : row.original) == null ? void 0 : _a3.table_name) != null ? _b3 : row == null ? void 0 : row.table_name) != null ? _c2 : "";
+    if (!name)
+      return void toast.error(t3("k2verifyExecution.toasts.noTableName"));
+    if (name === tableName) {
+      setTableName("");
+      setInfoData([]);
+      if (infoIntervalRef.current) {
+        window.clearInterval(infoIntervalRef.current);
+        infoIntervalRef.current = null;
+      }
+      return;
+    }
+    setTableName(name);
+    setInfoData([]);
+  }, [t3, tableName]);
+  react.exports.useEffect(() => {
+    if (!endpoint)
+      return;
+    let isActive = true;
+    const tick = async () => {
+      if (inFlightRef.current)
+        return;
+      inFlightRef.current = true;
+      try {
+        const rows = await fetchTaskHistoryData();
+        if (isActive)
+          setTaskHistoryData(rows || []);
+      } catch (err2) {
+        toast.error(detailError || t3("k2verifyExecution.toasts.fetchExecutionFailed"));
+        console.error("execution details fetch error:", err2);
+      } finally {
+        inFlightRef.current = false;
+      }
+    };
+    tick();
+    intervalRef.current = window.setInterval(() => {
+      if (!document.hidden)
+        tick();
+    }, 3e3);
+    return () => {
+      isActive = false;
+      if (intervalRef.current)
+        window.clearInterval(intervalRef.current);
+    };
+  }, [endpoint, fetchTaskHistoryData, detailError, t3]);
+  const endpoint2 = react.exports.useMemo(() => {
+    if (!decodedTaskId || !executionId || !tableName)
+      return null;
+    const safeTable = String(tableName).replace(/'/g, "''");
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${executionId}' table_name='${safeTable}' RESULT_STRUCTURE=CURSOR`)}`;
+  }, [apiBasePath2, decodedTaskId, executionId, tableName]);
+  const {
+    fetchData: fetchBucketDetailsData
+  } = useFetchData(endpoint2 || "");
+  react.exports.useEffect(() => {
+    if (infoIntervalRef.current) {
+      window.clearInterval(infoIntervalRef.current);
+      infoIntervalRef.current = null;
+    }
+    if (!endpoint2)
+      return;
+    let isActive = true;
+    const tick = async () => {
+      if (infoInFlightRef.current)
+        return;
+      infoInFlightRef.current = true;
+      try {
+        const rows = await fetchBucketDetailsData();
+        if (isActive)
+          setInfoData(rows || []);
+      } catch (err2) {
+        toast.error(t3("k2verifyExecution.toasts.fetchBucketFailed"));
+        console.error("partition details fetch error:", err2);
+      } finally {
+        infoInFlightRef.current = false;
+      }
+    };
+    tick();
+    infoIntervalRef.current = window.setInterval(() => {
+      if (!document.hidden)
+        tick();
+    }, 3e3);
+    return () => {
+      isActive = false;
+      if (infoIntervalRef.current)
+        window.clearInterval(infoIntervalRef.current);
+    };
+  }, [endpoint2, fetchBucketDetailsData, t3]);
+  const card = {
+    backgroundColor: "white",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    borderRadius: 8,
+    padding: 24
+  };
   return /* @__PURE__ */ jsxs("div", {
     style: {
-      marginBottom: "45px",
-      marginLeft: "30px",
-      marginRight: "30px",
-      backgroundColor: "white",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-      borderRadius: "8px",
-      padding: "24px"
+      margin: 30,
+      marginBottom: 45
     },
     children: [/* @__PURE__ */ jsx(ToastContainer, {
       position: "top-right",
@@ -19591,31 +22281,38 @@ function K2VerifyExecution() {
       pauseOnHover: true,
       draggable: true,
       theme: "colored"
-    }), /* @__PURE__ */ jsxs("h1", {
+    }), /* @__PURE__ */ jsxs("div", {
       style: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between"
+        ...card,
+        marginBottom: 28
       },
-      children: [/* @__PURE__ */ jsxs("span", {
-        children: [t3("k2verifyExecution.title"), " \u2014 ", t3("k2verifyExecution.taskIdLabel"), ": ", decodedTaskId, executionId && /* @__PURE__ */ jsxs(Fragment, {
-          children: [" | ", t3("k2verifyExecution.executionIdLabel"), ": ", executionId]
+      children: [/* @__PURE__ */ jsxs("h1", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          margin: 0
+        },
+        children: [/* @__PURE__ */ jsxs("span", {
+          children: [t3("k2verifyExecution.title"), " \u2014 ", t3("k2verifyExecution.taskIdLabel"), ": ", decodedTaskId, executionId && /* @__PURE__ */ jsxs(Fragment, {
+            children: [" | ", t3("k2verifyExecution.executionIdLabel"), ": ", executionId]
+          })]
+        }), executionId && /* @__PURE__ */ jsx("img", {
+          src: stopcircleIcon,
+          alt: t3("k2verifyExecution.stopAlt"),
+          title: t3("k2verifyExecution.stopTitle"),
+          onClick: handleStopExecution,
+          style: {
+            width: 24,
+            height: 24,
+            cursor: "pointer"
+          }
         })]
-      }), executionId && /* @__PURE__ */ jsx("img", {
-        src: stopcircleIcon,
-        alt: t3("k2verifyExecution.stopAlt"),
-        title: t3("k2verifyExecution.stopTitle"),
-        onClick: handleStopExecution,
+      }), /* @__PURE__ */ jsx("hr", {
         style: {
-          width: "24px",
-          height: "24px",
-          cursor: "pointer"
-        }
-      })]
-    }), /* @__PURE__ */ jsxs(Fragment, {
-      children: [/* @__PURE__ */ jsx("hr", {
-        style: {
-          margin: "25px 0"
+          margin: "25px 0",
+          border: "1px solid #EAEAEA",
+          color: "#EAEAEA"
         }
       }), /* @__PURE__ */ jsx(ReactTable, {
         data: taskHistoryData,
@@ -19623,38 +22320,37 @@ function K2VerifyExecution() {
         initialPageSize: 5,
         infoParams: true,
         onInfoClick: handleInfoClick
-      })]
-    }), executionId && /* @__PURE__ */ jsxs("div", {
-      style: {
-        marginTop: "24px",
-        padding: "16px"
-      },
-      children: [tableName ? /* @__PURE__ */ jsxs("div", {
-        children: [/* @__PURE__ */ jsxs("h2", {
-          style: {
-            marginTop: 0
-          },
-          children: [t3("k2verifyExecution.bucketTitle"), " ", t3("k2verifyExecution.tableLabel"), " ", tableName || t3("k2verifyExecution.selectRowHint")]
-        }), /* @__PURE__ */ jsx("hr", {
-          style: {
-            margin: "25px 0"
-          }
-        })]
-      }) : /* @__PURE__ */ jsx("h3", {
+      }), executionId && !tableName && /* @__PURE__ */ jsx("h3", {
+        style: {
+          marginTop: 14
+        },
         children: t3("k2verifyExecution.selectInfoHint")
-      }), tableName && /* @__PURE__ */ jsx(Fragment, {
-        children: infoData.length ? /* @__PURE__ */ jsx(ReactTable, {
-          data: infoData,
-          columns: infoColumns,
-          initialPageSize: 10,
-          infoParams: false
-        }) : /* @__PURE__ */ jsx("div", {})
       })]
-    })]
+    }), executionId && tableName ? /* @__PURE__ */ jsxs("div", {
+      style: card,
+      children: [/* @__PURE__ */ jsxs("h2", {
+        style: {
+          marginTop: 0
+        },
+        children: [t3("k2verifyExecution.bucketTitle"), " ", t3("k2verifyExecution.tableLabel"), " ", tableName]
+      }), /* @__PURE__ */ jsx("hr", {
+        style: {
+          margin: "25px 0",
+          border: "1px solid #EAEAEA",
+          color: "#EAEAEA"
+        }
+      }), infoData.length ? /* @__PURE__ */ jsx(ReactTable, {
+        data: infoData,
+        columns: infoColumns,
+        initialPageSize: 10,
+        infoParams: false
+      }) : /* @__PURE__ */ jsx("div", {})]
+    }) : null]
   });
 }
 function K2VerifyTaskHistoryDetailed() {
-  var _a2, _b2, _c, _d;
+  var _a2, _b2, _c, _d, _e2, _f, _g;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const navigate = useNavigate();
   const location2 = useLocation();
   window.k2api = window.k2api || window.parent.k2api;
@@ -19662,16 +22358,15 @@ function K2VerifyTaskHistoryDetailed() {
     var _a3;
     const api = window.k2api || window.parent.k2api;
     const tr = (_a3 = api == null ? void 0 : api.i18n) == null ? void 0 : _a3.translate;
-    if (typeof tr !== "function")
-      return key;
-    return tr(key) || key;
+    return typeof tr === "function" ? tr(key) || key : key;
   };
   const {
     taskId: taskIdParam,
     executionId: executionIdParam
   } = useParams();
-  const rawTaskId = (_b2 = (_a2 = location2.state && location2.state.task_id) != null ? _a2 : taskIdParam) != null ? _b2 : "";
-  const rawExecutionId = (_d = (_c = location2.state && location2.state.execution_id) != null ? _c : executionIdParam) != null ? _d : "";
+  const rawTaskId = (_c = (_b2 = (_a2 = location2.state) == null ? void 0 : _a2.task_id) != null ? _b2 : taskIdParam) != null ? _c : "";
+  const rawExecutionId = (_f = (_e2 = (_d = location2.state) == null ? void 0 : _d.execution_id) != null ? _e2 : executionIdParam) != null ? _f : "";
+  const isRestartEligible = !!((_g = location2.state) == null ? void 0 : _g.isRestartEligible);
   const decodedTaskId = react.exports.useMemo(() => {
     try {
       return rawTaskId ? decodeURIComponent(String(rawTaskId)) : "";
@@ -19686,7 +22381,75 @@ function K2VerifyTaskHistoryDetailed() {
       return String(rawExecutionId || "");
     }
   }, [rawExecutionId]);
-  const columns = [{
+  const handleRetryExecution = react.exports.useCallback(async () => {
+    try {
+      const task_id = decodedTaskId;
+      const retry_execution_id = decodedExecutionId;
+      const IsRetryMode = true;
+      if (!task_id)
+        return void toast.error(tt2("k2verifyHome.toasts.missingTaskId") || "Missing task id");
+      const validateCmd = `broadway verify.bwK2VerifyValidateMTable task_id='${task_id}';`;
+      toast.success(`Task ID ${task_id} verification started.`);
+      await new Promise((r2) => setTimeout(r2, 500));
+      try {
+        await runFabricCommand(validateCmd);
+      } catch (ve2) {
+        toast.error((ve2 == null ? void 0 : ve2.message) || tt2("k2verifyHome.toasts.validationFailed") || "Validation failed");
+        return;
+      }
+      toast.success(`Task ID ${task_id} verification completed successfully. Starting the task..`);
+      await new Promise((r2) => setTimeout(r2, 500));
+      const argsStr = JSON.stringify({
+        task_id,
+        retry_execution_id,
+        IsRetryMode
+      });
+      const command = `startjob BROADWAY_JOB name='verify.bwHandleTaskExecution' args='${argsStr}';`;
+      await runFabricCommand(command);
+      navigate(`/execution/${encodeURIComponent(task_id)}`, {
+        state: {
+          task_id
+        }
+      });
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || tt2("k2verifyHome.toasts.executionFailed") || "Execution failed");
+      console.error(err2);
+    }
+  }, [decodedTaskId, decodedExecutionId, navigate]);
+  const statusPill = (value) => {
+    const v2 = String(value != null ? value : "").toLowerCase();
+    const isFailed = v2 === "failed";
+    const isCompleted = v2 === "completed";
+    const styles = isFailed ? {
+      bg: "#FDECEC",
+      text: "#B42323",
+      border: "#F2B8B8"
+    } : isCompleted ? {
+      bg: "#E8F7EE",
+      text: "#1F7A3E",
+      border: "#BFE6CE"
+    } : {
+      bg: "#F4F5F7",
+      text: "#444",
+      border: "#E1E4E8"
+    };
+    return /* @__PURE__ */ jsx("span", {
+      style: {
+        padding: "2px 10px",
+        borderRadius: 6,
+        backgroundColor: styles.bg,
+        color: styles.text,
+        fontSize: "0.8rem",
+        fontWeight: 500,
+        whiteSpace: "nowrap",
+        border: `1px solid ${styles.border}`,
+        lineHeight: 1.4,
+        display: "inline-block"
+      },
+      children: value != null ? value : "-"
+    });
+  };
+  const columns = react.exports.useMemo(() => [{
     header: "Table Name",
     accessorKey: "table_name",
     enableSorting: true,
@@ -19694,8 +22457,22 @@ function K2VerifyTaskHistoryDetailed() {
   }, {
     header: "Batch ID",
     accessorKey: "batch_id",
+    size: 300,
     enableSorting: true,
-    enableColumnFilter: true
+    enableColumnFilter: true,
+    cell: ({
+      value
+    }) => value ? /* @__PURE__ */ jsx("a", {
+      href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        color: "#2563eb",
+        textDecoration: "underline",
+        fontWeight: 500
+      },
+      children: value
+    }) : "-"
   }, {
     header: "Status",
     accessorKey: "status",
@@ -19704,39 +22481,7 @@ function K2VerifyTaskHistoryDetailed() {
     enableColumnFilter: true,
     cell: ({
       value
-    }) => {
-      const v2 = String(value != null ? value : "").toLowerCase();
-      const isFailed = v2 === "failed";
-      const isCompleted = v2 === "completed";
-      const styles = isFailed ? {
-        bg: "#FDECEC",
-        text: "#B42323",
-        border: "#F2B8B8"
-      } : isCompleted ? {
-        bg: "#E8F7EE",
-        text: "#1F7A3E",
-        border: "#BFE6CE"
-      } : {
-        bg: "#F4F5F7",
-        text: "#444",
-        border: "#E1E4E8"
-      };
-      return /* @__PURE__ */ jsx("span", {
-        style: {
-          padding: "2px 10px",
-          borderRadius: "6px",
-          backgroundColor: styles.bg,
-          color: styles.text,
-          fontSize: "0.8rem",
-          fontWeight: 500,
-          whiteSpace: "nowrap",
-          border: `1px solid ${styles.border}`,
-          lineHeight: 1.4,
-          display: "inline-block"
-        },
-        children: value != null ? value : "-"
-      });
-    }
+    }) => statusPill(value)
   }, {
     header: "Start Time",
     accessorKey: "start_time",
@@ -19748,7 +22493,7 @@ function K2VerifyTaskHistoryDetailed() {
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Bucket Completion Summary",
+    header: "Partition Completion Summary",
     accessorKey: "bucket_completion_summary",
     enableSorting: true,
     enableColumnFilter: true,
@@ -19764,7 +22509,7 @@ function K2VerifyTaskHistoryDetailed() {
     accessorKey: "failed_records",
     enableSorting: true,
     enableColumnFilter: true
-  }];
+  }], [apiBasePath2]);
   const infoColumns = react.exports.useMemo(() => [{
     header: "Bucket Id",
     accessorKey: "bucket_id",
@@ -19779,39 +22524,7 @@ function K2VerifyTaskHistoryDetailed() {
     enableColumnFilter: true,
     cell: ({
       value
-    }) => {
-      const v2 = String(value != null ? value : "").toLowerCase();
-      const isFailed = v2 === "failed";
-      const isCompleted = v2 === "completed";
-      const styles = isFailed ? {
-        bg: "#FDECEC",
-        text: "#B42323",
-        border: "#F2B8B8"
-      } : isCompleted ? {
-        bg: "#E8F7EE",
-        text: "#1F7A3E",
-        border: "#BFE6CE"
-      } : {
-        bg: "#F4F5F7",
-        text: "#444",
-        border: "#E1E4E8"
-      };
-      return /* @__PURE__ */ jsx("span", {
-        style: {
-          padding: "2px 10px",
-          borderRadius: "6px",
-          backgroundColor: styles.bg,
-          color: styles.text,
-          fontSize: "0.8rem",
-          fontWeight: 500,
-          whiteSpace: "nowrap",
-          border: `1px solid ${styles.border}`,
-          lineHeight: 1.4,
-          display: "inline-block"
-        },
-        children: value != null ? value : "\u2014"
-      });
-    }
+    }) => statusPill(value != null ? value : "\u2014")
   }, {
     header: "Start Time",
     accessorKey: "start_time",
@@ -19854,38 +22567,41 @@ function K2VerifyTaskHistoryDetailed() {
     fetchData: fetchTaskHistoryData,
     loading: fetchTaskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' RESULT_STRUCTURE=CURSOR`)}`);
   const bucketEndpoint = react.exports.useMemo(() => {
     if (!decodedTaskId || !decodedExecutionId || !tableName)
       return null;
     const safeTable = String(tableName).replace(/'/g, "''");
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' table_name='${safeTable}' RESULT_STRUCTURE=CURSOR`)}`;
-  }, [decodedTaskId, decodedExecutionId, tableName]);
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyBucketDetails task_id='${decodedTaskId}' execution_id='${decodedExecutionId}' table_name='${safeTable}' RESULT_STRUCTURE=CURSOR`)}`;
+  }, [apiBasePath2, decodedTaskId, decodedExecutionId, tableName]);
   const {
     fetchData: fetchBucketDetailsData,
     error: bucketError
-  } = useFetchData(bucketEndpoint);
+  } = useFetchData(bucketEndpoint || "");
   react.exports.useEffect(() => {
-    if (taskHistoryError) {
+    if (taskHistoryError)
       toast.error(taskHistoryError.message || tt2("k2verifyHistoryDetailed.toasts.loadHistoryFailed"));
-    }
   }, [taskHistoryError]);
   react.exports.useEffect(() => {
+    if (bucketError)
+      toast.error(bucketError.message || tt2("k2verifyHistoryDetailed.toasts.loadBucketFailed"));
+  }, [bucketError]);
+  react.exports.useEffect(() => {
+    let cancel = false;
     (async () => {
       if (!decodedTaskId || !decodedExecutionId)
         return;
       const rows = await fetchTaskHistoryData();
-      setTaskHistoryData(rows || []);
+      if (!cancel)
+        setTaskHistoryData(rows || []);
     })();
+    return () => {
+      cancel = true;
+    };
   }, [fetchTaskHistoryData, decodedTaskId, decodedExecutionId]);
   react.exports.useEffect(() => {
-    if (bucketError) {
-      toast.error(bucketError.message || tt2("k2verifyHistoryDetailed.toasts.loadBucketFailed"));
-    }
-  }, [bucketError]);
-  react.exports.useEffect(() => {
     let cancel = false;
-    const run = async () => {
+    (async () => {
       if (!bucketEndpoint)
         return;
       setInfoLoading(true);
@@ -19900,8 +22616,7 @@ function K2VerifyTaskHistoryDetailed() {
         if (!cancel)
           setInfoLoading(false);
       }
-    };
-    run();
+    })();
     return () => {
       cancel = true;
     };
@@ -19911,11 +22626,8 @@ function K2VerifyTaskHistoryDetailed() {
     const name = (_c2 = (_b3 = (_a3 = row == null ? void 0 : row.original) == null ? void 0 : _a3.table_name) != null ? _b3 : row == null ? void 0 : row.table_name) != null ? _c2 : "";
     if (!name)
       return void toast.error(tt2("k2verifyHistoryDetailed.toasts.noTableName"));
-    if (name === tableName) {
-      setTableName("");
-      setInfoData([]);
-      return;
-    }
+    if (name === tableName)
+      return setTableName(""), setInfoData([]);
     setTableName(name);
     setInfoData([]);
   }, [tableName]);
@@ -19936,15 +22648,15 @@ function K2VerifyTaskHistoryDetailed() {
       })]
     });
   }
+  const card = {
+    backgroundColor: "white",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    borderRadius: 8,
+    padding: 24
+  };
   return /* @__PURE__ */ jsxs("div", {
     style: {
-      marginBottom: "45px",
-      marginLeft: "30px",
-      marginRight: "30px",
-      backgroundColor: "white",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-      borderRadius: "8px",
-      padding: "24px"
+      margin: 30
     },
     children: [/* @__PURE__ */ jsx(ToastContainer, {
       position: "top-right",
@@ -19955,66 +22667,82 @@ function K2VerifyTaskHistoryDetailed() {
       pauseOnHover: true,
       draggable: true,
       theme: "colored"
-    }), /* @__PURE__ */ jsx("div", {
+    }), /* @__PURE__ */ jsxs("div", {
       style: {
-        display: "flex",
-        marginTop: "5px",
-        justifyContent: "space-between",
-        alignItems: "center"
+        ...card,
+        marginBottom: 28
       },
-      children: /* @__PURE__ */ jsxs("h1", {
-        children: [tt2("k2verifyHistoryDetailed.title"), " ", tt2("k2verifyHistoryDetailed.taskIdLabel"), " ", decodedTaskId, ", ", tt2("k2verifyHistoryDetailed.executionIdLabel"), " ", decodedExecutionId]
-      })
-    }), /* @__PURE__ */ jsx("hr", {
-      style: {
-        margin: "25px 0",
-        border: "1px solid #EAEAEA",
-        color: "#EAEAEA"
-      }
-    }), /* @__PURE__ */ jsx(ReactTable, {
-      data: taskHistoryData,
-      columns,
-      loading: fetchTaskHistoryLoading,
-      initialPageSize: 10,
-      infoParams: true,
-      onInfoClick: handleInfoClick
-    }), /* @__PURE__ */ jsx("div", {
-      style: {
-        marginTop: "24px",
-        padding: "16px"
-      },
-      children: tableName ? /* @__PURE__ */ jsxs(Fragment, {
-        children: [/* @__PURE__ */ jsxs("h2", {
+      children: [/* @__PURE__ */ jsxs("div", {
+        style: {
+          display: "flex",
+          marginTop: 5,
+          justifyContent: "space-between",
+          alignItems: "center"
+        },
+        children: [/* @__PURE__ */ jsxs("h1", {
           style: {
-            marginTop: 0
+            margin: 0
           },
-          children: [tt2("k2verifyHistoryDetailed.bucketTitle"), " ", tt2("k2verifyHistoryDetailed.tableLabel"), " ", tableName]
-        }), /* @__PURE__ */ jsx("hr", {
-          style: {
-            margin: "25px 0"
-          }
-        }), infoLoading ? /* @__PURE__ */ jsx("div", {}) : infoData.length ? /* @__PURE__ */ jsx(ReactTable, {
-          data: infoData,
-          columns: infoColumns,
-          initialPageSize: 10,
-          infoParams: false
-        }) : /* @__PURE__ */ jsx("div", {
-          style: {
-            fontSize: 14,
-            color: "#777"
-          },
-          children: tt2("k2verifyHistoryDetailed.noBucketRows")
-        })]
-      }) : /* @__PURE__ */ jsx("h3", {
+          children: [tt2("k2verifyHistoryDetailed.title"), " ", tt2("k2verifyHistoryDetailed.taskIdLabel"), " ", decodedTaskId, ",", " ", tt2("k2verifyHistoryDetailed.executionIdLabel"), " ", decodedExecutionId]
+        }), isRestartEligible ? /* @__PURE__ */ jsxs("button", {
+          type: "button",
+          className: "new-task-btn",
+          onClick: handleRetryExecution,
+          children: [/* @__PURE__ */ jsx("span", {
+            children: tt2("K2VerifyTaskHistoryDetailed.retry") || "Retry Task"
+          }), /* @__PURE__ */ jsx("i", {
+            className: "fa fa-arrow-rotate-right"
+          })]
+        }) : null]
+      }), /* @__PURE__ */ jsx("hr", {
+        style: {
+          margin: "25px 0",
+          border: "1px solid #EAEAEA",
+          color: "#EAEAEA"
+        }
+      }), /* @__PURE__ */ jsx(ReactTable, {
+        data: taskHistoryData,
+        columns,
+        loading: fetchTaskHistoryLoading,
+        initialPageSize: 10,
+        infoParams: true,
+        onInfoClick: handleInfoClick
+      }), !tableName ? /* @__PURE__ */ jsx("h3", {
+        style: {
+          marginTop: 12
+        },
+        children: tt2("k2verifyHistoryDetailed.selectInfoHint")
+      }) : null]
+    }), tableName ? /* @__PURE__ */ jsxs("div", {
+      style: card,
+      children: [/* @__PURE__ */ jsxs("h2", {
         style: {
           marginTop: 0
         },
-        children: tt2("k2verifyHistoryDetailed.selectInfoHint")
-      })
-    })]
+        children: [tt2("k2verifyHistoryDetailed.bucketTitle"), " ", tt2("k2verifyHistoryDetailed.tableLabel"), " ", tableName]
+      }), /* @__PURE__ */ jsx("hr", {
+        style: {
+          margin: "25px 0",
+          border: "1px solid #EAEAEA",
+          color: "#EAEAEA"
+        }
+      }), infoLoading ? /* @__PURE__ */ jsx("div", {}) : infoData.length ? /* @__PURE__ */ jsx(ReactTable, {
+        data: infoData,
+        columns: infoColumns,
+        initialPageSize: 10,
+        infoParams: false
+      }) : /* @__PURE__ */ jsx("div", {
+        style: {
+          fontSize: 14,
+          color: "#777"
+        },
+        children: tt2("k2verifyHistoryDetailed.noBucketRows")
+      })]
+    }) : null]
   });
 }
 function K2VerifyTaskResults() {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const navigate = useNavigate();
   window.k2api = window.k2api || window.parent.k2api;
   const t3 = window.k2api.i18n.translate;
@@ -20143,7 +22871,7 @@ function K2VerifyTaskResults() {
     fetchData: fetchTaskHistoryData,
     loading: taskHistoryLoading,
     error: taskHistoryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistoryAll RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionHistoryAll RESULT_STRUCTURE=CURSOR`)}`);
   react.exports.useEffect(() => {
     let alive = true;
     (async () => {
@@ -20398,7 +23126,7 @@ function ReactTablePaginate({
               }
             }
           }), /* @__PURE__ */ jsx("img", {
-            src: isActive ? deleteIconDisabled : deleteIcon,
+            src: isActive ? deleteIconDisabled : deleteIcon$1,
             alt: "Delete",
             title: isActive ? "" : "Delete Task",
             className: "icons",
@@ -21359,7 +24087,7 @@ function ResultsHeader({
 var K2VerifyResultsDetailed$1 = "";
 const scriptRel = "modulepreload";
 const seen = {};
-const base = "/static/k2verify/";
+const base = "./";
 const __vitePreload = function preload(baseModule, deps) {
   if (!deps || deps.length === 0) {
     return baseModule();
@@ -31050,7 +33778,7 @@ var lt = function() {
   } });
 };
 W(lt, ut);
-var ht = function t2() {
+var ht = function t() {
   ut.call(this);
   var e = 4;
   Object.defineProperty(this, "F", { enumerable: false, configurable: false, get: function() {
@@ -31115,7 +33843,7 @@ var ht = function t2() {
     if (!a2 || a2.length < 1) {
       if (this instanceof yt)
         return;
-      a2 = "FieldObject" + t2.FieldNum++;
+      a2 = "FieldObject" + t.FieldNum++;
     }
     var e2 = function(t3) {
       return t3;
@@ -36220,7 +38948,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.8848251e.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.f363a4e4.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -38908,10 +41636,11 @@ function K2VerifyReportPdfButton({
   executionId,
   failedTables,
   t: t3,
-  logoImage,
+  logoImage: logoImage3,
   logoImage2: logoImage22,
   className = "new-task-btn"
 }) {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const [exportLoading, setExportLoading] = react.exports.useState(false);
   const effectiveExecutionId = react.exports.useMemo(() => executionId || (state == null ? void 0 : state.execution_id) || (state == null ? void 0 : state.executionId) || "", [executionId, state]);
   const perf = {
@@ -38994,7 +41723,7 @@ function K2VerifyReportPdfButton({
   const fetchZipFromWs = react.exports.useCallback(async () => {
     var _a2;
     const nodeId = "localhost";
-    const url = `/api/wsK2VerifyAgentDownloadResource?nodeId=${encodeURIComponent(nodeId)}&exectuionId=${encodeURIComponent(String(effectiveExecutionId))}`;
+    const url = `${apiBasePath2}/api/wsK2VerifyAgentDownloadResource?nodeId=${encodeURIComponent(nodeId)}&exectuionId=${encodeURIComponent(String(effectiveExecutionId))}`;
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -39020,7 +41749,7 @@ function K2VerifyReportPdfButton({
   }, [effectiveExecutionId]);
   const fetchPiiRowsFromBroadway = react.exports.useCallback(async () => {
     const command = `broadway verify.bwDownloadColumnLevelPIIData execution_id='${String(effectiveExecutionId)}' RESULT_STRUCTURE=CURSOR`;
-    const res = await fetch(`/api/fabric-command?command=${encodeURIComponent(command)}`, {
+    const res = await fetch(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(command)}`, {
       method: "GET"
     });
     if (!res.ok)
@@ -39139,8 +41868,8 @@ function K2VerifyReportPdfButton({
     };
     const drawHeader = () => {
       var _a2, _b2;
-      if (logoImage)
-        doc.addImage(logoImage, "PNG", M2, HEADER_TOP_Y, 50, 14);
+      if (logoImage3)
+        doc.addImage(logoImage3, "PNG", M2, HEADER_TOP_Y, 50, 14);
       doc.setFontSize(16);
       doc.setTextColor(...COLORS.titleBlue);
       const titleY = 30;
@@ -39261,7 +41990,9 @@ function K2VerifyReportPdfButton({
       const cardH = tableEndY - startY + 8;
       drawCard(M2, startY, cardW, cardH);
       drawSectionTitle("Execution Summary", M2 + padX, titleY);
-      drawSectionDescription(description, M2 + padX, descY, cardW - 2 * padX);
+      if (description) {
+        drawSectionDescription(description, M2 + padX, descY, cardW - 2 * padX);
+      }
       autoTable(doc, {
         startY: tableY,
         head: [headers],
@@ -39317,13 +42048,17 @@ function K2VerifyReportPdfButton({
     const renderTableLevelSummary = (startY) => {
       const padX = 10;
       const padTop = 10;
-      const cardTopPage1 = startY;
-      const titleYPage1 = cardTopPage1 + padTop;
-      const descYPage1 = titleYPage1 + 5;
+      const cardPadBottom = 8;
       const description = tText("k2verifyResults.tableLevelSummaryDescription", "");
-      const descLinesPage1 = description ? doc.splitTextToSize(description, cardW - 2 * padX) : [];
-      const descHPage1 = description ? Math.max(1, descLinesPage1.length) * 4 : 0;
-      const tableStartYPage1 = descHPage1 ? descYPage1 + descHPage1 + 4 : descYPage1;
+      const titleY = startY + padTop;
+      const descY = titleY + 5;
+      let descHeight = 0;
+      if (description) {
+        doc.setFontSize(9);
+        const descLines = doc.splitTextToSize(description, cardW - 2 * padX);
+        descHeight = Math.max(1, descLines.length) * 4;
+      }
+      const tableStartY = descHeight ? descY + descHeight + 4 : descY + 4;
       const exportColumns = [{
         header: "Source Table",
         key: "source_table_name"
@@ -39360,16 +42095,26 @@ function K2VerifyReportPdfButton({
         var _a2;
         return String((_a2 = row == null ? void 0 : row[c2.key]) != null ? _a2 : "");
       }));
-      const tableOpts = (startYForTable, page1CardHForDraw) => ({
-        startY: startYForTable,
+      const startPage = doc.internal.getNumberOfPages();
+      const maxCardH = pageHeight - startY - 18;
+      drawCard(M2, startY, cardW, maxCardH);
+      drawSectionTitle("Table-Level Summary", M2 + padX, titleY);
+      if (description) {
+        doc.setFontSize(9);
+        doc.setTextColor(...COLORS.subtle);
+        const descLines = doc.splitTextToSize(description, cardW - 2 * padX);
+        doc.text(descLines, M2 + padX, descY);
+      }
+      autoTable(doc, {
+        startY: tableStartY,
         head,
         body,
         theme: "grid",
         margin: {
           left: M2 + padX,
           right: M2 + padX,
-          top: startYForTable,
-          bottom: 16
+          top: M2 + padX,
+          bottom: 18
         },
         styles: {
           fontSize: 7,
@@ -39427,52 +42172,24 @@ function K2VerifyReportPdfButton({
             }
           }
         },
-        willDrawPage: (data2) => {
-          if (data2.pageNumber > 1) {
+        didDrawPage: (data2) => {
+          var _a2;
+          const currentPage = doc.internal.getNumberOfPages();
+          if (currentPage > startPage) {
+            const pageNum = currentPage;
+            const pageCommands = doc.internal.pages[pageNum];
+            const tableContent = [...pageCommands];
+            doc.internal.pages[pageNum] = [];
+            doc.setPage(pageNum);
             drawPageBackground();
-            const contentStartY2 = drawHeader();
-            const top = contentStartY2;
-            const maxH = pageHeight - top - 18;
-            drawCard(M2, top, cardW, maxH);
-            const titleY = top + padTop;
-            const descY = titleY + 5;
-            drawSectionTitle("Table-Level Summary", M2 + padX, titleY);
-            if (description) {
-              doc.setFontSize(9);
-              doc.setTextColor(...COLORS.subtle);
-              const lines = doc.splitTextToSize(description, cardW - 2 * padX);
-              doc.text(lines, M2 + padX, descY);
-              const descH = Math.max(1, lines.length) * 4;
-              data2.settings.margin.top = descY + descH + 4;
-            } else {
-              data2.settings.margin.top = descY;
-            }
-          } else {
-            if (typeof page1CardHForDraw === "number") {
-              drawCard(M2, cardTopPage1, cardW, page1CardHForDraw);
-              drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
-              if (description) {
-                doc.setFontSize(9);
-                doc.setTextColor(...COLORS.subtle);
-                doc.text(descLinesPage1, M2 + padX, descYPage1);
-              }
-            }
+            const tableStartYOnPage = M2 + padX;
+            const tableEndY = (_a2 = data2.cursor) == null ? void 0 : _a2.y;
+            const cardHeight = tableEndY && tableEndY < pageHeight - 30 ? tableEndY - M2 + cardPadBottom : pageHeight - 2 * M2 - 8;
+            drawCard(M2, M2, cardW, cardHeight);
+            doc.internal.pages[pageNum].push(...tableContent);
           }
         }
       });
-      autoTable(doc, tableOpts(tableStartYPage1));
-      const tableEndY = doc.lastAutoTable.finalY;
-      const maxPage1H = pageHeight - cardTopPage1 - 18;
-      const desiredH = tableEndY - cardTopPage1 + 10;
-      const page1CardH = Math.min(maxPage1H, desiredH);
-      drawCard(M2, cardTopPage1, cardW, page1CardH);
-      drawSectionTitle("Table-Level Summary", M2 + padX, titleYPage1);
-      if (description) {
-        doc.setFontSize(9);
-        doc.setTextColor(...COLORS.subtle);
-        doc.text(descLinesPage1, M2 + padX, descYPage1);
-      }
-      autoTable(doc, tableOpts(tableStartYPage1, page1CardH));
       return doc.lastAutoTable.finalY + 10;
     };
     drawPageBackground();
@@ -39485,7 +42202,7 @@ function K2VerifyReportPdfButton({
   };
   const handleDownloadReport = async () => {
     if (!effectiveExecutionId) {
-      alert("No execution ID found. Cannot generate report.");
+      toast.error("No execution ID found. Cannot generate report.");
       return;
     }
     setExportLoading(true);
@@ -39514,32 +42231,45 @@ function K2VerifyReportPdfButton({
       perf.end("ZIP Download (WS)");
     } catch (err2) {
       console.error("Export failed:", err2);
-      alert(`Export failed: ${(err2 == null ? void 0 : err2.message) || err2}`);
+      toast.warn(`No zip files created or export failed. Zip file is only created if your task has Failed Validation Record.`);
     } finally {
       perf.end("Total Export Time");
       perf.reportAndClear();
       setExportLoading(false);
     }
   };
-  return /* @__PURE__ */ jsxs("button", {
-    type: "button",
-    className,
-    onClick: handleDownloadReport,
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 8
-    },
-    disabled: exportLoading || !effectiveExecutionId,
-    children: [/* @__PURE__ */ jsx("i", {
-      className: exportLoading ? "fa fa-spinner fa-spin" : "fa fa-download",
-      "aria-hidden": "true"
-    }), exportLoading ? (t3 == null ? void 0 : t3("k2verifyResults.loadingDetails")) || "Preparing..." : (t3 == null ? void 0 : t3("k2verifyResults.downloadReport")) || "Download Report"]
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsx(ToastContainer, {
+      position: "top-right",
+      autoClose: 5e3,
+      hideProgressBar: false,
+      newestOnTop: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "colored"
+    }), /* @__PURE__ */ jsxs("button", {
+      type: "button",
+      className,
+      onClick: handleDownloadReport,
+      style: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8
+      },
+      disabled: exportLoading || !effectiveExecutionId,
+      children: [/* @__PURE__ */ jsx("i", {
+        className: exportLoading ? "fa fa-spinner fa-spin" : "fa fa-download",
+        "aria-hidden": "true"
+      }), exportLoading ? (t3 == null ? void 0 : t3("k2verifyResults.loadingDetails")) || "Preparing..." : (t3 == null ? void 0 : t3("k2verifyResults.downloadReport")) || "Download Report"]
+    })]
   });
 }
-var logoImage2 = "/static/k2verify/assets/k2view-logo-dark.284b80b7.png";
+var logoImage = window.__vite_asset_base__ + "k2verify-logo-no-background.177300ca.png";
+var logoImage2 = window.__vite_asset_base__ + "k2view-logo-dark.284b80b7.png";
 function K2VerifyResultsDetailed() {
   var _a2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const {
     state
   } = useLocation();
@@ -39610,7 +42340,7 @@ function K2VerifyResultsDetailed() {
     fetchData: fetchTableSummaryData,
     loading: tableSummaryLoading,
     error: tableSummaryError
-  } = useFetchData(`/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultTables execution_id=${executionId} RESULT_STRUCTURE=CURSOR`)}`);
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultTables execution_id=${executionId} RESULT_STRUCTURE=CURSOR`)}`);
   const [taskFlags, setTaskFlags] = react.exports.useState({
     logPass: false,
     piiOnly: false
@@ -39620,7 +42350,7 @@ function K2VerifyResultsDetailed() {
   const taskDetailsEndpoint = react.exports.useMemo(() => {
     if (!taskId)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwTaskDetails task_id='${taskId}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwTaskDetails task_id='${taskId}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [taskId]);
   const {
     fetchData: fetchTaskDetails,
@@ -39641,7 +42371,7 @@ function K2VerifyResultsDetailed() {
       piiOnly: Boolean(lastTwo[1])
     };
   }, []);
-  const formatLabel = (s2) => String(s2 != null ? s2 : "").trim().replace(/_/g, " ").replace(/\b\w/g, (c2) => c2.toUpperCase());
+  const formatLabel2 = (s2) => String(s2 != null ? s2 : "").trim().replace(/_/g, " ").replace(/\b\w/g, (c2) => c2.toUpperCase());
   react.exports.useEffect(() => {
     if (!taskDetailsEndpoint)
       return;
@@ -39685,7 +42415,7 @@ function K2VerifyResultsDetailed() {
   const columnEndpoint = react.exports.useMemo(() => {
     if (!executionId || !columnModalTableName)
       return null;
-    return `/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultColumns source_table_name='${columnModalTableName}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyResultColumns source_table_name='${columnModalTableName}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
   }, [executionId, columnModalTableName]);
   const {
     fetchData: fetchColumnModalData,
@@ -39782,7 +42512,7 @@ function K2VerifyResultsDetailed() {
         selected_metrics='${metricsParam}' queryLimit=${limit} queryOffset=${offset}
         isCountRequired=${isCountRequired ? "true" : "false"} RESULT_STRUCTURE=CURSOR
       `.replace(/\s+/g, " ");
-      const res = await fetch(`/api/fabric-command?command=${encodeURIComponent(command)}`);
+      const res = await fetch(`${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(command)}`);
       if (!res.ok)
         throw new Error(`HTTP error! status: ${res.status}`);
       const data2 = await res.json();
@@ -39941,6 +42671,12 @@ function K2VerifyResultsDetailed() {
       className: value > 0 ? "k2vr-text-red" : "k2vr-text-green",
       children: value
     })
+  }, {
+    header: "PII",
+    accessorKey: "pii",
+    size: 200,
+    enableSorting: true,
+    enableColumnFilter: true
   }];
   const recordDetailsColumns = [{
     header: "Customized Key",
@@ -39962,11 +42698,16 @@ function K2VerifyResultsDetailed() {
     }) => {
       const v2 = String(value != null ? value : "").trim().toLowerCase();
       const isPassed = v2 === "passed";
+      const isMissingKey = v2 === "source key not found in target" || v2 === "target key not found in source";
       const isNotPassed = v2 === "not passed" || v2 === "notpassed" || v2 === "failed" || v2 === "fail";
       const styles = isNotPassed ? {
         bg: "#FDECEC",
         text: "#B42323",
         border: "#F2B8B8"
+      } : isMissingKey ? {
+        bg: "#FFF4E5",
+        text: "#B54708",
+        border: "#FED7AA"
       } : isPassed ? {
         bg: "#E8F7EE",
         text: "#1F7A3E",
@@ -40163,7 +42904,7 @@ function K2VerifyResultsDetailed() {
         executionId,
         failedTables,
         t: t3,
-        logoImage: logoImage2,
+        logoImage,
         logoImage2,
         taskDetailsRaw,
         taskFlags
@@ -40233,10 +42974,10 @@ function K2VerifyResultsDetailed() {
           children: [t3("k2verifyResults.tableLabel"), " ", tableSummaryData[selectedRow.rowIndex].source_table_name]
         }), /* @__PURE__ */ jsxs("p", {
           className: "k2vr-subtle",
-          children: ["Selected Metrics:", " ", selectedRow.metricKeys.map(formatLabel).join(", ")]
+          children: ["Selected Metrics:", " ", selectedRow.metricKeys.map(formatLabel2).join(", ")]
         }), Object.keys(recordDetailsFilters).length > 0 && /* @__PURE__ */ jsxs("p", {
           className: "k2vr-subtle",
-          children: ["Active Filters:", " ", Object.entries(recordDetailsFilters).map(([key, value]) => `${formatLabel(key)}: ${value}`).join(", ")]
+          children: ["Active Filters:", " ", Object.entries(recordDetailsFilters).map(([key, value]) => `${formatLabel2(key)}: ${value}`).join(", ")]
         }), /* @__PURE__ */ jsx("hr", {
           className: "k2vr-hr-thin"
         }), /* @__PURE__ */ jsx(ReactTablePaginate, {
@@ -40321,6 +43062,524 @@ function K2VerifyResultsDetailed() {
     })]
   });
 }
+function K2VerifyConfiguration() {
+  var _a2, _b2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  window.k2api = window.k2api || window.parent.k2api;
+  const t3 = ((_b2 = (_a2 = window.k2api) == null ? void 0 : _a2.i18n) == null ? void 0 : _b2.translate) || ((k3) => k3);
+  const endpoint = react.exports.useMemo(() => {
+    const cmd = `broadway verify.bwK2VerifyFetchConfiguration RESULT_STRUCTURE=CURSOR`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+  }, [apiBasePath2]);
+  const {
+    fetchData,
+    loading,
+    error
+  } = useFetchData(endpoint);
+  const [rows, setRows] = react.exports.useState([]);
+  const [editingRow, setEditingRow] = react.exports.useState(null);
+  const NEW_ROW_ID = "__new_configuration__";
+  const emptyConfiguration = {
+    id: NEW_ROW_ID,
+    source_table_name: "",
+    target_table_name: "",
+    source_interface: "",
+    target_interface: "",
+    source_schema: "",
+    target_schema: "",
+    buckets: "",
+    buckets_method: "",
+    active: true,
+    source_transformation_function_name: "",
+    target_transformation_function_name: "",
+    source_columns_to_ignore_null: "",
+    target_columns_to_ignore_null: "",
+    customized_key_comparison: "",
+    pii_columns: "",
+    excluded_columns_names: "",
+    excluded_rows_sql: "",
+    column_mapping: ""
+  };
+  const openNewConfiguration = react.exports.useCallback(() => {
+    setEditingRow({
+      ...emptyConfiguration,
+      id: NEW_ROW_ID
+    });
+  }, [emptyConfiguration, NEW_ROW_ID]);
+  const closeEditor = react.exports.useCallback(() => {
+    setEditingRow(null);
+  }, []);
+  const [deleteCandidate, setDeleteCandidate] = react.exports.useState(null);
+  const deleteEndpoint = react.exports.useMemo(() => {
+    if (!deleteCandidate)
+      return null;
+    const {
+      _rowIdx,
+      editParams,
+      deleteParams,
+      ...cleanRow
+    } = deleteCandidate;
+    const cmd = `broadway verify.bwK2VerifyDeleteConfiguration record='${JSON.stringify(cleanRow)}'`;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(cmd)}`;
+  }, [apiBasePath2, deleteCandidate]);
+  const {
+    fetchData: fetchDelete,
+    error: deleteError
+  } = useFetchData(deleteEndpoint);
+  const handleDelete = react.exports.useCallback(async (row) => {
+    if ((row == null ? void 0 : row.id) === NEW_ROW_ID)
+      return;
+    try {
+      if (!row) {
+        return void toast.error(t3("k2verifyConfiguration.toasts.deleteFailed") || "Delete failed.");
+      }
+      const {
+        _rowIdx,
+        editParams,
+        deleteParams,
+        ...cleanRow
+      } = row;
+      const argsStr = JSON.stringify(cleanRow).replace(/'/g, "\\'");
+      ;
+      const command = `broadway verify.bwK2VerifyDeleteConfiguration record='${argsStr}'`;
+      await runFabricCommand(command);
+      const refreshed = await fetchData();
+      setRows(Array.isArray(refreshed) ? refreshed : []);
+      toast.success(t3("k2verifyConfiguration.toasts.deleteSuccess") || "Deleted successfully.");
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyConfiguration.toasts.deleteFailed") || "Delete failed.");
+      console.error(err2);
+    }
+  }, [fetchData, t3]);
+  const handleSaveConfiguration = react.exports.useCallback(async (draft) => {
+    try {
+      if (!draft)
+        return;
+      const {
+        _rowIdx,
+        editParams,
+        deleteParams,
+        ...cleanRow
+      } = draft;
+      const recordJson = JSON.stringify(cleanRow).replace(/'/g, "\\'");
+      const command = `broadway verify.bwK2VerifyAddConfiguration record='${recordJson}'`;
+      await runFabricCommand(command);
+      const refreshed = await fetchData();
+      setRows(Array.isArray(refreshed) ? refreshed : []);
+      toast.success(t3("k2verifyConfiguration.toasts.saveSuccess") || "Configuration saved successfully.");
+      setEditingRow(null);
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyConfiguration.toasts.saveFailed") || "Save failed.");
+      console.error(err2);
+    }
+  }, [fetchData, closeEditor, t3]);
+  react.exports.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetchData();
+        if (!alive)
+          return;
+        setRows(Array.isArray(res) ? res : []);
+      } catch (e) {
+        if (!alive)
+          return;
+        toast.error((e == null ? void 0 : e.message) || t3("k2verifyConfiguration.toasts.loadFailed"));
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [fetchData, t3]);
+  react.exports.useEffect(() => {
+    if (error)
+      toast.error((error == null ? void 0 : error.message) || t3("k2verifyConfiguration.toasts.loadFailed"));
+  }, [error, t3]);
+  react.exports.useEffect(() => {
+    if (deleteError)
+      toast.error((deleteError == null ? void 0 : deleteError.message) || t3("k2verifyConfiguration.toasts.deleteFailed") || "Delete failed.");
+  }, [deleteError, t3]);
+  const columns = react.exports.useMemo(() => [{
+    header: "Source Interface",
+    accessorKey: "source_interface",
+    enableSorting: true,
+    enableColumnFilter: true
+  }, {
+    header: "Source Table",
+    accessorKey: "source_table_name",
+    enableSorting: true,
+    enableColumnFilter: true
+  }, {
+    header: "Target Interface",
+    accessorKey: "target_interface",
+    enableSorting: true,
+    enableColumnFilter: true
+  }, {
+    header: "Target Table",
+    accessorKey: "target_table_name",
+    enableSorting: true,
+    enableColumnFilter: true
+  }, {
+    header: "Active",
+    accessorKey: "active",
+    enableSorting: true,
+    enableColumnFilter: true,
+    cell: ({
+      value
+    }) => {
+      const isActive = String(value != null ? value : "").toLowerCase().trim() === "true";
+      return /* @__PURE__ */ jsx("input", {
+        type: "checkbox",
+        checked: isActive,
+        readOnly: true,
+        style: {
+          width: 16,
+          height: 16,
+          cursor: "default"
+        }
+      });
+    }
+  }], []);
+  const card = react.exports.useMemo(() => ({
+    marginBottom: 45,
+    marginLeft: 30,
+    marginRight: 30,
+    backgroundColor: "white",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    borderRadius: 8,
+    padding: 24
+  }), []);
+  return /* @__PURE__ */ jsxs("div", {
+    style: card,
+    children: [/* @__PURE__ */ jsx(ToastContainer, {
+      position: "top-right",
+      autoClose: 5e3,
+      hideProgressBar: false,
+      newestOnTop: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "colored"
+    }), /* @__PURE__ */ jsxs("div", {
+      style: {
+        display: "flex",
+        marginTop: 5,
+        justifyContent: "space-between",
+        alignItems: "center"
+      },
+      children: [/* @__PURE__ */ jsx("h1", {
+        style: {
+          margin: 0
+        },
+        children: t3("k2verifyConfiguration.title") || "Verify Configuration"
+      }), /* @__PURE__ */ jsxs("button", {
+        type: "button",
+        className: "new-task-btn",
+        onClick: openNewConfiguration,
+        children: [/* @__PURE__ */ jsx("span", {
+          children: t3("k2verifyConfiguration.newConfiguration") || "New Configuration"
+        }), /* @__PURE__ */ jsx("i", {
+          className: "fa fa-plus"
+        })]
+      })]
+    }), /* @__PURE__ */ jsx("hr", {
+      style: {
+        margin: "25px 0",
+        border: "1px solid #EAEAEA",
+        color: "#EAEAEA"
+      }
+    }), /* @__PURE__ */ jsx(ReactTable, {
+      data: rows,
+      columns,
+      loading,
+      initialPageSize: 10,
+      editParams: true,
+      onDeleteRow: (row) => handleDelete(row),
+      openEditorRow: editingRow,
+      onSave: handleSaveConfiguration,
+      onEditorClose: () => setEditingRow(null)
+    })]
+  });
+}
+const SETTINGS_META = [{
+  key: "MIN_PROCESSED_THRESHOLD_PCT",
+  label: "MIN_PROCESSED_THRESHOLD_PCT",
+  descriptionKey: "k2verifyAdvancedSettings.parameters.minProcessedThresholdPct.description"
+}, {
+  key: "MAX_COMPARISON_FAILURE_PCT",
+  label: "MAX_COMPARISON_FAILURE_PCT",
+  descriptionKey: "k2verifyAdvancedSettings.parameters.maxComparisonFailurePct.description"
+}, {
+  key: "MAX_RECORD_MISMATCH_PCT",
+  label: "MAX_RECORD_MISMATCH_PCT",
+  descriptionKey: "k2verifyAdvancedSettings.parameters.maxRecordMismatchPct.description"
+}, {
+  key: "MAX_SLIDING_WINDOW_FAILURE_PCT",
+  label: "MAX_SLIDING_WINDOW_FAILURE_PCT",
+  descriptionKey: "k2verifyAdvancedSettings.parameters.maxSlidingWindowFailurePct.description"
+}];
+function EditableCell({
+  settingKey,
+  externalValue,
+  onChange
+}) {
+  const [localValue, setLocalValue] = react.exports.useState(externalValue);
+  const prevExternalRef = react.exports.useRef(externalValue);
+  react.exports.useEffect(() => {
+    if (prevExternalRef.current !== externalValue) {
+      setLocalValue(externalValue);
+      prevExternalRef.current = externalValue;
+    }
+  }, [externalValue]);
+  const handleChange = (e) => {
+    const val = e.target.value;
+    if (val === "") {
+      setLocalValue("");
+      onChange(settingKey, "");
+      return;
+    }
+    if (!/^\d+$/.test(val))
+      return;
+    const num = Number(val);
+    if (num < 0 || num > 100)
+      return;
+    setLocalValue(val);
+    onChange(settingKey, val);
+  };
+  return /* @__PURE__ */ jsx("input", {
+    type: "number",
+    min: "0",
+    max: "100",
+    value: localValue,
+    onChange: handleChange,
+    onClick: (e) => e.stopPropagation(),
+    style: {
+      width: "100%",
+      maxWidth: "120px",
+      padding: "8px 10px",
+      border: "1px solid #D0D5DD",
+      borderRadius: "6px",
+      fontSize: "14px"
+    }
+  });
+}
+function K2VerifyAdvancedSettings() {
+  var _a2, _b2;
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  window.k2api = window.k2api || window.parent.k2api;
+  const t3 = ((_b2 = (_a2 = window.k2api) == null ? void 0 : _a2.i18n) == null ? void 0 : _b2.translate) || ((x2) => x2);
+  const [settings, setSettings] = react.exports.useState({});
+  const [editedSettings, setEditedSettings] = react.exports.useState({});
+  const [saving, setSaving] = react.exports.useState(false);
+  const {
+    fetchData: fetchAdvancedSettings,
+    loading,
+    error
+  } = useFetchData(`${apiBasePath2}/api/fabric-command?command=broadway%20verify.bwK2VerifyFetchAdvancedSettings%20`);
+  const normalizeSettings = (raw = {}) => SETTINGS_META.reduce((acc, {
+    key
+  }) => {
+    var _a3;
+    acc[key] = (_a3 = raw[key]) != null ? _a3 : "";
+    return acc;
+  }, {});
+  const loadSettings = react.exports.useCallback(async () => {
+    var _a3;
+    try {
+      const data2 = await fetchAdvancedSettings();
+      const normalized = normalizeSettings((_a3 = data2 == null ? void 0 : data2[0]) == null ? void 0 : _a3.map);
+      setSettings(normalized);
+      setEditedSettings(normalized);
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyAdvancedSettings.toasts.loadFailed"));
+    }
+  }, [fetchAdvancedSettings, t3]);
+  react.exports.useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+  react.exports.useEffect(() => {
+    if (error) {
+      toast.error((error == null ? void 0 : error.message) || t3("k2verifyAdvancedSettings.toasts.loadFailed"));
+    }
+  }, [error, t3]);
+  const handleValueChange = react.exports.useCallback((key, value) => {
+    setEditedSettings((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  }, []);
+  const hasChanges = react.exports.useMemo(() => SETTINGS_META.some(({
+    key
+  }) => {
+    var _a3, _b3;
+    return String((_a3 = editedSettings[key]) != null ? _a3 : "") !== String((_b3 = settings[key]) != null ? _b3 : "");
+  }), [editedSettings, settings]);
+  const tableData = react.exports.useMemo(
+    () => SETTINGS_META.map(({
+      key,
+      label,
+      descriptionKey
+    }) => {
+      var _a3;
+      return {
+        parameter: label,
+        description: t3(descriptionKey),
+        settingKey: key,
+        externalValue: (_a3 = editedSettings[key]) != null ? _a3 : ""
+      };
+    }),
+    [settings, t3]
+  );
+  const columns = react.exports.useMemo(() => [{
+    header: "Parameter",
+    accessorKey: "parameter",
+    enableSorting: true,
+    enableColumnFilter: true,
+    size: 280
+  }, {
+    header: "Value",
+    accessorKey: "externalValue",
+    enableSorting: false,
+    enableColumnFilter: false,
+    size: 160,
+    cell: ({
+      row
+    }) => /* @__PURE__ */ jsx(EditableCell, {
+      settingKey: row.original.settingKey,
+      externalValue: row.original.externalValue,
+      onChange: handleValueChange
+    })
+  }, {
+    header: "Description",
+    accessorKey: "description",
+    enableSorting: true,
+    enableColumnFilter: true,
+    cell: ({
+      row
+    }) => /* @__PURE__ */ jsx("div", {
+      style: {
+        whiteSpace: "normal",
+        lineHeight: "1.5"
+      },
+      children: row.original.description
+    })
+  }], [handleValueChange]);
+  const handleSave = react.exports.useCallback(async () => {
+    for (const {
+      key,
+      label
+    } of SETTINGS_META) {
+      const value = editedSettings[key];
+      if (value === "" || isNaN(Number(value))) {
+        toast.error(`${label} must be a valid number between 0 and 100.`);
+        return;
+      }
+      const num = Number(value);
+      if (num < 0 || num > 100) {
+        toast.error(`${label} must be between 0 and 100.`);
+        return;
+      }
+    }
+    const changedParams = SETTINGS_META.filter(({
+      key
+    }) => {
+      var _a3;
+      return String(editedSettings[key]) !== String((_a3 = settings[key]) != null ? _a3 : "");
+    }).map(({
+      key
+    }) => ({
+      parameter_name: key,
+      parameter_value: String(editedSettings[key])
+    }));
+    if (changedParams.length === 0) {
+      toast.info("No changes to save.");
+      return;
+    }
+    try {
+      setSaving(true);
+      const updateParams = JSON.stringify(changedParams).replace(/'/g, "\\'");
+      await runFabricCommand(`broadway verify.bwK2VerifyUpdateAdvancedSettings update_params='${updateParams}';`);
+      toast.success(t3("k2verifyAdvancedSettings.toasts.saveSuccess") || "Advanced settings updated successfully.");
+      await loadSettings();
+    } catch (err2) {
+      toast.error((err2 == null ? void 0 : err2.message) || t3("k2verifyAdvancedSettings.toasts.saveFailed"));
+      console.error(err2);
+    } finally {
+      setSaving(false);
+    }
+  }, [editedSettings, settings, loadSettings, t3]);
+  const isBusy = saving || loading;
+  return /* @__PURE__ */ jsxs("div", {
+    style: {
+      margin: "0 30px 45px",
+      backgroundColor: "white",
+      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      borderRadius: "8px",
+      padding: "24px",
+      position: "relative"
+    },
+    children: [/* @__PURE__ */ jsx(ToastContainer, {
+      position: "top-right",
+      autoClose: 5e3,
+      hideProgressBar: false,
+      newestOnTop: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "colored"
+    }), /* @__PURE__ */ jsxs("div", {
+      style: {
+        display: "flex",
+        marginTop: "5px",
+        justifyContent: "space-between",
+        alignItems: "center"
+      },
+      children: [/* @__PURE__ */ jsx("h1", {
+        children: t3("k2verifyAdvancedSettings.title") || "Advanced Settings"
+      }), /* @__PURE__ */ jsx("button", {
+        type: "button",
+        className: "new-task-btn",
+        onClick: handleSave,
+        disabled: isBusy || !hasChanges,
+        style: {
+          opacity: isBusy || !hasChanges ? 0.6 : 1,
+          cursor: isBusy || !hasChanges ? "not-allowed" : "pointer"
+        },
+        children: /* @__PURE__ */ jsx("span", {
+          children: saving ? "Saving..." : "Save"
+        })
+      })]
+    }), /* @__PURE__ */ jsx("hr", {
+      style: {
+        margin: "25px 0",
+        border: "1px solid #EAEAEA"
+      }
+    }), /* @__PURE__ */ jsx(ReactTable, {
+      data: tableData,
+      columns,
+      loading,
+      initialPageSize: 10,
+      maxBodyHeight: 600,
+      defaultMessage: "No advanced settings found."
+    })]
+  });
+}
+const SETTINGS = {
+  name: "Settings",
+  children: [{
+    name: "Configuration",
+    path: "/settings/configuration"
+  }, {
+    name: "Environments",
+    path: "/settings/environments"
+  }, {
+    name: "Permission Groups",
+    path: "/settings/permission-groups"
+  }, {
+    name: "Execution Control",
+    path: "/settings/execution-control"
+  }]
+};
 function Breadcrumb({
   homeTo = "/tasks",
   homeLabel = "Home"
@@ -40387,6 +43646,24 @@ function Breadcrumb({
         to: `/results/${executionId}`,
         label: `Results for Task Execution Id ${executionId}`
       });
+    } else if (segments.length === 1 && segments[0] === "settings") {
+      c2.push({
+        to: "/settings",
+        label: SETTINGS.name
+      });
+    } else if (segments.length === 2 && segments[0] === "settings") {
+      const slug = decodeURIComponent(segments[1]);
+      const settingsPath = `/settings/${slug}`;
+      const child = SETTINGS.children.find((x2) => x2.path === settingsPath);
+      const fallbackLabel = slug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+      c2.push({
+        to: "/settings",
+        label: "Settings"
+      });
+      c2.push({
+        to: settingsPath,
+        label: (child == null ? void 0 : child.name) || fallbackLabel
+      });
     } else {
       if (segments[0])
         c2.push({
@@ -40431,6 +43708,17 @@ function Breadcrumb({
     })
   });
 }
+var footer = "";
+const t2 = window.k2api.i18n.translate;
+function Footer() {
+  const versionKey = "k2verify.Version";
+  const translatedVersion = t2(versionKey);
+  const version2 = translatedVersion && translatedVersion !== versionKey ? "Version " + translatedVersion : "";
+  return /* @__PURE__ */ jsxs("div", {
+    className: "footer fixed",
+    children: ["Copyright K2view \xA9 ", new Date().getFullYear(), "  ", version2]
+  });
+}
 var App$1 = "";
 var k2 = "";
 function App() {
@@ -40447,47 +43735,93 @@ function App() {
     }, {
       name: "Results",
       path: "/results"
+    }, {
+      name: "Settings",
+      children: [{
+        name: "Configuration",
+        path: "/settings/configuration"
+      }, {
+        name: "Advanced Settings",
+        path: "/settings/advanced-settings"
+      }]
     }]);
   }, [navigate]);
-  return /* @__PURE__ */ jsxs("div", {
-    className: "min-h-screen bg-[#cccccc] pt-[30px] px-[30px] pb-[45px]",
-    children: [/* @__PURE__ */ jsx(Breadcrumb, {}), /* @__PURE__ */ jsxs(Routes, {
-      children: [/* @__PURE__ */ jsx(Route, {
-        path: "/",
-        element: /* @__PURE__ */ jsx(Navigate, {
-          to: "/tasks",
-          replace: true
-        })
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/tasks",
-        element: /* @__PURE__ */ jsx(K2VerifyHomePage, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/task",
-        element: /* @__PURE__ */ jsx(K2VerifyTaskCreation, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/history/:taskId",
-        element: /* @__PURE__ */ jsx(K2VerifyTaskHistory, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/execution/:taskId",
-        element: /* @__PURE__ */ jsx(K2VerifyExecution, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/results",
-        element: /* @__PURE__ */ jsx(K2VerifyTaskResults, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/results/:executionId",
-        element: /* @__PURE__ */ jsx(K2VerifyResultsDetailed, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "/history/:taskId/detailed/:executionId",
-        element: /* @__PURE__ */ jsx(K2VerifyTaskHistoryDetailed, {})
-      }), /* @__PURE__ */ jsx(Route, {
-        path: "*",
-        element: /* @__PURE__ */ jsx(K2VerifyHomePage, {})
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsxs("div", {
+      className: "min-h-screen bg-[#cccccc] pt-[30px] px-[30px] pb-[45px]",
+      children: [/* @__PURE__ */ jsx(Breadcrumb, {}), /* @__PURE__ */ jsxs(Routes, {
+        children: [/* @__PURE__ */ jsx(Route, {
+          path: "/",
+          element: /* @__PURE__ */ jsx(Navigate, {
+            to: "/tasks",
+            replace: true
+          })
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/tasks",
+          element: /* @__PURE__ */ jsx(K2VerifyHomePage, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/task",
+          element: /* @__PURE__ */ jsx(K2VerifyTaskCreation, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/history/:taskId",
+          element: /* @__PURE__ */ jsx(K2VerifyTaskHistory, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/execution/:taskId",
+          element: /* @__PURE__ */ jsx(K2VerifyExecution, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/results",
+          element: /* @__PURE__ */ jsx(K2VerifyTaskResults, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/results/:executionId",
+          element: /* @__PURE__ */ jsx(K2VerifyResultsDetailed, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/history/:taskId/detailed/:executionId",
+          element: /* @__PURE__ */ jsx(K2VerifyTaskHistoryDetailed, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/settings",
+          element: /* @__PURE__ */ jsx(Navigate, {
+            to: "/settings/configuration",
+            replace: true
+          })
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/settings/configuration",
+          element: /* @__PURE__ */ jsx(K2VerifyConfiguration, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "/settings/advanced-settings",
+          element: /* @__PURE__ */ jsx(K2VerifyAdvancedSettings, {})
+        }), /* @__PURE__ */ jsx(Route, {
+          path: "*",
+          element: /* @__PURE__ */ jsx(K2VerifyHomePage, {})
+        })]
       })]
-    })]
+    }), /* @__PURE__ */ jsx(Footer, {})]
   });
 }
+function getBasePath() {
+  const scripts = document.getElementsByTagName("script");
+  for (let script of scripts) {
+    const src = script.src;
+    if (src && src.includes("/assets/") && src.endsWith(".js")) {
+      const match = src.match(/(.*?)\/assets\//);
+      if (match) {
+        const url = new URL(match[1], window.location.origin);
+        return url.pathname;
+      }
+    }
+  }
+  return "/";
+}
+function getApiBasePath(fullBasePath) {
+  const match = fullBasePath.match(/^(\/[^/]+)\/static\/k2verify/);
+  return match ? match[1] : "";
+}
+const basename = getBasePath();
+const apiBasePath = getApiBasePath(basename);
+window.__APP_BASE_PATH__ = basename;
+window.__API_BASE_PATH__ = apiBasePath;
 client.createRoot(document.getElementById("root")).render(/* @__PURE__ */ jsx(React.StrictMode, {
   children: /* @__PURE__ */ jsx(BrowserRouter, {
+    basename,
     children: /* @__PURE__ */ jsx(App, {})
   })
 }));

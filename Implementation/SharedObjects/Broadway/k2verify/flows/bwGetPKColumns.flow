@@ -29,8 +29,11 @@ stages:
             const: key!=null && key!=''
           key:
             link: Const1/value
-            schema: any
+            schema: string
             mandatory: false
+        out:
+          result:
+            schema: boolean
       Const2:
         parent: Const
         in:
@@ -97,12 +100,25 @@ stages:
         out:
           result:
             schema: '#ref'
-  Pii Cols:
+  Stage 5:
     dependsOn: Stage 2
     split: '--------------------'
-  Stage 4:
+  Stage 6:
     dependsOn: Stage 3
     actors:
+      JavaScript2:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: key!=null && key!=''
+          key:
+            link: PII From Catalog mt/result/field
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: boolean
       Concat2:
         parent: Concat
         in:
@@ -111,6 +127,54 @@ stages:
             link: SEPERATOR/variableValue
           elements:
             link: PII From Catalog mt/result/field
+        out:
+          string:
+            external: pk_columns
+    split: '--------------------'
+  Stage 7:
+    else: true
+    dependsOn: Stage 3
+    actors:
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: getTableFieldsByJDBC
+          dbInterfaceName:
+            external: interface
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          schemaName:
+            external: schema
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          tableName:
+            external: table
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: '#ref'
+  Pii Cols:
+    dependsOn: Stage 5
+    split: '--------------------'
+  Stage 4:
+    dependsOn: Stage 6
+    split: '--------------------'
+  Stage 8:
+    dependsOn: Stage 7
+    actors:
+      Concat1:
+        parent: Concat
+        in:
+          delimiter:
+            const: null
+            link: SEPERATOR/variableValue
+          elements:
+            link: LuFunction1/result
         out:
           string:
             external: pk_columns
@@ -154,3 +218,18 @@ schemas:
           }
         V3: {
           }
+  JavaScript2.in.key:
+    type: array
+    items:
+      type: string
+  LuFunction1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        column_name:
+          type: string
+        column_type:
+          type: string
+        column_sqlite_type:
+          type: string

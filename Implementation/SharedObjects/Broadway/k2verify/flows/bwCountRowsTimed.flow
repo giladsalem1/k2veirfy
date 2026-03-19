@@ -1,0 +1,45 @@
+tags: k2verify
+stages:
+  Stage 1:
+    transactional: true
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            external: Source_Interface
+          sql:
+            const: SET LOCAL statement_timeout = '60000ms';
+      BuildCountSql:
+        parent: JavaScript
+        in:
+          script:
+            const: '"SELECT COUNT(*) AS row_count FROM " + Source_Schema + "." + Source_Table'
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 2:
+    transactional: true
+    actors:
+      FetchRowCount:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            external: Source_Interface
+          sql:
+            const: null
+            link: BuildCountSql/result
+        out:
+          result:
+            external: row_count
+            schema: integer

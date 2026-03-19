@@ -1,0 +1,409 @@
+tags: k2verify
+stages:
+  Stage 6:
+    actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+      DbFetchFirstRow1:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: |2-
+               select
+              active as "Active",
+              partitions_count as "Buckets",
+              column_name_mapping as  "Column_Mapping",
+              comparison_keys as "Customized_Key_Comparison",
+              excluded_columns_names as "Excluded_Columns_Names",
+              partitions_assignment_method as "Buckets_Method",
+              pii_column_names as "Pii_Columns",
+              rows_filter_condition as "Excluded_Rows_Sql",
+              source_ignore_null_columns as "source_columns_to_Ignore_null",
+              source_interface as "Source_Interface",
+              source_schema as "Source_Schema",
+              source_table_name as "Source_Table_Name",
+              source_transformation_flow as "Source_Transformation_Function_Name",
+              target_ignore_null_columns  as "target_columns_to_Ignore_null",
+              target_interface as "Target_Interface",
+              target_schema as "Target_Schema",
+              target_table_name as "Target_Table_Name",
+              target_transformation_flow as "Target_Transformation_Function_Name"
+              from ${@schema}.verify_configuration where  source_interface=${source_interface} and source_schema=${source_schema} and source_table_name=${source_table_name} and
+              target_interface= ${target_interface} and target_schema=${target_schema} and target_table_name=${target_table_name}
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_interface:
+            external: Source_Interface
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_table_name:
+            external: Source_Table_Name
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_interface:
+            external: Target_Interface
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_schema:
+            external: Target_Schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          target_table_name:
+            external: Target_Table_Name
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 1:
+    actors:
+      bwGetPiiColumns1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPiiColumns
+          customized_pii:
+            link: DbFetchFirstRow1/result/Pii_Columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: Source_Interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            external: Source_Schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            external: Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+        out:
+          pii_columns:
+            schema: string
+      bwGetPKColumns1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPKColumns
+          customized_key:
+            link: DbFetchFirstRow1/result/Customized_Key_Comparison
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: Source_Interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            external: Source_Schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            external: Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+        out:
+          pk_columns:
+            schema: string
+  Stage 2:
+    dependsOn: Stage 1
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: DbFetchFirstRow1/result
+      MapCreate2:
+        parent: MapCreate
+        in:
+          Buckets:
+            external: Buckets
+            schema: integer
+            mandatory: false
+          Customized_Key_Comparison:
+            link: bwGetPKColumns1/pk_columns
+            schema: string
+            mandatory: false
+          Pii_Columns:
+            link: bwGetPiiColumns1/pii_columns
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 3:
+    else: true
+    dependsOn: Stage 1
+    actors:
+      MapCreate1:
+        parent: MapCreate
+        in:
+          Source_Table_Name:
+            external: Source_Table_Name
+            schema: any
+            mandatory: false
+          Source_Interface:
+            external: Source_Interface
+            schema: any
+            mandatory: false
+          Source_Schema:
+            external: Source_Schema
+            schema: any
+            mandatory: false
+          Source_Transformation_Function_Name:
+            schema: any
+            mandatory: false
+          source_columns_to_Ignore_null:
+            schema: any
+            mandatory: false
+          Target_Table_Name:
+            external: Target_Table_Name
+            schema: any
+            mandatory: false
+          Target_Interface:
+            external: Target_Interface
+            schema: any
+            mandatory: false
+          Target_Schema:
+            external: Target_Schema
+            schema: any
+            mandatory: false
+          Target_Transformation_Function_Name:
+            schema: any
+            mandatory: false
+          target_columns_to_Ignore_null:
+            schema: any
+            mandatory: false
+          Customized_Key_Comparison:
+            link: bwGetPKColumns1/pk_columns
+            schema: any
+            mandatory: false
+          Pii_Columns:
+            link: bwGetPiiColumns1/pii_columns
+            schema: any
+            mandatory: false
+          Excluded_Columns_Names:
+            schema: any
+            mandatory: false
+          Excluded_Rows_Sql:
+            schema: any
+            mandatory: false
+          Column_Mapping:
+            schema: any
+            mandatory: false
+          Buckets:
+            external: Buckets
+            schema: any
+            mandatory: false
+          Buckets_Method:
+            const: bwGetBucketRows
+            schema: string
+            mandatory: false
+          Active:
+            const: 'TRUE'
+            schema: string
+            mandatory: false
+        out:
+          map:
+            external: tableParams
+  Stage 4:
+    dependsOn: Stage 2
+    actors:
+      MapMerge1:
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: DbFetchFirstRow1/result
+              pos: 0
+            - path: MapCreate2/map
+              pos: 1
+        out:
+          map:
+            schema: '#ref'
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: MapMerge1/map
+        out:
+          value:
+            external: tableParams
+            schema: '#ref'
+    split: '--------------------'
+  Stage 5:
+    dependsOn: Stage 3
+schemas:
+  DbFetchFirstRow1.out.result:
+    type: object
+    properties:
+      Active:
+        type: boolean
+      Buckets:
+        type: integer
+      Column_Mapping:
+        type: string
+      Customized_Key_Comparison:
+        type: string
+      Excluded_Columns_Names:
+        type: string
+      Buckets_Method:
+        type: string
+      Pii_Columns:
+        type: string
+      Excluded_Rows_Sql:
+        type: string
+      source_columns_to_Ignore_null:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Table_Name:
+        type: string
+      Source_Transformation_Function_Name:
+        type: string
+      target_columns_to_Ignore_null:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Table_Name:
+        type: string
+      Target_Transformation_Function_Name:
+        type: string
+  MapCreate2.out.map:
+    type: object
+    properties:
+      Buckets:
+        type: integer
+  MapMerge1.out.map:
+    type: object
+    properties:
+      Source_Table_Name:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Transformation_Function_Name: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Target_Table_Name:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Customized_Key_Comparison: {
+        }
+      Pii_Columns:
+        type: string
+      Excluded_Columns_Names: {
+        }
+      Active:
+        type: string
+      Mode: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Column_Mapping: {
+        }
+      Buckets:
+        type: integer
+      Buckets_Method:
+        type: string
+  Const1.out.value:
+    type: object
+    properties:
+      Source_Table_Name:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Transformation_Function_Name: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Target_Table_Name:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Customized_Key_Comparison:
+        type: string
+      Pii_Columns: {
+        }
+      Excluded_Columns_Names: {
+        }
+      Active:
+        type: string
+      Mode: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Column_Mapping: {
+        }
+      Buckets:
+        type: string
+      Buckets_Method:
+        type: string

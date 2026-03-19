@@ -69,6 +69,18 @@ stages:
                         columnCiSql = "SELECT COLNAME FROM SYSCAT.COLUMNS WHERE TABSCHEMA = UPPER('${@schema}') AND TABNAME = UPPER('${@table}')";
                     }
 
+                        // ---------------- MYSQL ----------------
+                  else if (db === "mysql (db)" || db === "mariadb (db)") {
+                    schemaSql = "SELECT 1 FROM information_schema.schemata WHERE schema_name = '${@schema}'";
+                    tableSql  = "SELECT 1 FROM information_schema.tables WHERE table_schema = '${@schema}' AND table_name = '${@table}'";
+                    columnSql = "SELECT 1 FROM information_schema.columns WHERE table_schema = '${@schema}' AND table_name = '${@table}' AND column_name = '${@column}'";
+
+                    // Case-insensitive check: return the list; compare in JS ignoring case.
+                    columnCiSql = "SELECT column_name FROM information_schema.columns " +
+                                  "WHERE table_schema = '${@schema}' AND table_name = '${@table}'";
+                  }
+
+
                     return {
                         "schema": schemaSql,
                         "table": tableSql,
@@ -112,7 +124,14 @@ stages:
                           columnSql = "SELECT 1 FROM SYSCAT.COLUMNS WHERE TABSCHEMA = UPPER('${@schema}') AND TABNAME = UPPER('${@table}') AND COLNAME = '${@column}'"; // Case-insensitive column
 
                           columnCiSql = "SELECT COLNAME FROM SYSCAT.COLUMNS WHERE TABSCHEMA = UPPER('${@schema}') AND TABNAME = UPPER('${@table}')";
-                        }
+                        } // ---------------- MYSQL ----------------
+                        else if (db === "mysql (db)" || db === "mariadb (db)") {
+                            schemaSql = "SELECT 1 FROM information_schema.schemata WHERE schema_name = '${@schema}'";
+                            tableSql = "SELECT 1 FROM information_schema.tables WHERE table_schema = '${@schema}' AND table_name = '${@table}'";
+                            columnSql = "SELECT 1 FROM information_schema.columns WHERE table_schema = '${@schema}' AND table_name = '${@table}' AND column_name = '${@column}'"; // Case-insensitive check: return the list; compare in JS ignoring case.
+
+                            columnCiSql = "SELECT column_name FROM information_schema.columns " + "WHERE table_schema = '${@schema}' AND table_name = '${@table}'";
+                          }
 
                   return {
                     "schema": schemaSql,

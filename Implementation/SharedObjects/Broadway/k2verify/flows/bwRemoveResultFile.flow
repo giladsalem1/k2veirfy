@@ -1,0 +1,170 @@
+tags: k2verify
+stages:
+  Stage 2:
+    actors:
+      RESULTS DIR:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_RESULT_FILES_PATH
+  Stage 3:
+    actors:
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: _@_
+          string:
+            external: bucket_id
+  Stage 4:
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: |-
+                const myMap = {};
+
+                myMap.tableName =iid[0];
+                myMap.bucketId  = iid[1];
+
+                myMap;
+              script: |-
+                var myMap = {};
+                myMap.tableName = iid[0];
+                myMap.bucketId = iid[1];
+                myMap;
+          iid:
+            link: Split1/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      DUMMY GET1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_CSV_MODE;
+        out:
+          result:
+            schema: '#ref'
+  Stage 1:
+    dependsOn: Stage 5
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            link:
+              path: DUMMY GET1/result/value
+              iterate: First
+      fileName1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/verify_fields_results_src_${source_table_name}_${execution_id}_${bucket_id}.csv
+          bucket_id:
+            link: JavaScript1/result/bucketId
+            schema: string
+            mandatory: false
+            createdBy: format
+          dir:
+            link: RESULTS DIR/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: format
+          source_table_name:
+            link: JavaScript1/result/tableName
+            schema: string
+            mandatory: false
+            createdBy: format
+    split: '--------------------'
+  Stage 6:
+    else: true
+    dependsOn: Stage 5
+    actors:
+      fileName11:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
+          bucket_id:
+            link: JavaScript1/result/bucketId
+            schema: string
+            mandatory: false
+            createdBy: format
+          dir:
+            link: RESULTS DIR/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: format
+          source_table_name:
+            link: JavaScript1/result/tableName
+            schema: string
+            mandatory: false
+            createdBy: format
+  Stage 12:
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      rm:
+        parent: rm
+        in:
+          interface:
+            const: file://
+          path:
+            link:
+            - fileName1/string
+            - fileName11/string
+schemas:
+  JavaScript1.in.iid:
+    type: array
+    items:
+      type: string
+  JavaScript1.out.result:
+    type: object
+    properties:
+      tableName:
+        type: string
+      bucketId:
+        type: string
+  DUMMY GET1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        value:
+          type: string

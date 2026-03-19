@@ -214,6 +214,63 @@
                                     }
                                 ]
                             }
+                        },
+                        {
+                            "name": "environment",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Read Source Environment",
+                            "actorType": {
+                                "parentType": "FabricSetRead",
+                                "inputs": [
+                                    {
+                                        "name": "key",
+                                        "const": "K2VERIFY_SOURCE_ENV",
+                                        "isDefault": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Const4",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
@@ -265,6 +322,19 @@
                                             "type": "string"
                                         },
                                         "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "SET ENVIRONMENT",
+                            "actorType": {
+                                "parentType": "FabricSet",
+                                "inputs": [
+                                    {
+                                        "name": "key",
+                                        "const": "ENVIRONMENT"
                                     }
                                 ],
                                 "outputs": []
@@ -465,6 +535,7 @@
                         },
                         {
                             "name": "bwCheckDBType1",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -477,6 +548,12 @@
                                         "schema": {
                                             "type": "string"
                                         },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "envName",
+                                        "schema": {},
                                         "createdBy": "flowName",
                                         "mandatory": false
                                     }
@@ -586,18 +663,148 @@
                     "hasElse": true,
                     "actors": [
                         {
-                            "name": "DB Type To Query",
+                            "name": "EqualsIgnoreCase2",
+                            "condition": "result",
                             "actorType": {
-                                "parentType": "Mapper",
+                                "parentType": "EqualsIgnoreCase",
                                 "inputs": [
                                     {
-                                        "name": "script",
-                                        "const": "var sql;\nif (value.toLowerCase() == \"PostgreSQL (Db)\".toLowerCase()) sql = \"SELECT column_name as COLUMN FROM information_schema.columns where table_name = '${@table}'\";\nelse if (value.toLowerCase() == \"Cassandra (Db)\".toLowerCase()) sql = \"select column_name as COLUMN from system_schema.columns  where keyspace_name = '${@schema}' and table_name = '${@table}'\";\nelse if (value.toLowerCase() == \"Oracle (Db)\".toLowerCase()) sql = \"SELECT COLUMN_NAME AS \\\"COLUMN\\\" FROM ALL_TAB_COLUMNS WHERE TABLE_NAME = UPPER('${@table}')\";\nelse if (value.toLowerCase() == \"DB2 (Db)\".toLowerCase()) sql = \"SELECT COLNAME AS COLUMN FROM SYSCAT.COLUMNS WHERE TABNAME = UPPER('${@table}')\";\n\nsql;"
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "fabric"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "DbFetchFirstRow1",
+                            "actorType": {
+                                "parentType": "DbFetchFirstRow",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "select * from ${@schema}.${@table} limit 1"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": [
                                     {
-                                        "name": "values",
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "CUSTOMER_ID": {
+                                                    "type": "string"
+                                                },
+                                                "SSN": {
+                                                    "type": "string"
+                                                },
+                                                "FIRST_NAME": {
+                                                    "type": "string"
+                                                },
+                                                "LAST_NAME": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "non-IMS/Vsam DBs",
+                    "dependsOnList": [
+                        "Stage 13"
+                    ],
+                    "isTransactional": false,
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "NotEquals1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "vsam (Db)"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "IMS/Vsam DB",
+                    "dependsOnList": [
+                        "Stage 13"
+                    ],
+                    "isTransactional": false,
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "LuFunction1",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "fnFetchColumnsFromIMS"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "interface_name",
+                                        "schema": {},
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
                                         "schema": {
                                             "type": "array",
                                             "items": {
@@ -606,14 +813,6 @@
                                         }
                                     }
                                 ]
-                            }
-                        },
-                        {
-                            "name": "Lowercase1",
-                            "actorType": {
-                                "parentType": "Lowercase",
-                                "inputs": [],
-                                "outputs": []
                             }
                         }
                     ]
@@ -656,23 +855,54 @@
                     ],
                     "actors": [
                         {
-                            "name": "Get Columns from SRC",
+                            "name": "JavaScript2",
                             "actorType": {
-                                "parentType": "DbCommand",
+                                "parentType": "JavaScript",
                                 "inputs": [
                                     {
-                                        "name": "interface",
-                                        "const": null
+                                        "name": "script",
+                                        "const": "object.keySet();"
                                     },
                                     {
-                                        "name": "sql",
-                                        "const": null
+                                        "name": "object",
+                                        "schema": {},
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 18",
+                    "dependsOnList": [
+                        "non-IMS/Vsam DBs"
+                    ],
+                    "actors": [
+                        {
+                            "name": "Get Columns from Source",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "fnFetchColumns"
+                                    },
+                                    {
+                                        "name": "iface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
                                     },
                                     {
                                         "name": "schema",
                                         "schema": {
                                             "type": "string"
                                         },
+                                        "createdBy": "functionName",
                                         "mandatory": false
                                     },
                                     {
@@ -680,6 +910,15 @@
                                         "schema": {
                                             "type": "string"
                                         },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
                                         "mandatory": false
                                     }
                                 ],
@@ -689,30 +928,7 @@
                                         "schema": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "schema": {
-                                                        "type": "string"
-                                                    },
-                                                    "table": {
-                                                        "type": "string"
-                                                    },
-                                                    "column": {
-                                                        "type": "string"
-                                                    },
-                                                    "type": {
-                                                        "type": "string"
-                                                    },
-                                                    "nullable": {
-                                                        "type": "boolean"
-                                                    },
-                                                    "default": {
-                                                        "type": "string"
-                                                    },
-                                                    "pk": {
-                                                        "type": "boolean"
-                                                    }
-                                                }
+                                                "type": "string"
                                             }
                                         }
                                     }
@@ -720,6 +936,13 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Stage 21",
+                    "dependsOnList": [
+                        "IMS/Vsam DB"
+                    ],
+                    "actors": []
                 }
             ]
         },
@@ -786,13 +1009,13 @@
                     ],
                     "actors": [
                         {
-                            "name": "Mapper2",
+                            "name": "Mapper3",
                             "actorType": {
                                 "parentType": "Mapper",
                                 "inputs": [
                                     {
                                         "name": "script",
-                                        "const": "value[0].toUpperCase()"
+                                        "const": "value.toUpperCase()"
                                     }
                                 ],
                                 "outputs": [
@@ -807,7 +1030,15 @@
                                     }
                                 ]
                             }
-                        },
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 19",
+                    "dependsOnList": [
+                        "Stage 18"
+                    ],
+                    "actors": [
                         {
                             "name": "Const2",
                             "actorType": {
@@ -832,6 +1063,13 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Stage 22",
+                    "dependsOnList": [
+                        "Stage 21"
+                    ],
+                    "actors": []
                 }
             ]
         },
@@ -881,7 +1119,7 @@
         {
             "stages": [
                 {
-                    "name": "Stage 16",
+                    "name": "Stage 17",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -889,7 +1127,17 @@
                             "actorType": {
                                 "parentType": "DeepCopy",
                                 "inputs": [],
-                                "outputs": []
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
@@ -1037,8 +1285,8 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "bwCheckDBType1",
-                "name": "interface"
+                "actor": "EqualsIgnoreCase2",
+                "name": "a"
             }
         },
         {
@@ -1047,7 +1295,27 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Get Columns from SRC",
+                "actor": "LuFunction1",
+                "name": "interface_name"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Interface",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Get Columns from Source",
+                "name": "iface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Interface",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "bwCheckDBType1",
                 "name": "interface"
             }
         },
@@ -1057,7 +1325,27 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Get Columns from SRC",
+                "actor": "DbFetchFirstRow1",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Schema",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Schema",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Get Columns from Source",
                 "name": "schema"
             }
         },
@@ -1077,8 +1365,28 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Lowercase1",
-                "name": "string"
+                "actor": "DbFetchFirstRow1",
+                "name": "table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Table",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Table",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Get Columns from Source",
+                "name": "table"
             }
         },
         {
@@ -1253,6 +1561,36 @@
         },
         {
             "leftPort": {
+                "actor": "environment",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "SET ENVIRONMENT",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Read Source Environment",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Get Columns from Source",
+                "name": "environment"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Const4",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "NotEquals1",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "UppercaseExcluded",
                 "name": "string"
             },
@@ -1327,10 +1665,9 @@
                 "name": "type"
             },
             "rightPort": {
-                "actor": "DB Type To Query",
-                "name": "values"
-            },
-            "arrayPosition": 0
+                "actor": "LuFunction1",
+                "name": "params"
+            }
         },
         {
             "leftPort": {
@@ -1356,23 +1693,22 @@
         },
         {
             "leftPort": {
-                "actor": "DB Type To Query",
-                "name": "values"
+                "actor": "DbFetchFirstRow1",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "Get Columns from SRC",
-                "name": "sql"
-            },
-            "iterate": "First"
+                "actor": "JavaScript2",
+                "name": "object"
+            }
         },
         {
             "leftPort": {
-                "actor": "Lowercase1",
-                "name": "string"
+                "actor": "LuFunction1",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "Get Columns from SRC",
-                "name": "table"
+                "actor": "Filter Columns",
+                "name": "values"
             }
         },
         {
@@ -1387,11 +1723,21 @@
         },
         {
             "leftPort": {
-                "actor": "Get Columns from SRC",
+                "actor": "JavaScript2",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "Mapper2",
+                "actor": "Mapper3",
+                "name": "values"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Get Columns from Source",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "Filter Columns",
                 "name": "values"
             }
         },
@@ -1417,7 +1763,7 @@
         },
         {
             "leftPort": {
-                "actor": "Mapper2",
+                "actor": "Mapper3",
                 "name": "values"
             },
             "rightPort": {
@@ -1562,6 +1908,26 @@
             },
             "rightPort": {
                 "actor": "Exclude Condition",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "environment"
+            },
+            "rightPort": {
+                "actor": "environment",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "Const4",
                 "name": "value"
             }
         },

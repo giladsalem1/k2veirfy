@@ -1,33 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS ${@schema};
 
---DROP TABLE IF EXISTS ${@schema}.k2verify_field_summary;
-
-CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_field_summary (
-  EXECUTION_ID bigint, 
-  IID character varying(200), 
-  SOURCE_TABLE_NAME character varying(200), 
-  TARGET_TABLE_NAME character varying(200), 
-  CUSTOMIZED_KEY character varying(1000), 
-  COLUMN_NAME character varying(200), 
-  MATCH_RESULT character varying(50), 
-  TARGET_VALUE_SECURED character varying(50), 
-  SOURCE_COLUMN_VALUE character varying(1000), 
-  TARGET_COLUMN_VALUE character varying(1000), 
-  SOURCE_COLUMN_VALUE_TRANS character varying(1000), 
-  TARGET_COLUMN_VALUE_TRANS character varying(1000), 
-  BW_TRANSFORMATION_FLOW boolean, 
-  NULL_COMPARE boolean, 
-  LOOKUP boolean, 
-  DEFAULT_VALUE boolean, 
-  PRIMARY KEY(
-    EXECUTION_ID, IID, SOURCE_TABLE_NAME, 
-    TARGET_TABLE_NAME, CUSTOMIZED_KEY, 
-    COLUMN_NAME
-  )
-);
-
-CREATE INDEX IF NOT EXISTS IID_FIELD_SUMMARY_IDX ON ${@schema}.k2verify_field_summary (iid);
-
 --DROP TABLE IF EXISTS ${@schema}.k2verify_entity_summary;
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_entity_summary (
@@ -47,28 +19,6 @@ UPDATE_TIME timestamp,
 );
 
 CREATE INDEX IF NOT EXISTS IID_ENTITY_SUMMARY_IDX ON ${@schema}.k2verify_entity_summary (iid, update_time);
-
---DROP TABLE IF EXISTS ${@schema}.k2verify_record_summary;
-
-CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_record_summary (
-  EXECUTION_ID bigint, 
-  IID character varying(200), 
-  SOURCE_TABLE_NAME character varying(200), 
-  TARGET_TABLE_NAME character varying(200), 
-  CUSTOMIZED_KEY character varying(1000), 
-  NUMBER_OF_FIELDS_MATCH integer, 
-  NUMBER_OF_FIELDS_MISMATCH integer, 
-  NUMBER_OF_FIELDS_ONLY_IN_SOURCE integer, 
-  NUMBER_OF_FIELDS_ONLY_IN_TARGET integer, 
-  NUMBER_OF_FIELDS_UNSECURED_IN_TARGET integer, 
-  MATCH_RESULT character varying(200), 
-  PRIMARY KEY(
-    EXECUTION_ID, IID, SOURCE_TABLE_NAME, 
-    TARGET_TABLE_NAME, CUSTOMIZED_KEY
-  )
-);
-
-CREATE INDEX IF NOT EXISTS IID_RECORD_SUMMARY_IDX ON ${@schema}.k2verify_record_summary (execution_id, source_table_name, target_table_name);
 
 --DROP TABLE IF EXISTS ${@schema}.k2verify_table_summary;
 
@@ -184,9 +134,19 @@ CREATE TABLE IF NOT EXISTS ${@schema}.tasks
     CONSTRAINT tasks_pkey PRIMARY KEY (task_id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS tasks_active_name_ux
-    ON ${@schema}.tasks (task_title)
-    WHERE task_status <> 'inactive';
+CREATE TABLE IF NOT EXISTS  ${@schema}.task_table_properties
+(
+task_id bigint, 
+source_table_name text,
+target_table_name text,
+table_properties text,
+CONSTRAINT fk_task_ref_task
+        FOREIGN KEY (task_id)
+        REFERENCES ${@schema}.tasks (task_id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
 CREATE INDEX IF NOT EXISTS tasks_status_taskid_idx
 ON ${@schema}.tasks (lower(task_status), task_id DESC);
 
@@ -217,6 +177,20 @@ ON ${@schema}.task_execution (execution_id)
 INCLUDE (task_id)
 WHERE lower(execution_status) NOT IN ('failed','completed','stopped','killed');
 
+CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_history
+(
+    execution_id       bigint NOT NULL DEFAULT nextval('${@schema}.task_execution_id_seq'::regclass),
+    number_of_fields_match bigint,
+    number_of_fields_mismatch   bigint,
+    number_of_fields_only_in_source         bigint,
+    number_of_fields_only_in_target         bigint,
+    PRIMARY KEY (execution_id)
+
+);
+
+CREATE INDEX IF NOT EXISTS task_execution_history_taskid_execid_desc_idx
+ON ${@schema}.task_execution (execution_id DESC);
+
 
 CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_tables
 (
@@ -243,28 +217,76 @@ ON ${@schema}.task_execution_tables (execution_id, task_id);
 
 
 CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_buckets
-(
-    task_id           bigint NOT NULL,
-    execution_id      bigint NOT NULL,
-    table_name        text   NOT NULL,
-    bucket_id         bigint NOT NULL,
-    status            text,
-    total_records     numeric(20,0),
-    total_fields      numeric(20,0),
-    processed_records numeric(20,0),
-    failed_records    numeric(20,0),
-    start_time        timestamp without time zone,
-    end_time          timestamp without time zone,
-    error_info        text,
-    time_until_copy          timestamp without time zone,
-    time_after_copy          timestamp without time zone,
-    CONSTRAINT task_execution_buckets_pk
-        PRIMARY KEY (task_id, execution_id, table_name, bucket_id),
+        (
+                task_id                                  bigint NOT NULL                                       ,
+                execution_id                             bigint NOT NULL                                       ,
+                table_name                               text NOT NULL                                         ,
+                bucket_id                                text NOT NULL                                       ,
+                status                                   text                                                  ,
+                total_records                            numeric(20,0)                                         ,
+                total_fields                             numeric(20,0)                                         ,
+                processed_records                        numeric(20,0)                                         ,
+                failed_records                           numeric(20,0)                                         ,
+                start_time                               timestamp without time zone                           ,
+                end_time                                 timestamp without time zone                           ,
+                error_info                               text                                                  ,
+                time_until_copy                          timestamp without time zone                           ,
+                time_after_copy                          timestamp without time zone                           ,
+                failed_fields                            integer                                               ,
+                prepare_keys_group_duration              integer                                               ,
+                create_src_statement_duration            integer                                               ,
+                verify_all_keys_exists_duration          integer                                               ,
+                verify_all_records_duration              integer                                               ,
+                update_nx1000_records_duration           integer                                               ,
+                duration_6                               integer                                               ,
+                verify_source_target_data_start          timestamp without time zone                           ,
+                keys_group_loop_start                    timestamp without time zone                           ,
+                end_of_process                           timestamp without time zone                           ,
+                select_all_records_from_source_duration  integer                                               ,
+                all_src_transformation_duration          integer                                               ,
+                select_all_records_from_tartget_duration integer                                               ,
+                all_tar_transformation_duration          integer                                               ,
+                all_src_records_map_duration             integer                                               ,
+                all_tar_records_map_duration             integer                                               ,
+                create_tar_statement_duration            integer                                               ,
+                get_bucket_key_list_duration             integer                                               ,
+                src_bucket_rows_duration                 integer                                               ,
+                tar_bucket_rows_duration                 integer                                               ,
+                lu_function_duration                     integer                                               ,
+                CONSTRAINT task_execution_buckets_pk PRIMARY KEY (task_id, execution_id, table_name, bucket_id),
+                CONSTRAINT task_exec_buckets_fk FOREIGN KEY (task_id, execution_id, table_name) REFERENCES ${@schema}.task_execution_tables (task_id, execution_id, table_name) ON
+                UPDATE
+                        CASCADE ON
+                DELETE
+                        CASCADE );
 
-    CONSTRAINT task_exec_buckets_fk FOREIGN KEY (task_id, execution_id, table_name)
-        REFERENCES ${@schema}.task_execution_tables (task_id, execution_id, table_name)
-        ON UPDATE CASCADE ON DELETE CASCADE
-);
 
 CREATE INDEX IF NOT EXISTS task_exec_buckets_tbl_lstatus_idx
 ON ${@schema}.task_execution_buckets (task_id, execution_id, table_name, lower(status) DESC, bucket_id);
+
+CREATE TABLE ${@schema}.verify_configuration (
+    source_environment TEXT NOT NULL,
+    source_interface TEXT NOT NULL,
+    source_table_name TEXT NOT NULL,
+    source_schema TEXT NOT NULL,
+    source_transformation_flow TEXT,
+    source_ignore_null_columns TEXT,
+ 
+    target_environment TEXT NOT NULL,
+    target_interface TEXT NOT NULL,
+    target_table_name TEXT NOT NULL,
+    target_schema TEXT NOT NULL,
+    target_transformation_flow TEXT,
+    target_ignore_null_columns TEXT,
+ 
+    comparison_keys TEXT,
+    pii_column_names TEXT,
+    excluded_columns_names TEXT,
+    active BOOLEAN DEFAULT TRUE,
+    rows_filter_condition TEXT,
+    column_name_mapping TEXT,
+    partitions_count INTEGER,
+    partitions_assignment_method TEXT,
+ 
+    PRIMARY KEY (source_table_name, target_table_name)
+);

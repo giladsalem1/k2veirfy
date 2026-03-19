@@ -1,0 +1,218 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            external: record
+        out:
+          object:
+            schema: '#ref'
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 2: {
+    }
+  Stage 3:
+    actors:
+      DbDelete1:
+        parent: DbDelete
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          schema:
+            const: null
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+          table:
+            const: verify_configuration
+          keys:
+            const:
+            - source_table_name
+            - target_table_name
+          dialect:
+            const: postgres
+          source_table_name:
+            schema: any
+            mandatory: false
+            createdBy: keys
+          target_table_name:
+            schema: any
+            mandatory: false
+            createdBy: keys
+          params:
+            link: JsonParser1/object
+schemas:
+  JsonParser1.out.object:
+    type: object
+    properties:
+      source_interface:
+        type: string
+      source_table_name:
+        type: string
+      source_schema:
+        type: string
+      source_transformation_function_name: {
+        }
+      source_columns_to_ignore_null: {
+        }
+      target_interface:
+        type: string
+      target_table_name:
+        type: string
+      target_schema:
+        type: string
+      target_transformation_function_name: {
+        }
+      target_columns_to_ignore_null: {
+        }
+      customized_key_comparison:
+        type: string
+      pii_columns:
+        type: string
+      excluded_columns_names:
+        type: string
+      active:
+        type: boolean
+      excluded_rows_sql: {
+        }
+      column_mapping: {
+        }
+      buckets:
+        type: integer
+      buckets_method:
+        type: string
+      _rowIdx:
+        type: integer
+      editParams:
+        type: object
+        properties:
+          type:
+            type: string
+          key: {
+            }
+          ref: {
+            }
+          props:
+            type: object
+            properties:
+              className:
+                type: string
+              style:
+                type: object
+                properties:
+                  display:
+                    type: string
+                  alignItems:
+                    type: string
+                  justifyContent:
+                    type: string
+                  width:
+                    type: string
+                  height:
+                    type: string
+              children:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  key: {
+                    }
+                  ref: {
+                    }
+                  props:
+                    type: object
+                    properties:
+                      src:
+                        type: string
+                      alt:
+                        type: string
+                      title:
+                        type: string
+                      className:
+                        type: string
+                      style:
+                        type: object
+                        properties:
+                          cursor:
+                            type: string
+                          transition:
+                            type: string
+                          width:
+                            type: string
+                          height:
+                            type: string
+                  _owner: {
+                    }
+          _owner: {
+            }
+      deleteParams:
+        type: object
+        properties:
+          type:
+            type: string
+          key: {
+            }
+          ref: {
+            }
+          props:
+            type: object
+            properties:
+              style:
+                type: object
+                properties:
+                  display:
+                    type: string
+                  alignItems:
+                    type: string
+                  justifyContent:
+                    type: string
+                  width:
+                    type: string
+                  height:
+                    type: string
+              children:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  key: {
+                    }
+                  ref: {
+                    }
+                  props:
+                    type: object
+                    properties:
+                      src:
+                        type: string
+                      alt:
+                        type: string
+                      title:
+                        type: string
+                      className:
+                        type: string
+                      style:
+                        type: object
+                        properties:
+                          cursor:
+                            type: string
+                          transition:
+                            type: string
+                          width:
+                            type: string
+                          height:
+                            type: string
+                  _owner: {
+                    }
+          _owner: {
+            }

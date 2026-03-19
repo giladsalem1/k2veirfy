@@ -1,0 +1,216 @@
+tags: k2verify
+stages:
+  Lu Name:
+    actors:
+      GetLUName1:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+  Meta data:
+    actors:
+      interface name:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            link: GetLUName1/lu_name
+      schema name:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            link: GetLUName1/lu_name
+      GetLUVariable1:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_MAX_EXECUTIONS_TO_KEEP
+          luName:
+            link: GetLUName1/lu_name
+  fetch executionIds:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: |-
+              SELECT te.execution_id
+              FROM k2verify.task_execution te
+              WHERE te.execution_id < (
+                  SELECT execution_id
+                  FROM k2verify.task_execution
+                  ORDER BY execution_id DESC
+                  OFFSET ${@inputparam} - 1
+                  LIMIT 1
+              )
+          inputparam:
+            link: GetLUVariable1/variableValue
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 4:
+    last: 1
+    transactional: false
+    actors:
+      DropRecSumTable:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: DROP TABLE IF EXISTS ${@result_schema}.k2verify_record_summary_${@execution_id}
+          result_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link:
+              path: DbCommand1/result/execution_id
+              iterate: Iterate
+            schema: integer
+            mandatory: false
+            createdBy: sql
+      DropFieldSumTable:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: DROP TABLE IF EXISTS ${@result_schema}.k2verify_field_summary_${@execution_id}
+          result_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link:
+              path: DbCommand1/result/execution_id
+              iterate: Iterate
+            schema: integer
+            mandatory: false
+            createdBy: sql
+      ExecutionIds:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: DbCommand1/result/execution_id
+              iterate: Iterate
+  Delete old executions:
+    transactional: false
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: ExecutionIds/string
+      task execution:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: delete from ${@k2verify_schema}.task_execution where execution_id
+              in (${@execution_id})
+          k2verify_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ExecutionIds/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+      table_summary:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: delete from ${@k2verify_schema}.k2verify_table_summary where execution_id
+              in (${@execution_id})
+          k2verify_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ExecutionIds/string
+            schema: '#ref'
+            mandatory: false
+            createdBy: sql
+      task execution tables:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: delete from ${@k2verify_schema}.task_execution_tables where execution_id
+              in (${@execution_id})
+          k2verify_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ExecutionIds/string
+            schema: '#ref'
+            mandatory: false
+            createdBy: sql
+      task_execution_buckets:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface name/variableValue
+          sql:
+            const: delete from ${@k2verify_schema}.task_execution_buckets where execution_id
+              in (${@execution_id})
+          k2verify_schema:
+            link: schema name/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: ExecutionIds/string
+            schema: '#ref'
+            mandatory: false
+            createdBy: sql
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        execution_id:
+          type: integer
+  table_summary.in.execution_id:
+    type: object
+    properties:
+      execution_id:
+        type: integer
+  task execution tables.in.execution_id:
+    type: array
+    items:
+      type: integer
+  task_execution_buckets.in.execution_id:
+    type: array
+    items:
+      type: integer

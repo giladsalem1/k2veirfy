@@ -12,13 +12,21 @@ stages:
         out:
           parent_rows:
             schema: '#ref'
-      SEPERATOR:
-        parent: GetLUVariable
+      SRC Interface:
+        parent: FabricSetRead
         in:
-          variableName:
-            const: K2VERIFY_CONF_SEPARATOR
-          luName:
-            external: schema
+          key:
+            const: K2VERIFY_INTERFACE_SRC
+      SRC SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_SCHEMA_SRC
+      SRC TABLE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_TABLE_SRC
       TAR Interface:
         parent: FabricSetRead
         in:
@@ -34,26 +42,23 @@ stages:
         in:
           key:
             const: K2VERIFY_TABLE_TAR
-      SRC Interface:
+      BucketsNum:
         parent: FabricSetRead
         in:
           key:
-            const: K2VERIFY_INTERFACE_SRC
+            const: K2VERIFY_TABLE_BUCKETS_NUM
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+          luName:
+            external: schema
       K2VERIFY_INTERFACE_SRC_TYPE:
         parent: FabricSetRead
         in:
           key:
             const: K2VERIFY_INTERFACE_SRC_TYPE
-      SRC SCHEMA:
-        parent: FabricSetRead
-        in:
-          key:
-            const: K2VERIFY_SCHEMA_SRC
-      SRC TABLE:
-        parent: FabricSetRead
-        in:
-          key:
-            const: K2VERIFY_TABLE_SRC
       TASK ID:
         parent: FabricSetRead
         in:
@@ -79,8 +84,31 @@ stages:
         in:
           key:
             const: verify.K2VERIFY_OPERATIONAL_SCHEMA
+  Stage 1:
+    actors:
+      DUMMY GET:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_DUMMY_GET;
+        out:
+          result:
+            schema: '#ref'
   Bucket number:
     actors:
+      NotEquals1:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            link:
+              path: DUMMY GET/result/value
+              iterate: First
       SplitIID:
         parent: Split
         in:
@@ -88,11 +116,11 @@ stages:
             const: _@_
           string:
             link: PopulationArgs/iid
-      IID:
+      csvFileName:
         parent: JavaScript
         in:
           script:
-            const: arr[1]
+            const: arr[0]
           arr:
             link: SplitIID/strings
             schema: any
@@ -114,55 +142,60 @@ stages:
             link: EXEC ID/result
   Fetch table verify config:
     actors:
-      MTableLookup1:
-        parent: MTableLookup
+      bwGetTableParams1:
+        parent: InnerFlow
         in:
-          mtable:
-            const: k2verify_config
+          flowName:
+            const: bwGetTableParams
           Source_Table_Name:
             link: SRC TABLE/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
           Source_Interface:
             link: SRC Interface/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
           Source_Schema:
             link: SRC SCHEMA/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
           Target_Table_Name:
             link: TAR TABLE/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
           Target_Interface:
             link: TAR Interface/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
           Target_Schema:
             link: TAR SCHEMA/result
             schema: string
             editor:
               id: com.k2view.mTableKey
             mandatory: false
-            createdBy: mtable
+            createdBy: flowName
+          Buckets:
+            link: BucketsNum/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
         out:
-          result:
+          tableParams:
             schema: '#ref'
   Table info:
     transactional: false
@@ -172,9 +205,7 @@ stages:
         in:
           value:
             const: null
-            link:
-              path: MTableLookup1/result
-              iterate: First
+            link: bwGetTableParams1/tableParams
         out:
           value:
             schema: '#ref'
@@ -188,6 +219,189 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+      IID:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: SplitIID/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Execluded columns:
+    transactional: false
+    actors:
+      UpperExcluded:
+        parent: Uppercase
+        in:
+          string:
+            link: Row Info/value/Excluded_Columns_Names
+  Stage 2:
+    transactional: false
+    dependsOn: Execluded columns
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: LocalFileSystem
+            schema: string
+          a:
+            link: K2VERIFY_INTERFACE_SRC_TYPE/result
+      InterfaceForCsv:
+        parent: Const
+        in:
+          value:
+            const: fabric
+            schema: string
+        out:
+          value:
+            schema: string
+      Source:
+        parent: Const
+        in:
+          value:
+            const: verify
+            schema: string
+        out:
+          value:
+            schema: string
+      SourceTblForCsv:
+        parent: StringFormat
+        in:
+          format:
+            const: src_${fileName}
+          fileName:
+            link: csvFileName/result
+            schema: string
+            mandatory: false
+            createdBy: format
+      SourceTblForCsv1:
+        parent: StringFormat
+        in:
+          format:
+            const: tar_${fileName}
+          fileName:
+            link: csvFileName/result
+            schema: string
+            mandatory: false
+            createdBy: format
+      InterfaceForCsv1:
+        parent: Const
+        in:
+          value:
+            const: sqlite (db)
+            schema: string
+        out:
+          value:
+            schema: string
+      fileName1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${dir}/verify_fields_results_${source_table_name}_${execution_id}_${bucket_id}.csv
+          bucket_id:
+            link: IID/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          dir:
+            link: RESULTS DIR/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          execution_id:
+            link: EXEC ID/result
+            schema: string
+            mandatory: false
+            createdBy: format
+          source_table_name:
+            link: SourceTblForCsv/string
+            schema: string
+            mandatory: false
+            createdBy: format
+      Const9:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: PopulationArgs/iid
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 3:
+    else: true
+    transactional: false
+    dependsOn: Execluded columns
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Source_Interface
+        out:
+          value:
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Source_Schema
+        out:
+          value:
+            schema: string
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Source_Table_Name
+        out:
+          value:
+            schema: string
+      Const4:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Target_Interface
+        out:
+          value:
+            schema: string
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Target_Schema
+        out:
+          value:
+            schema: string
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Row Info/value/Target_Table_Name
+        out:
+          value:
+            schema: string
+      Const7:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: K2VERIFY_INTERFACE_SRC_TYPE/result
+        out:
+          value:
+            schema: string
       fileName:
         parent: StringFormat
         in:
@@ -213,94 +427,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
-  Get PII Columns:
-    transactional: false
-    actors:
-      bwGetPiiColumns:
-        parent: InnerFlow
+      Const8:
+        parent: Const
         in:
-          flowName:
-            const: bwGetPiiColumns
-          interface:
-            link: Row Info/value/Source_Interface
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          schema:
-            link: Row Info/value/Source_Schema
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          table:
-            link: Row Info/value/Source_Table_Name
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          delim:
-            link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          customized_pii:
-            link: Row Info/value/Pii_Columns
-            schema: string
-            mandatory: false
-            createdBy: flowName
+          value:
+            const: null
+            link: IID/result
         out:
-          pii_columns:
+          value:
             schema: string
-  Get PK Columns:
-    transactional: false
-    actors:
-      bwGetPKColumns:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetPKColumns
-          interface:
-            link: Row Info/value/Source_Interface
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          schema:
-            link: Row Info/value/Source_Schema
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          table:
-            link: Row Info/value/Source_Table_Name
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: flowName
-          customized_key:
-            link: Row Info/value/Customized_Key_Comparison
-            schema: string
-            mandatory: false
-            createdBy: flowName
-        out:
-          pk_columns:
-            schema: string
-  Stage 1:
-    transactional: false
-    actors:
-      UpperExcluded:
-        parent: Uppercase
-        in:
-          string:
-            link: Row Info/value/Excluded_Columns_Names
-  Execluded columns:
+  Stage 4:
     transactional: false
   Verify data:
     transactional: false
@@ -313,6 +449,7 @@ stages:
             link: Row Info/value/Active
       VerifyTargetData:
         parent: InnerFlow
+        height: 971
         in:
           flowName:
             const: bwVerifySourceNTargetData
@@ -324,13 +461,15 @@ stages:
             mandatory: false
             createdBy: flowName
           IID:
-            link: IID/result
+            link:
+            - Const9/value
+            - Const8/value
             schema: string
             mandatory: false
             createdBy: flowName
           excludeCondition:
             link: Row Info/value/Excluded_Rows_Sql
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           ColumnMapping:
@@ -339,42 +478,59 @@ stages:
             mandatory: false
             createdBy: flowName
           Pii_Columns:
-            link: bwGetPiiColumns/pii_columns
+            link: Row Info/value/Pii_Columns
             schema: string
             mandatory: false
             createdBy: flowName
           sourceInterface:
-            link: Row Info/value/Source_Interface
+            link:
+            - InterfaceForCsv/value
+            - Const1/value
             schema: string
             mandatory: false
             createdBy: flowName
           sourceSchema:
-            link: Row Info/value/Source_Schema
+            link:
+            - Source/value
+            - Const2/value
             schema: string
             mandatory: false
             createdBy: flowName
           sourceTable:
-            link: Row Info/value/Source_Table_Name
+            link:
+            - SourceTblForCsv/string
+            - Const3/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetInterface:
-            link: Row Info/value/Target_Interface
+            link:
+            - InterfaceForCsv/value
+            - Const4/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetSchema:
-            link: Row Info/value/Target_Schema
+            link:
+            - Source/value
+            - Const5/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetTable:
-            link: Row Info/value/Target_Table_Name
+            link:
+            - SourceTblForCsv1/string
+            - Const6/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          excludedColumnsNames:
+            link: UpperExcluded/string
             schema: string
             mandatory: false
             createdBy: flowName
           customizedKeyComparison:
-            link: bwGetPKColumns/pk_columns
+            link: Row Info/value/Customized_Key_Comparison
             schema: string
             mandatory: false
             createdBy: flowName
@@ -419,13 +575,17 @@ stages:
             mandatory: false
             createdBy: flowName
           interfaceType:
-            link: K2VERIFY_INTERFACE_SRC_TYPE/result
+            link:
+            - InterfaceForCsv1/value
+            - Const7/value
             schema: string
             mandatory: false
             createdBy: flowName
-          excludedColumnsNames:
-            link: UpperExcluded/string
-            schema: any
+          result_file_name:
+            link:
+            - fileName1/string
+            - fileName/string
+            schema: string
             mandatory: false
             createdBy: flowName
   Tme befor PG Copy:
@@ -481,6 +641,21 @@ stages:
             createdBy: sql
   Copy bucket data to pg:
     actors:
+      ErrorHandler2:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: No such file or directory
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
       pgCopy:
         parent: pgCopy
         in:
@@ -510,7 +685,9 @@ stages:
           header:
             const: false
           file_path:
-            link: fileName/string
+            link:
+            - fileName1/string
+            - fileName/string
   Time after PG Copy:
     actors:
       TimeAfterPGCopy:
@@ -562,30 +739,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: sql
-  Remove bucket data file:
-    actors:
-      ErrorHandler1:
-        parent: ErrorHandler
-        error: result
-        in:
-          config:
-            const:
-            - exceptionKey: java.lang.Exception
-              conditions:
-                message: NoSuchFileException
-              actions:
-                suppress: true
-                log: false
-                flowName: ''
-                number_of_retries: ''
-                retry_interval: ''
-      rm:
-        parent: rm
-        in:
-          interface:
-            const: file://
-          path:
-            link: fileName/string
 schemas:
   PopulationArgs.out.parent_rows:
     type: array
@@ -594,45 +747,54 @@ schemas:
       properties:
         iid:
           type: string
-  MTableLookup1.out.result:
+  DUMMY GET.out.result:
     type: array
     items:
       type: object
       properties:
-        Source_Table_Name:
+        value:
           type: string
-        Source_Interface:
-          type: string
-        Source_Schema:
-          type: string
-        Source_Transformation_Function_Name: {
-          }
-        source_columns_to_Ignore_null: {
-          }
-        Target_Table_Name:
-          type: string
-        Target_Interface:
-          type: string
-        Target_Schema:
-          type: string
-        Target_Transformation_Function_Name: {
-          }
-        target_columns_to_Ignore_null: {
-          }
-        Customized_Key_Comparison:
-          type: string
-        Pii_Columns: {
-          }
-        Excluded_Columns_Names: {
-          }
-        Active:
-          type: string
-        Mode: {
-          }
-        Excluded_Rows_Sql: {
-          }
-        Column_Mapping: {
-          }
+  bwGetTableParams1.out.tableParams:
+    type: object
+    properties:
+      Source_Table_Name:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Transformation_Function_Name: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Target_Table_Name:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Customized_Key_Comparison:
+        type: string
+      Pii_Columns: {
+        }
+      Excluded_Columns_Names: {
+        }
+      Active:
+        type: string
+      Mode: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Column_Mapping: {
+        }
+      Buckets:
+        type: string
+      Buckets_Method:
+        type: string
   Row Info.out.value:
     type: object
     properties:
@@ -674,3 +836,7 @@ schemas:
         type: string
       Buckets_Method:
         type: string
+  IID.in.arr:
+    type: array
+    items:
+      type: string

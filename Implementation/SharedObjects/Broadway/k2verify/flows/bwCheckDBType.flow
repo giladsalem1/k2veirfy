@@ -1,5 +1,30 @@
-tags: D2D
+tags: D2D,k2verify
 stages:
+  Stage 1: {
+    }
+  Stage 2:
+    dependsOn: Stage 1
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            external: envName
+      FabricSet1:
+        parent: FabricSet
+        in:
+          key:
+            const: environment
+            default: false
+          value:
+            const: null
+            external: envName
+            default: false
+    split: '--------------------'
+  Stage 3:
+    else: true
+    dependsOn: Stage 1
   Check Db Type:
     actors:
       Test Connection:

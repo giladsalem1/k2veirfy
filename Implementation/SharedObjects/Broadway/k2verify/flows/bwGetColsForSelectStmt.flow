@@ -770,6 +770,273 @@
         {
             "stages": [
                 {
+                    "name": "Stage 1",
+                    "dependsOnList": [],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 4",
+                    "dependsOnList": [
+                        "Stage 1"
+                    ],
+                    "actors": [
+                        {
+                            "name": "EqualsIgnoreCase3",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "EqualsIgnoreCase",
+                                "inputs": [
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "DB2 (Db)"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "check if db2",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "interface",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "table",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "schema",
+                            "actorType": {
+                                "parentType": "Const",
+                                "inputs": [
+                                    {
+                                        "name": "value",
+                                        "const": null
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "value",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 5",
+                    "dependsOnList": [
+                        "Stage 1"
+                    ],
+                    "hasElse": true,
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 14",
+                    "dependsOnList": [
+                        "Stage 4"
+                    ],
+                    "actors": [
+                        {
+                            "name": "DbCommand1",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "SELECT typename\nFROM syscat.columns\nWHERE tabname = '${@tablename}'\nAND tabschema = '${@schemaName}' AND colname='${@columnName}'"
+                                    },
+                                    {
+                                        "name": "tablename",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "schemaName",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "columnName",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "TYPENAME": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 15",
+                    "dependsOnList": [
+                        "Stage 5"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 16",
+                    "dependsOnList": [
+                        "Stage 14"
+                    ],
+                    "actors": [
+                        {
+                            "name": "LuFunction1",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "fnhandleComplexDBColumns"
+                                    },
+                                    {
+                                        "name": "columnName",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "dbType",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "columnType",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "convertedColType",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 17",
+                    "dependsOnList": [
+                        "Stage 15"
+                    ],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
                     "name": "Stage 7",
                     "dependsOnList": [],
                     "actors": [
@@ -1179,6 +1446,26 @@
         },
         {
             "leftPort": {
+                "actor": "ColumnForSelect11",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "columnName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnForSelect11",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "columnName"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "ColumnForAlias1",
                 "name": "value"
             },
@@ -1205,6 +1492,26 @@
             "rightPort": {
                 "actor": "Const8",
                 "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnForSelect1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "columnName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnForSelect1",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "columnName"
             }
         },
         {
@@ -1239,12 +1546,95 @@
         },
         {
             "leftPort": {
+                "actor": "ColumnForSelect12",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "columnName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ColumnForSelect12",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "columnName"
+            }
+        },
+        {
+            "leftPort": {
                 "actor": "ColumnForAlias2",
                 "name": "value"
             },
             "rightPort": {
                 "actor": "Build Columns12",
                 "name": "map_column"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "check if db2",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "dbType"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "interface",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "table",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "tablename"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "schema",
+                "name": "value"
+            },
+            "rightPort": {
+                "actor": "DbCommand1",
+                "name": "schemaName"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "DbCommand1",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "columnType"
+            },
+            "path": [
+                "TYPENAME"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "LuFunction1",
+                "name": "convertedColType"
+            },
+            "rightPort": {
+                "actor": "Build Columns12",
+                "name": "column"
             }
         },
         {
@@ -1337,6 +1727,56 @@
             "rightPort": {
                 "actor": "EqualsIgnoreCase1",
                 "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "dbtype"
+            },
+            "rightPort": {
+                "actor": "EqualsIgnoreCase3",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "dbtype"
+            },
+            "rightPort": {
+                "actor": "check if db2",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "interface"
+            },
+            "rightPort": {
+                "actor": "interface",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "table"
+            },
+            "rightPort": {
+                "actor": "table",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "schema"
+            },
+            "rightPort": {
+                "actor": "schema",
+                "name": "value"
             }
         },
         {

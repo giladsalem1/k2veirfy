@@ -1,0 +1,91 @@
+tags: k2verify
+stages:
+  'Stage 1 : Fetching the tables based on environment and interface':
+    actors:
+      LuFunction2:
+        parent: LuFunction
+        in:
+          functionName:
+            const: getSchemaNamesByInterfaceAndEnv
+          interfaceName:
+            external: interfaceName
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          envName:
+            external: envName
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: '#ref'
+      Map build for Schema:
+        parent: MapBuild
+        in:
+          key:
+            const: interface
+            schema: string
+          value:
+            external: interfaceName
+        out:
+          map:
+            schema: '#ref'
+  'Stage 2: Building the final map of interface and schemas':
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            const: tables
+            schema: string
+          duplicateKeys:
+            const: all
+          value:
+            link: LuFunction2/result
+        out:
+          map:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      'Final Schema and Tables Map ':
+        parent: MapMerge
+        in:
+          maps:
+            link:
+            - path: Map build for Schema/map
+              pos: 0
+            - path: MapBuild1/map
+              pos: 1
+        out:
+          map:
+            external: map
+            schema: '#ref'
+  Stage 4: {
+    }
+  Stage 5: {
+    }
+schemas:
+  LuFunction2.out.result:
+    type: array
+    items:
+      type: string
+  Map build for Schema.out.map:
+    type: object
+    properties:
+      schema:
+        type: string
+  MapBuild1.out.map:
+    type: object
+    properties:
+      Oracle_PROD:
+        type: array
+        items:
+          type: string
+  Final Schema and Tables Map .out.map:
+    type: object
+    properties:
+      schema:
+        type: string
+      tables:
+        type: string

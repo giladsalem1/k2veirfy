@@ -1,0 +1,251 @@
+tags: k2verify
+stages:
+  get lu name:
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_properties
+        out:
+          value:
+            schema: '#ref'
+      K2VERIFY_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  sort according to execution order: {
+    }
+  Stage 2:
+    dependsOn: sort according to execution order
+    actors:
+      if pre:
+        parent: Equals
+        condition: result
+        in:
+          a:
+            const: pre
+            schema: string
+          b:
+            external: process_type
+      Sort1:
+        parent: Sort
+        in:
+          script:
+            const: o1.execution_order - o2.execution_order
+          input:
+            link: Const1/value/K2VERIFY_PRE_EXECUTION_PROCESSES
+        out:
+          list:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 3:
+    dependsOn: sort according to execution order
+    actors:
+      if post:
+        parent: Equals
+        condition: result
+        in:
+          a:
+            const: post
+            schema: string
+          b:
+            external: process_type
+      Sort2:
+        parent: Sort
+        in:
+          script:
+            const: o1.execution_order - o2.execution_order
+          input:
+            link: Const1/value/K2VERIFY_POST_EXECUTION_PROCESSES
+        out:
+          list:
+            schema: '#ref'
+  execute pre/post pocesses:
+    actors:
+      Mapper1:
+        parent: Mapper
+        in:
+          script:
+            const: value.process_name
+          values:
+            link:
+            - Sort1/list
+            - Sort2/list
+        out:
+          values:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      Now1:
+        parent: Now
+      ToString1:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 1:
+    actors:
+      InnerFlow1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: null
+            link:
+              path: Mapper1/values
+              iterate: Iterate
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+          task_id:
+            external: task_id
+            schema: integer
+            mandatory: false
+          task_properties:
+            external: task_properties
+            schema: '#ref'
+            mandatory: false
+          table_properties:
+            external: table_properties
+            schema: any
+            mandatory: false
+      Now2:
+        parent: Now
+      ToString2:
+        parent: ToString
+        in:
+          value:
+            link: Now2/date
+schemas:
+  Const1.out.value:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_ENV_SRC:
+        type: string
+      K2VERIFY_ENV_TAR:
+        type: string
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+            buckets:
+              type: string
+      K2VERIFY_PRE_EXECUTION_PROCESSES:
+        type: array
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
+      K2VERIFY_POST_EXECUTION_PROCESSES:
+        type: array
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
+  Sort1.out.list:
+    type: array
+    items:
+      type: object
+      properties:
+        process_name:
+          type: string
+        execution_order:
+          type: integer
+  Sort2.out.list:
+    type: array
+    items:
+      type: object
+      properties:
+        process_name:
+          type: string
+        execution_order:
+          type: integer
+  Mapper1.out.values:
+    type: array
+    items:
+      type: string
+  InnerFlow1.in.task_properties:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_SCHEMA_SRC:
+        type: string
+      K2VERIFY_SCHEMA_TAR:
+        type: string
+      K2VERIFY_TABLE_LIST:
+        type: array
+        items:
+          type: object
+          properties:
+            src:
+              type: string
+            tar:
+              type: string
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
+      K2VERIFY_PRE_EXECUTION_PROCESSES:
+        type: array
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
+      K2VERIFY_POST_EXECUTION_PROCESSES:
+        type: array
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
