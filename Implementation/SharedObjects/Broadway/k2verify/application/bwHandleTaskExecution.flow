@@ -2194,6 +2194,7 @@
                         },
                         {
                             "name": "FieldSumPK",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -2437,6 +2438,7 @@
                     "actors": [
                         {
                             "name": "FieldSumIDX",
+                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
