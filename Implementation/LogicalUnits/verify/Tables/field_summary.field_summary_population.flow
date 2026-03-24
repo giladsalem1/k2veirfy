@@ -47,13 +47,6 @@ stages:
         in:
           key:
             const: K2VERIFY_TABLE_BUCKETS_NUM
-      SEPERATOR:
-        parent: GetLUVariable
-        in:
-          variableName:
-            const: K2VERIFY_CONF_SEPARATOR
-          luName:
-            external: schema
       K2VERIFY_INTERFACE_SRC_TYPE:
         parent: FabricSetRead
         in:
@@ -94,7 +87,9 @@ stages:
         in:
           key:
             const: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA
-  Stage 1:
+  Skip GET functionality:
+    remark: In CSV mode, we execute get to load the LUI tables. we don't need to execute
+      Verify logic
     actors:
       DUMMY GET:
         parent: DbCommand
@@ -102,13 +97,13 @@ stages:
           interface:
             const: fabric
           sql:
-            const: set K2VERIFY_DUMMY_GET;
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET;
         out:
           result:
             schema: '#ref'
   Bucket number:
     actors:
-      NotEquals1:
+      '!=TRUE':
         parent: NotEquals
         condition: result
         in:
@@ -138,13 +133,12 @@ stages:
         out:
           result:
             schema: string
-      ToNumber1:
+      TaskID:
         parent: ToNumber
-        height: 329
         in:
           value:
             link: TASK ID/result
-      ToNumber2:
+      ExecutionID:
         parent: ToNumber
         height: 84
         in:
@@ -152,7 +146,7 @@ stages:
             link: EXEC ID/result
   Fetch table verify config:
     actors:
-      bwGetTableParams1:
+      GetTableParams:
         parent: InnerFlow
         in:
           flowName:
@@ -210,16 +204,16 @@ stages:
   Table info:
     transactional: false
     actors:
-      Row Info:
+      TableInfo:
         parent: Const
         in:
           value:
             const: null
-            link: bwGetTableParams1/tableParams
+            link: GetTableParams/tableParams
         out:
           value:
             schema: '#ref'
-      tableName:
+      ResultTableName:
         parent: StringFormat
         in:
           format:
@@ -248,12 +242,12 @@ stages:
         parent: Uppercase
         in:
           string:
-            link: Row Info/value/Excluded_Columns_Names
-  Stage 2:
+            link: TableInfo/value/Excluded_Columns_Names
+  Csv mode:
     transactional: false
     dependsOn: Execluded columns
     actors:
-      Equals1:
+      CSV Mode:
         parent: Equals
         condition: result
         in:
@@ -262,7 +256,7 @@ stages:
             schema: string
           a:
             link: K2VERIFY_INTERFACE_SRC_TYPE/result
-      InterfaceForCsv:
+      FabricAsInterafce:
         parent: Const
         in:
           value:
@@ -271,7 +265,16 @@ stages:
         out:
           value:
             schema: string
-      Source:
+      SqliteAsDbType:
+        parent: Const
+        in:
+          value:
+            const: sqlite (db)
+            schema: string
+        out:
+          value:
+            schema: string
+      VerifyAsSchema:
         parent: Const
         in:
           value:
@@ -290,7 +293,7 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
-      SourceTblForCsv1:
+      TargetTblForCsv:
         parent: StringFormat
         in:
           format:
@@ -300,16 +303,7 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
-      InterfaceForCsv1:
-        parent: Const
-        in:
-          value:
-            const: sqlite (db)
-            schema: string
-        out:
-          value:
-            schema: string
-      fileName1:
+      ResultFileNameForCsv:
         parent: StringFormat
         in:
           format:
@@ -334,7 +328,7 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
-      Const9:
+      BucketIDForCSV:
         parent: Const
         in:
           value:
@@ -344,66 +338,66 @@ stages:
           value:
             schema: string
     split: '--------------------'
-  Stage 3:
+  DB Table mode:
     else: true
     transactional: false
     dependsOn: Execluded columns
     actors:
-      Const1:
+      SourceInterface:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Source_Interface
+            link: TableInfo/value/Source_Interface
         out:
           value:
             schema: string
-      Const2:
+      SourceSchema:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Source_Schema
+            link: TableInfo/value/Source_Schema
         out:
           value:
             schema: string
-      Const3:
+      SourceTable:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Source_Table_Name
+            link: TableInfo/value/Source_Table_Name
         out:
           value:
             schema: string
-      Const4:
+      TargetInterface:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Target_Interface
+            link: TableInfo/value/Target_Interface
         out:
           value:
             schema: string
-      Const5:
+      TargetSchema:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Target_Schema
+            link: TableInfo/value/Target_Schema
         out:
           value:
             schema: string
-      Const6:
+      TargetTable:
         parent: Const
         in:
           value:
             const: null
-            link: Row Info/value/Target_Table_Name
+            link: TableInfo/value/Target_Table_Name
         out:
           value:
             schema: string
-      Const7:
+      DbType:
         parent: Const
         in:
           value:
@@ -412,7 +406,7 @@ stages:
         out:
           value:
             schema: string
-      fileName:
+      ResultFileNameForTables:
         parent: StringFormat
         in:
           format:
@@ -437,7 +431,7 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
-      Const8:
+      BucketIDForTables:
         parent: Const
         in:
           value:
@@ -456,8 +450,8 @@ stages:
         condition: bool
         in:
           value:
-            link: Row Info/value/Active
-      VerifyTargetData:
+            link: TableInfo/value/Active
+      VerifySourceTargetData:
         parent: InnerFlow
         height: 971
         in:
@@ -472,65 +466,65 @@ stages:
             createdBy: flowName
           IID:
             link:
-            - Const9/value
-            - Const8/value
+            - BucketIDForCSV/value
+            - BucketIDForTables/value
             schema: string
             mandatory: false
             createdBy: flowName
           excludeCondition:
-            link: Row Info/value/Excluded_Rows_Sql
+            link: TableInfo/value/Excluded_Rows_Sql
             schema: string
             mandatory: false
             createdBy: flowName
           ColumnMapping:
-            link: Row Info/value/Column_Mapping
+            link: TableInfo/value/Column_Mapping
             schema: string
             mandatory: false
             createdBy: flowName
           Pii_Columns:
-            link: Row Info/value/Pii_Columns
+            link: TableInfo/value/Pii_Columns
             schema: string
             mandatory: false
             createdBy: flowName
           sourceInterface:
             link:
-            - InterfaceForCsv/value
-            - Const1/value
+            - FabricAsInterafce/value
+            - SourceInterface/value
             schema: string
             mandatory: false
             createdBy: flowName
           sourceSchema:
             link:
-            - Source/value
-            - Const2/value
+            - VerifyAsSchema/value
+            - SourceSchema/value
             schema: string
             mandatory: false
             createdBy: flowName
           sourceTable:
             link:
             - SourceTblForCsv/string
-            - Const3/value
+            - SourceTable/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetInterface:
             link:
-            - InterfaceForCsv/value
-            - Const4/value
+            - FabricAsInterafce/value
+            - TargetInterface/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetSchema:
             link:
-            - Source/value
-            - Const5/value
+            - VerifyAsSchema/value
+            - TargetSchema/value
             schema: string
             mandatory: false
             createdBy: flowName
           targetTable:
             link:
-            - SourceTblForCsv1/string
-            - Const6/value
+            - TargetTblForCsv/string
+            - TargetTable/value
             schema: string
             mandatory: false
             createdBy: flowName
@@ -540,27 +534,27 @@ stages:
             mandatory: false
             createdBy: flowName
           customizedKeyComparison:
-            link: Row Info/value/Customized_Key_Comparison
+            link: TableInfo/value/Customized_Key_Comparison
             schema: string
             mandatory: false
             createdBy: flowName
           source_columns_to_Ignore_null:
-            link: Row Info/value/source_columns_to_Ignore_null
-            schema: string
+            link: TableInfo/value/source_columns_to_Ignore_null
+            schema: any
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
-            link: Row Info/value/target_columns_to_Ignore_null
-            schema: string
+            link: TableInfo/value/target_columns_to_Ignore_null
+            schema: any
             mandatory: false
             createdBy: flowName
           bucketMethod:
-            link: Row Info/value/Buckets_Method
+            link: TableInfo/value/Buckets_Method
             schema: string
             mandatory: false
             createdBy: flowName
           bucketsNum:
-            link: Row Info/value/Buckets
+            link: TableInfo/value/Buckets
             schema: string
             mandatory: false
             createdBy: flowName
@@ -575,37 +569,39 @@ stages:
             mandatory: false
             createdBy: flowName
           source_transformation_function:
-            link: Row Info/value/Source_Transformation_Function_Name
+            link: TableInfo/value/Source_Transformation_Function_Name
             schema: string
             mandatory: false
             createdBy: flowName
           target_transformation_function:
-            link: Row Info/value/Target_Transformation_Function_Name
+            link: TableInfo/value/Target_Transformation_Function_Name
             schema: any
             mandatory: false
             createdBy: flowName
           interfaceType:
             link:
-            - InterfaceForCsv1/value
-            - Const7/value
+            - SqliteAsDbType/value
+            - DbType/value
             schema: string
             mandatory: false
             createdBy: flowName
           result_file_name:
             link:
-            - fileName1/string
-            - fileName/string
+            - ResultFileNameForCsv/string
+            - ResultFileNameForTables/string
             schema: string
             mandatory: false
             createdBy: flowName
-          k2verify_src_contains_sensitive_data:
+          source_env_contains_sensitive_data:
             link: K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
-          k2verify_tar_contains_sensitive_data:
+            createdBy: flowName
+          target_env_contains_sensitive_data:
             link: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
+            createdBy: flowName
   Tme befor PG Copy:
     actors:
       TmeBeforPGCopy:
@@ -633,12 +629,12 @@ stages:
             mandatory: false
             createdBy: sql
           task_id:
-            link: ToNumber1/number
+            link: TaskID/number
             schema: string
             mandatory: false
             createdBy: sql
           execution_id:
-            link: ToNumber2/number
+            link: ExecutionID/number
             schema: string
             mandatory: false
             createdBy: sql
@@ -659,7 +655,7 @@ stages:
             createdBy: sql
   Copy bucket data to pg:
     actors:
-      ErrorHandler2:
+      HandlePGCopyError:
         parent: ErrorHandler
         error: result
         in:
@@ -685,7 +681,7 @@ stages:
             link: RESULTS SCHEMA/result
           table:
             const: null
-            link: tableName/string
+            link: ResultTableName/string
           fields:
             const:
             - EXECUTION_ID
@@ -704,8 +700,8 @@ stages:
             const: false
           file_path:
             link:
-            - fileName1/string
-            - fileName/string
+            - ResultFileNameForCsv/string
+            - ResultFileNameForTables/string
   Time after PG Copy:
     actors:
       TimeAfterPGCopy:
@@ -733,12 +729,12 @@ stages:
             mandatory: false
             createdBy: sql
           task_id:
-            link: ToNumber1/number
+            link: TaskID/number
             schema: string
             mandatory: false
             createdBy: sql
           execution_id:
-            link: ToNumber2/number
+            link: ExecutionID/number
             schema: string
             mandatory: false
             createdBy: sql
@@ -772,7 +768,7 @@ schemas:
       properties:
         value:
           type: string
-  bwGetTableParams1.out.tableParams:
+  GetTableParams.out.tableParams:
     type: object
     properties:
       Source_Table_Name:
@@ -813,7 +809,7 @@ schemas:
         type: string
       Buckets_Method:
         type: string
-  Row Info.out.value:
+  TableInfo.out.value:
     type: object
     properties:
       Source_Table_Name:

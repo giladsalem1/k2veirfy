@@ -248,29 +248,6 @@
                                 ],
                                 "outputs": []
                             }
-                        },
-                        {
-                            "name": "Const4",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
                         }
                     ]
                 }
@@ -531,41 +508,6 @@
                                     }
                                 ],
                                 "outputs": []
-                            }
-                        },
-                        {
-                            "name": "bwCheckDBType1",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "InnerFlow",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwCheckDBType"
-                                    },
-                                    {
-                                        "name": "interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "envName",
-                                        "schema": {},
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "type",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
                             }
                         }
                     ]
@@ -1311,16 +1253,6 @@
         },
         {
             "leftPort": {
-                "actor": "Interface",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "bwCheckDBType1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "Schema",
                 "name": "value"
             },
@@ -1581,16 +1513,6 @@
         },
         {
             "leftPort": {
-                "actor": "Const4",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "NotEquals1",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "UppercaseExcluded",
                 "name": "string"
             },
@@ -1657,16 +1579,6 @@
             "rightPort": {
                 "actor": "EqualsIgnoreCase1",
                 "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "bwCheckDBType1",
-                "name": "type"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "params"
             }
         },
         {
@@ -1924,11 +1836,11 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "value"
+                "name": "interfaceType"
             },
             "rightPort": {
-                "actor": "Const4",
-                "name": "value"
+                "actor": "NotEquals1",
+                "name": "a"
             }
         },
         {

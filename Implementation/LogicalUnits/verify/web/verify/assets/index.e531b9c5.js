@@ -15915,8 +15915,195 @@ if (true) {
 var reactTable = reactTable$1.exports;
 var Menu = "";
 var Table$1 = "";
+function ComboCell({
+  settingKey,
+  externalValue,
+  onChange
+}) {
+  const [mode, setMode] = react.exports.useState(externalValue === "Auto" ? "auto" : "custom");
+  const [customNumber, setCustomNumber] = react.exports.useState(externalValue === "Auto" ? "" : String(externalValue != null ? externalValue : ""));
+  const [dropdownOpen, setDropdownOpen] = react.exports.useState(false);
+  const [dropdownCoords, setDropdownCoords] = react.exports.useState({
+    top: 0,
+    left: 0,
+    width: 0
+  });
+  const wrapperRef = react.exports.useRef(null);
+  const prevExternalRef = react.exports.useRef(externalValue);
+  react.exports.useEffect(() => {
+    if (prevExternalRef.current !== externalValue) {
+      prevExternalRef.current = externalValue;
+      if (externalValue === "Auto") {
+        setMode("auto");
+      } else {
+        setMode("custom");
+        setCustomNumber(String(externalValue != null ? externalValue : ""));
+      }
+    }
+  }, [externalValue]);
+  react.exports.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target) && !e.target.closest("[data-combo-dropdown]")) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const openDropdown = (e) => {
+    var _a2;
+    e.stopPropagation();
+    const rect = (_a2 = wrapperRef.current) == null ? void 0 : _a2.getBoundingClientRect();
+    if (rect) {
+      setDropdownCoords({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+    setDropdownOpen((prev) => !prev);
+  };
+  const selectOption = (value) => {
+    if (value === "Auto") {
+      setMode("auto");
+      onChange(settingKey, "Auto");
+    } else {
+      setMode("custom");
+    }
+    setDropdownOpen(false);
+  };
+  const isAuto = mode === "auto";
+  const wrapperStyle = {
+    position: "relative",
+    width: "120px",
+    height: "36px",
+    border: "1px solid #D0D5DD",
+    borderRadius: "6px",
+    backgroundColor: "#fff",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center"
+  };
+  const chevron = /* @__PURE__ */ jsx("button", {
+    type: "button",
+    onClick: openDropdown,
+    style: {
+      position: "absolute",
+      right: "0",
+      top: "0",
+      height: "36px",
+      width: "32px",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontSize: "11px",
+      color: "#667085",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    },
+    children: "\u25BC"
+  });
+  const fixedDropdown = dropdownOpen && /* @__PURE__ */ jsx("div", {
+    "data-combo-dropdown": "",
+    style: {
+      position: "fixed",
+      top: dropdownCoords.top,
+      left: dropdownCoords.left,
+      width: dropdownCoords.width,
+      backgroundColor: "#fff",
+      border: "1px solid #D0D5DD",
+      borderRadius: "6px",
+      boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+      zIndex: 9999,
+      overflow: "hidden"
+    },
+    children: ["Auto", "Custom value"].map((label) => {
+      const val = label === "Auto" ? "Auto" : "Custom";
+      const isActive = val === "Auto" && isAuto || val === "Custom" && !isAuto;
+      return /* @__PURE__ */ jsx("button", {
+        type: "button",
+        onClick: () => selectOption(val),
+        style: {
+          display: "block",
+          width: "100%",
+          padding: "10px 12px",
+          border: "none",
+          borderRadius: "0",
+          backgroundColor: isActive ? "#F2F4F7" : "#fff",
+          color: "#101828",
+          textAlign: "left",
+          cursor: "pointer",
+          fontSize: "14px",
+          lineHeight: "1.4"
+        },
+        onMouseEnter: (e) => {
+          e.currentTarget.style.backgroundColor = "#F9FAFB";
+        },
+        onMouseLeave: (e) => {
+          e.currentTarget.style.backgroundColor = isActive ? "#F2F4F7" : "#fff";
+        },
+        children: label
+      }, val);
+    })
+  });
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsxs("div", {
+      ref: wrapperRef,
+      style: wrapperStyle,
+      onClick: (e) => e.stopPropagation(),
+      children: [isAuto ? /* @__PURE__ */ jsx("span", {
+        style: {
+          flex: 1,
+          padding: "0 32px 0 10px",
+          fontSize: "14px",
+          color: "#101828",
+          userSelect: "none",
+          cursor: "default",
+          overflow: "hidden",
+          whiteSpace: "nowrap"
+        },
+        children: "Auto"
+      }) : /* @__PURE__ */ jsx("input", {
+        type: "number",
+        min: 1,
+        max: 1e6,
+        value: customNumber,
+        placeholder: "1 \u2013 1,000,000",
+        onChange: (e) => {
+          const val = e.target.value;
+          if (val === "") {
+            setCustomNumber("");
+            onChange(settingKey, "");
+            return;
+          }
+          if (!/^\d+$/.test(val))
+            return;
+          const num = Number(val);
+          if (num < 1 || num > 1e6)
+            return;
+          setCustomNumber(val);
+          onChange(settingKey, val);
+        },
+        style: {
+          flex: 1,
+          height: "100%",
+          padding: "0 32px 0 10px",
+          border: "none",
+          outline: "none",
+          borderRadius: "6px",
+          fontSize: "14px",
+          color: "#101828",
+          backgroundColor: "transparent",
+          boxSizing: "border-box",
+          minWidth: 0
+        }
+      }), chevron]
+    }), fixedDropdown]
+  });
+}
 const DEFAULT_ENV = "_dev";
-const DEFAULT_PARTITIONS = 10;
 const DEFAULT_PARTITION_METHOD = "bwGetBucketRows";
 const REQUIRED_FIELDS = ["source_environment", "source_interface", "source_schema", "source_table_name", "target_environment", "target_interface", "target_schema", "target_table_name"];
 const overrides = {
@@ -15937,7 +16124,7 @@ const overrides = {
   excluded_columns_names: "Excluded Column Names",
   rows_filter_condition: "Rows Filter Condition",
   column_name_mapping: "Column Name Mapping",
-  partitions_count: "Partitions Count",
+  partitions_count: "Partition Count",
   partitions_assignment_method: "Partitions Assignment Method",
   active: "Active"
 };
@@ -16189,10 +16376,9 @@ function normalizeInitialDraft(row) {
   next.target_interface = String(next.target_interface || "").trim();
   next.target_schema = String(next.target_schema || "").trim();
   next.target_table_name = String(next.target_table_name || "").trim();
-  next.partitions_count = next.partitions_count == null ? DEFAULT_PARTITIONS : Number(next.partitions_count);
-  if (!Number.isFinite(next.partitions_count) || next.partitions_count <= 0) {
-    next.partitions_count = DEFAULT_PARTITIONS;
-  }
+  const rawCount = next.partitions_count;
+  const parsedCount = Number(rawCount);
+  next.partitions_count = rawCount === "Auto" ? "Auto" : Number.isFinite(parsedCount) && parsedCount > 0 ? String(parsedCount) : "Auto";
   next.partitions_assignment_method = next.partitions_assignment_method || DEFAULT_PARTITION_METHOD;
   if (typeof next.active !== "boolean") {
     const rawActive = String((_a2 = next.active) != null ? _a2 : "").trim().toLowerCase();
@@ -16215,7 +16401,7 @@ function buildPayload(draft) {
     target_interface: String(draft.target_interface || "").trim(),
     target_schema: String(draft.target_schema || "").trim(),
     target_table_name: String(draft.target_table_name || "").trim(),
-    partitions_count: Number.isFinite(Number(draft.partitions_count)) && Number(draft.partitions_count) > 0 ? Number(draft.partitions_count) : DEFAULT_PARTITIONS,
+    partitions_count: draft.partitions_count === "Auto" ? 0 : Number(draft.partitions_count) || 0,
     partitions_assignment_method: draft.partitions_assignment_method || DEFAULT_PARTITION_METHOD,
     active: !!draft.active
   };
@@ -16226,7 +16412,7 @@ function ExpandedRowEditor({
   onSave,
   isEditMode
 }) {
-  var _a2, _b2;
+  var _a2, _b2, _c;
   const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const [draft, setDraft] = react.exports.useState({});
   const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
@@ -16650,15 +16836,23 @@ function ExpandedRowEditor({
               value: "bwGetBucketRange",
               children: "bwGetBucketRange"
             })]
-          }), /* @__PURE__ */ jsx(Field, {
-            label: "partitions_count",
-            type: "number",
-            min: 1,
-            value: draft.partitions_count == null ? DEFAULT_PARTITIONS : draft.partitions_count,
-            onChange: (v2) => {
-              const n2 = parseInt(v2, 10);
-              updateField("partitions_count", Number.isFinite(n2) && n2 > 0 ? n2 : DEFAULT_PARTITIONS);
-            }
+          }), /* @__PURE__ */ jsxs("div", {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 6
+            },
+            children: [/* @__PURE__ */ jsx("label", {
+              style: {
+                fontSize: 12,
+                color: "#333"
+              },
+              children: formatLabel("partitions_count")
+            }), /* @__PURE__ */ jsx(ComboCell, {
+              settingKey: "partitions_count",
+              externalValue: (_a2 = draft.partitions_count) != null ? _a2 : "Auto",
+              onChange: (_key, value) => updateField("partitions_count", value)
+            })]
           }), /* @__PURE__ */ jsxs("div", {
             style: {
               display: "flex",
@@ -16801,7 +16995,7 @@ function ExpandedRowEditor({
               },
               children: formatLabel("rows_filter_condition")
             }), /* @__PURE__ */ jsx("textarea", {
-              value: (_a2 = draft.rows_filter_condition) != null ? _a2 : "",
+              value: (_b2 = draft.rows_filter_condition) != null ? _b2 : "",
               onChange: (e) => updateField("rows_filter_condition", e.target.value),
               style: {
                 minHeight: 110,
@@ -16826,7 +17020,7 @@ function ExpandedRowEditor({
               },
               children: formatLabel("column_name_mapping")
             }), /* @__PURE__ */ jsx("textarea", {
-              value: (_b2 = draft.column_name_mapping) != null ? _b2 : "",
+              value: (_c = draft.column_name_mapping) != null ? _c : "",
               onChange: (e) => updateField("column_name_mapping", e.target.value),
               style: {
                 minHeight: 110,
@@ -22026,7 +22220,7 @@ function K2VerifyExecution() {
     });
   }, []);
   const columns = react.exports.useMemo(() => [{
-    header: "Table Name",
+    header: "Object Name",
     accessorKey: "table_name",
     enableSorting: true,
     enableColumnFilter: true
@@ -22344,7 +22538,9 @@ function K2VerifyExecution() {
         columns: infoColumns,
         initialPageSize: 10,
         infoParams: false
-      }) : /* @__PURE__ */ jsx("div", {})]
+      }) : /* @__PURE__ */ jsx("div", {
+        children: "Waiting for workers to be assigned."
+      })]
     }) : null]
   });
 }
@@ -22450,7 +22646,7 @@ function K2VerifyTaskHistoryDetailed() {
     });
   };
   const columns = react.exports.useMemo(() => [{
-    header: "Table Name",
+    header: "Object Name",
     accessorKey: "table_name",
     enableSorting: true,
     enableColumnFilter: true
@@ -38948,7 +39144,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.f363a4e4.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.f1f93468.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -43304,24 +43500,51 @@ function K2VerifyConfiguration() {
 const SETTINGS_META = [{
   key: "MIN_PROCESSED_THRESHOLD_PCT",
   label: "MIN_PROCESSED_THRESHOLD_PCT",
+  section: "Error Handling",
+  min: 0,
+  max: 100,
   descriptionKey: "k2verifyAdvancedSettings.parameters.minProcessedThresholdPct.description"
 }, {
   key: "MAX_COMPARISON_FAILURE_PCT",
   label: "MAX_COMPARISON_FAILURE_PCT",
+  section: "Error Handling",
+  min: 0,
+  max: 100,
   descriptionKey: "k2verifyAdvancedSettings.parameters.maxComparisonFailurePct.description"
 }, {
   key: "MAX_RECORD_MISMATCH_PCT",
   label: "MAX_RECORD_MISMATCH_PCT",
+  section: "Error Handling",
+  min: 0,
+  max: 100,
   descriptionKey: "k2verifyAdvancedSettings.parameters.maxRecordMismatchPct.description"
 }, {
   key: "MAX_SLIDING_WINDOW_FAILURE_PCT",
   label: "MAX_SLIDING_WINDOW_FAILURE_PCT",
+  section: "Error Handling",
+  min: 0,
+  max: 100,
   descriptionKey: "k2verifyAdvancedSettings.parameters.maxSlidingWindowFailurePct.description"
+}, {
+  key: "PARTITION_SIZE",
+  label: "PARTITION_SIZE",
+  section: "Partition Management",
+  min: 0,
+  max: 1e6,
+  descriptionKey: "k2verifyAdvancedSettings.parameters.partitionSize.description"
+}, {
+  key: "DEFAULT_PARTITION_COUNT",
+  label: "DEFAULT_PARTITION_COUNT",
+  section: "Partition Management",
+  defaultValue: 10,
+  descriptionKey: "k2verifyAdvancedSettings.parameters.defaultPartitionSize.description"
 }];
 function EditableCell({
   settingKey,
   externalValue,
-  onChange
+  onChange,
+  min = 0,
+  max: max2 = 100
 }) {
   const [localValue, setLocalValue] = react.exports.useState(externalValue);
   const prevExternalRef = react.exports.useRef(externalValue);
@@ -43341,15 +43564,15 @@ function EditableCell({
     if (!/^\d+$/.test(val))
       return;
     const num = Number(val);
-    if (num < 0 || num > 100)
+    if (num < min || num > max2)
       return;
     setLocalValue(val);
     onChange(settingKey, val);
   };
   return /* @__PURE__ */ jsx("input", {
     type: "number",
-    min: "0",
-    max: "100",
+    min,
+    max: max2,
     value: localValue,
     onChange: handleChange,
     onClick: (e) => e.stopPropagation(),
@@ -43376,11 +43599,17 @@ function K2VerifyAdvancedSettings() {
     loading,
     error
   } = useFetchData(`${apiBasePath2}/api/fabric-command?command=broadway%20verify.bwK2VerifyFetchAdvancedSettings%20`);
-  const normalizeSettings = (raw = {}) => SETTINGS_META.reduce((acc, {
-    key
-  }) => {
+  const normalizeSettings = (raw = {}) => SETTINGS_META.reduce((acc, meta) => {
     var _a3;
-    acc[key] = (_a3 = raw[key]) != null ? _a3 : "";
+    const {
+      key,
+      defaultValue = ""
+    } = meta;
+    let value = (_a3 = raw[key]) != null ? _a3 : defaultValue;
+    if (key === "DEFAULT_PARTITION_COUNT" && String(value) === "0") {
+      value = "Auto";
+    }
+    acc[key] = value;
     return acc;
   }, {});
   const loadSettings = react.exports.useCallback(async () => {
@@ -43414,23 +43643,32 @@ function K2VerifyAdvancedSettings() {
     var _a3, _b3;
     return String((_a3 = editedSettings[key]) != null ? _a3 : "") !== String((_b3 = settings[key]) != null ? _b3 : "");
   }), [editedSettings, settings]);
-  const tableData = react.exports.useMemo(
-    () => SETTINGS_META.map(({
-      key,
-      label,
-      descriptionKey
-    }) => {
-      var _a3;
-      return {
-        parameter: label,
-        description: t3(descriptionKey),
-        settingKey: key,
-        externalValue: (_a3 = editedSettings[key]) != null ? _a3 : ""
-      };
-    }),
-    [settings, t3]
-  );
+  const tableData = react.exports.useMemo(() => SETTINGS_META.map(({
+    key,
+    label,
+    section,
+    descriptionKey,
+    min,
+    max: max2
+  }) => {
+    var _a3;
+    return {
+      section,
+      parameter: label,
+      description: t3(descriptionKey),
+      settingKey: key,
+      externalValue: (_a3 = editedSettings[key]) != null ? _a3 : "",
+      min,
+      max: max2
+    };
+  }), [editedSettings, t3]);
   const columns = react.exports.useMemo(() => [{
+    header: "Section",
+    accessorKey: "section",
+    enableSorting: true,
+    enableColumnFilter: true,
+    size: 220
+  }, {
     header: "Parameter",
     accessorKey: "parameter",
     enableSorting: true,
@@ -43444,11 +43682,22 @@ function K2VerifyAdvancedSettings() {
     size: 160,
     cell: ({
       row
-    }) => /* @__PURE__ */ jsx(EditableCell, {
-      settingKey: row.original.settingKey,
-      externalValue: row.original.externalValue,
-      onChange: handleValueChange
-    })
+    }) => {
+      if (row.original.settingKey === "DEFAULT_PARTITION_COUNT") {
+        return /* @__PURE__ */ jsx(ComboCell, {
+          settingKey: row.original.settingKey,
+          externalValue: row.original.externalValue,
+          onChange: handleValueChange
+        });
+      }
+      return /* @__PURE__ */ jsx(EditableCell, {
+        settingKey: row.original.settingKey,
+        externalValue: row.original.externalValue,
+        onChange: handleValueChange,
+        min: row.original.min,
+        max: row.original.max
+      });
+    }
   }, {
     header: "Description",
     accessorKey: "description",
@@ -43465,18 +43714,30 @@ function K2VerifyAdvancedSettings() {
     })
   }], [handleValueChange]);
   const handleSave = react.exports.useCallback(async () => {
-    for (const {
-      key,
-      label
-    } of SETTINGS_META) {
+    for (const meta of SETTINGS_META) {
+      const {
+        key,
+        label,
+        min,
+        max: max2
+      } = meta;
       const value = editedSettings[key];
+      if (key === "DEFAULT_PARTITION_COUNT") {
+        if (value === "Auto")
+          continue;
+        continue;
+      }
       if (value === "" || isNaN(Number(value))) {
-        toast.error(`${label} must be a valid number between 0 and 100.`);
+        toast.error(`${label} must be a valid number between ${min} and ${max2}.`);
         return;
       }
       const num = Number(value);
-      if (num < 0 || num > 100) {
-        toast.error(`${label} must be between 0 and 100.`);
+      if (!Number.isInteger(num)) {
+        toast.error(`${label} must be an integer.`);
+        return;
+      }
+      if (num < min || num > max2) {
+        toast.error(`${label} must be between ${min} and ${max2}.`);
         return;
       }
     }
@@ -43489,7 +43750,7 @@ function K2VerifyAdvancedSettings() {
       key
     }) => ({
       parameter_name: key,
-      parameter_value: String(editedSettings[key])
+      parameter_value: key === "DEFAULT_PARTITION_COUNT" && editedSettings[key] === "Auto" ? "0" : String(editedSettings[key])
     }));
     if (changedParams.length === 0) {
       toast.info("No changes to save.");
@@ -43812,7 +44073,7 @@ function getBasePath() {
   return "/";
 }
 function getApiBasePath(fullBasePath) {
-  const match = fullBasePath.match(/^(\/[^/]+)\/static\/k2verify/);
+  const match = fullBasePath.match(/^(\/[^/]+)\/static\/verify/);
   return match ? match[1] : "";
 }
 const basename = getBasePath();

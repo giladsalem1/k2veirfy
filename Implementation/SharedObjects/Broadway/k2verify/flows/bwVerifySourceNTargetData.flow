@@ -1399,13 +1399,13 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          is_source_env_masked:
-            external: k2verify_src_contains_sensitive_data
+          source_env_contains_sensitive_data:
+            external: source_env_contains_sensitive_data
             schema: any
             mandatory: false
             createdBy: flowName
-          is_target_env_masked:
-            external: k2verify_trg_contains_sensitive_data
+          target_env_contains_sensitive_data:
+            external: target_env_contains_sensitive_data
             schema: any
             mandatory: false
             createdBy: flowName
@@ -1558,49 +1558,6 @@ stages:
   Bucket Verify Completed:
     transactional: false
     actors:
-      UpdateBucketVerifyCompleted:
-        parent: DbCommand
-        disabled: true
-        in:
-          interface:
-            const: null
-            link: RESULT_INTERFACE/variableValue
-          sql:
-            const: update ${@schema}.task_execution_buckets set processed_records
-              = ${processed_records} where task_id=${task_id} and execution_id=${execution_id}
-              and table_name=${table_name} and bucket_id=${bucket_id}
-          schema:
-            link: LOAD_SCHEMA/variableValue
-            schema: string
-            mandatory: false
-            createdBy: sql
-          task_id:
-            external: task_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          table_name:
-            link:
-            - FetchTableName/result
-            - SRC table name/value
-            schema: string
-            mandatory: false
-            createdBy: sql
-          bucket_id:
-            link: IID/value
-            schema: string
-            mandatory: false
-            createdBy: sql
-          processed_records:
-            link: '# Records/result'
-            schema: integer
-            mandatory: false
-            createdBy: sql
       UpdateBucketVerifyCompleted1:
         parent: DbCommand
         in:

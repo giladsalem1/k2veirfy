@@ -1,45 +1,34 @@
 tags: k2verify
 stages:
-  Stage 1:
-    transactional: true
+  Stage 3:
+    transactional: false
     actors:
-      DbCommand1:
-        parent: DbCommand
+      LuFunction1:
+        parent: LuFunction
         in:
-          interface:
-            const: null
-            external: Source_Interface
-          sql:
-            const: SET LOCAL statement_timeout = '60000ms';
-      BuildCountSql:
-        parent: JavaScript
-        in:
-          script:
-            const: '"SELECT COUNT(*) AS row_count FROM " + Source_Schema + "." + Source_Table'
-          Source_Schema:
-            external: Source_Schema
+          functionName:
+            const: executeQueryWithTimeout
+          timeoutSeconds:
+            const: '60'
             schema: string
             mandatory: false
-          Source_Table:
-            external: Source_Table
+            createdBy: functionName
+          interfaceName:
+            external: interfaceName
             schema: string
             mandatory: false
-        out:
-          result:
+            createdBy: functionName
+          schemaName:
+            external: schemaName
             schema: string
-  Stage 2:
-    transactional: true
-    actors:
-      FetchRowCount:
-        parent: DbFetchField
-        in:
-          interface:
-            const: null
-            external: Source_Interface
-          sql:
-            const: null
-            link: BuildCountSql/result
+            mandatory: false
+            createdBy: functionName
+          tableName:
+            external: tableName
+            schema: string
+            mandatory: false
+            createdBy: functionName
         out:
-          result:
+          countResult:
             external: row_count
             schema: integer

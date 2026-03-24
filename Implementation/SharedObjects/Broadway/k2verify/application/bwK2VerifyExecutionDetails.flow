@@ -43,7 +43,7 @@ stages:
             const: |
               SELECT
                 t.table_name,
-                t.batch_id,
+                COALESCE(t.batch_id::text, ' ') AS batch_id,
                 t.status,
                 t.start_time,
                 t.end_time,
@@ -64,7 +64,7 @@ stages:
                 AND t.execution_id = ${execution_id}
               GROUP BY
                 t.table_name, t.batch_id, t.status, t.start_time, t.end_time, t.bucket_count
-              ORDER BY t.table_name;
+              ORDER BY t.start_time;
           task_id:
             link: Const1/value
             schema: string

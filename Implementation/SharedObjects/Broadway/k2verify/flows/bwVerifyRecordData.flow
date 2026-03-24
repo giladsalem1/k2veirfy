@@ -94,13 +94,13 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
-          is_source_env_masked:
-            external: is_source_env_masked
+          source_env_contains_sensitive_data:
+            external: source_env_contains_sensitive_data
             schema: any
             mandatory: false
             createdBy: functionName
-          is_target_env_masked:
-            external: is_target_env_masked
+          target_env_contains_sensitive_data:
+            external: target_env_contains_sensitive_data
             schema: any
             mandatory: false
             createdBy: functionName

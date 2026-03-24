@@ -21,6 +21,15 @@ stages:
         in:
           variableName:
             const: K2VERIFY_OPERATIONAL_SCHEMA
+      table_status_details:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: table_status_details
+        out:
+          value:
+            schema: '#ref'
   sort according to execution order: {
     }
   Stage 2:
@@ -91,6 +100,74 @@ stages:
         in:
           value:
             link: Now1/date
+  Stage 4:
+    actors:
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_INTERFACE/variableValue
+            default: true
+          command:
+            const: upsert
+          schema:
+            const: null
+            link: K2VERIFY_SCHEMA/variableValue
+          table:
+            const: task_execution_tables
+          fields:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - bucket_count
+            - status
+            - start_time
+          keys:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+          dialect:
+            const: postgres
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: fields
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: fields
+          table_name:
+            link:
+              path: Mapper1/values
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: fields
+          status:
+            const: In_Progress
+            schema: string
+            mandatory: false
+            createdBy: fields
+          start_time:
+            link: ToString1/string
+            schema: string
+            mandatory: false
+            createdBy: fields
+          bucket_count:
+            const: '0'
+            schema: string
+            mandatory: false
+            createdBy: fields
+          batch_id:
+            const: ''
+            schema: string
+            mandatory: false
+            createdBy: table
   Stage 1:
     actors:
       InnerFlow1:
@@ -115,7 +192,15 @@ stages:
             mandatory: false
           table_properties:
             external: table_properties
-            schema: any
+            schema: '#ref'
+            mandatory: false
+          table_status_details:
+            link: table_status_details/value
+            schema: '#ref'
+            mandatory: false
+          isRetryMode:
+            external: IsRetryMode
+            schema: boolean
             mandatory: false
       Now2:
         parent: Now
@@ -124,6 +209,63 @@ stages:
         in:
           value:
             link: Now2/date
+  Stage 6:
+    actors:
+      DbLoad2:
+        parent: DbLoad
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_INTERFACE/variableValue
+            default: true
+          command:
+            const: update
+          schema:
+            const: null
+            link: K2VERIFY_SCHEMA/variableValue
+          table:
+            const: task_execution_tables
+          fields:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+            - status
+            - end_time
+          keys:
+            const:
+            - task_id
+            - execution_id
+            - table_name
+          dialect:
+            const: postgres
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: fields
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: fields
+          table_name:
+            link:
+              path: Mapper1/values
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: fields
+          status:
+            const: Completed
+            schema: string
+            mandatory: false
+            createdBy: fields
+          end_time:
+            link: ToString2/string
+            schema: string
+            mandatory: false
+            createdBy: fields
 schemas:
   Const1.out.value:
     type: object
@@ -179,6 +321,15 @@ schemas:
         type: boolean
       K2VERIFY_PII_ONLY_COMPARISON:
         type: boolean
+  table_status_details.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        table_name:
+          type: string
+        status:
+          type: string
   Sort1.out.list:
     type: array
     items:
@@ -249,3 +400,23 @@ schemas:
               type: string
             execution_order:
               type: integer
+  InnerFlow1.in.table_properties:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          type: string
+        tar:
+          type: string
+        buckets:
+          type: string
+  InnerFlow1.in.table_status_details:
+    type: array
+    items:
+      type: object
+      properties:
+        table_name:
+          type: string
+        status:
+          type: string

@@ -8,7 +8,7 @@
         {
             "stages": [
                 {
-                    "name": "LU Name",
+                    "name": "Flow Params",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -25,17 +25,23 @@
                                     }
                                 ]
                             }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Flow params",
-                    "dependsOnList": [],
-                    "actors": [
+                        },
+                        {
+                            "name": "Now",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "START_TIME",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
                         {
                             "name": "K2VERIFY_INTERFACE",
                             "actorType": {
@@ -61,78 +67,6 @@
                                 ],
                                 "outputs": []
                             }
-                        },
-                        {
-                            "name": "TASK_ID",
-                            "actorType": {
-                                "parentType": "ToNumber",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "Now",
-                            "actorType": {
-                                "parentType": "Now",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "START_TIME",
-                            "actorType": {
-                                "parentType": "ToString",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "IsRetryMode",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "boolean"
-                                        },
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "RETRY_EXECUTION_ID",
-                            "actorType": {
-                                "parentType": "ToNumber",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "retry_execution_id_const",
-                            "isDisabled": true,
-                            "actorType": {
-                                "parentType": "ToNumber",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                ],
-                                "outputs": []
-                            }
                         }
                     ]
                 }
@@ -141,7 +75,7 @@
         {
             "stages": [
                 {
-                    "name": "Created By",
+                    "name": "User name",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -191,11 +125,36 @@
         {
             "stages": [
                 {
-                    "name": "Load task execution table",
-                    "dependsOnList": [],
+                    "name": "Generate new execution",
+                    "dependsOnList": [
+                        "User name"
+                    ],
                     "actors": [
                         {
-                            "name": "LoadTaskExec",
+                            "name": "RegularMode",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "a",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "true"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "LoadNewExecution",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -273,40 +232,34 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Retry Mode",
+                    "dependsOnList": [
+                        "User name"
+                    ],
+                    "hasElse": true,
+                    "actors": [
+                        {
+                            "name": "RETRY_EXECUTION_ID",
+                            "actorType": {
+                                "parentType": "ToNumber",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
                 }
             ]
         },
         {
             "stages": [
                 {
-                    "name": "Fetch execution id",
+                    "name": "Fetch generated execution id",
                     "dependsOnList": [
-                        "Load task execution table"
+                        "Generate new execution"
                     ],
                     "actors": [
-                        {
-                            "name": "NotEquals1",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "NotEquals",
-                                "inputs": [
-                                    {
-                                        "name": "a",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "true"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
                         {
                             "name": "FetchExecutionID",
                             "actorType": {
@@ -346,29 +299,96 @@
                                     }
                                 ]
                             }
-                        },
-                        {
-                            "name": "ToString1",
-                            "actorType": {
-                                "parentType": "ToString",
-                                "inputs": [],
-                                "outputs": []
-                            }
                         }
                     ]
                 },
                 {
-                    "name": "Stage 7",
+                    "name": "Execution started",
                     "dependsOnList": [
-                        "Load task execution table"
+                        "Retry Mode"
                     ],
-                    "hasElse": true,
                     "actors": [
                         {
-                            "name": "ToString2",
+                            "name": "LoadExecutionStarted",
                             "actorType": {
-                                "parentType": "ToString",
-                                "inputs": [],
+                                "parentType": "DbLoad",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "command",
+                                        "const": "update"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "table",
+                                        "const": "task_execution"
+                                    },
+                                    {
+                                        "name": "fields",
+                                        "const": [
+                                            "execution_status",
+                                            "start_time",
+                                            "started_by"
+                                        ]
+                                    },
+                                    {
+                                        "name": "keys",
+                                        "const": [
+                                            "execution_id",
+                                            "task_id"
+                                        ]
+                                    },
+                                    {
+                                        "name": "dialect",
+                                        "const": "postgres"
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "const": "In_Progress",
+                                        "name": "execution_status",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "start_time",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "schema",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "started_by",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "fields",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
                                 "outputs": []
                             }
                         }
@@ -380,7 +400,9 @@
             "stages": [
                 {
                     "name": "Fiels/Record summary creation command",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Fetch generated execution id"
+                    ],
                     "actors": [
                         {
                             "name": "CreateFieldSumCmd",
@@ -419,7 +441,7 @@
                                 "inputs": [
                                     {
                                         "name": "format",
-                                        "const": "      CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_record_summary_${execution_id} (\r\n        execution_id BIGINT,\r\n        iid character varying(200),\r\n        source_table_name character varying(200),\r\n        target_table_name character varying(200),\r\n        customized_key character varying(1000),\r\n        number_of_fields_mismatch integer,\r\n        number_of_fields_match integer,\r\n        number_of_fields_only_in_target integer,\r\n        number_of_fields_only_in_source integer,\r\n        number_of_fields_unsecured_in_target integer\r\n    )"
+                                        "const": "CREATE TABLE IF NOT EXISTS ${k2verify_schema}.k2verify_record_summary_${execution_id} (\r\nexecution_id BIGINT,\r\niid character varying(200),\r\nsource_table_name character varying(200),\r\ntarget_table_name character varying(200),\r\ncustomized_key character varying(1000),\r\nnumber_of_fields_mismatch integer,\r\nnumber_of_fields_match integer,\r\nnumber_of_fields_only_in_target integer,\r\nnumber_of_fields_only_in_source integer,\r\nnumber_of_fields_unsecured_in_target integer\r\n)"
                                     },
                                     {
                                         "name": "execution_id",
@@ -442,6 +464,13 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": " ",
+                    "dependsOnList": [
+                        "Execution started"
+                    ],
+                    "actors": []
                 }
             ]
         },
@@ -449,7 +478,9 @@
             "stages": [
                 {
                     "name": "Create field/record summary tables",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Fiels/Record summary creation command"
+                    ],
                     "actors": [
                         {
                             "name": "CreateFieldSummary",
@@ -486,13 +517,38 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "  ",
+                    "dependsOnList": [
+                        " "
+                    ],
+                    "actors": []
                 }
             ]
         },
         {
             "stages": [
                 {
-                    "name": "Stage 21",
+                    "name": "Task Execution ID",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "Execution ID",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Task tables properties",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -538,7 +594,7 @@
                         {
                             "name": "FetchTablesProps",
                             "actorType": {
-                                "parentType": "DbFetchField",
+                                "parentType": "DbCommand",
                                 "inputs": [
                                     {
                                         "name": "interface",
@@ -546,7 +602,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "select table_properties from ${@schema}.task_table_properties where task_id=${task_id}"
+                                        "const": " select table_properties from ${@schema}.task_table_properties where task_id=${task_id}"
                                     },
                                     {
                                         "name": "schema",
@@ -559,7 +615,7 @@
                                     {
                                         "name": "task_id",
                                         "schema": {
-                                            "type": "string"
+                                            "type": "integer"
                                         },
                                         "createdBy": "sql",
                                         "mandatory": false
@@ -569,7 +625,15 @@
                                     {
                                         "name": "result",
                                         "schema": {
-                                            "type": "string"
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "table_properties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 ]
@@ -689,19 +753,9 @@
                                     }
                                 ]
                             }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 12",
-                    "dependsOnList": [],
-                    "actors": [
+                        },
                         {
-                            "name": "DeepCopy1",
+                            "name": "DeepCopyProps",
                             "actorType": {
                                 "parentType": "DeepCopy",
                                 "inputs": [],
@@ -713,13 +767,7 @@
                                             "items": {
                                                 "type": "object",
                                                 "properties": {
-                                                    "src": {
-                                                        "type": "string"
-                                                    },
-                                                    "tar": {
-                                                        "type": "string"
-                                                    },
-                                                    "buckets": {
+                                                    "table_properties": {
                                                         "type": "string"
                                                     }
                                                 }
@@ -736,11 +784,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 8",
+                    "name": "Execute pre process",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "ErrorFields1",
+                            "name": "PreProcessErrorFields",
                             "onError": "message",
                             "actorType": {
                                 "parentType": "ErrorFields",
@@ -854,7 +902,7 @@
                             }
                         },
                         {
-                            "name": "bwExecutePreProcess",
+                            "name": "ExecutePreProcess",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -967,6 +1015,20 @@
                                         },
                                         "createdBy": "flowName",
                                         "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_status_details",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "IsRetryMode",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []
@@ -979,11 +1041,151 @@
         {
             "stages": [
                 {
-                    "name": "DeepCOpy for Props1",
-                    "dependsOnList": [],
+                    "name": "pre process failed - stop task",
+                    "dependsOnList": [
+                        "Execute pre process"
+                    ],
                     "actors": [
                         {
-                            "name": "LuFunction1",
+                            "name": "PreProcessFailed",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotNull",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "Now1",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TimeAfterPreProcess",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "UpPreProcessFailed",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@k2verify_schema}.task_execution_tables set status='Failed' , end_time='${@end_time}' where task_id=${task_id} and execution_id=${execution_id} and status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "end_time",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "UpTaskEndTimeDueFail",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set execution_status='Stopped', end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id} and lower(execution_status) <> 'failed' AND lower(execution_status) <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status) <> 'killed'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "end_time",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "StopTaskJob",
                             "actorType": {
                                 "parentType": "LuFunction",
                                 "inputs": [
@@ -993,7 +1195,9 @@
                                     },
                                     {
                                         "name": "errorMessage",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "functionName",
                                         "mandatory": false
                                     }
@@ -1007,6 +1211,14 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Pre process success",
+                    "dependsOnList": [
+                        "Execute pre process"
+                    ],
+                    "hasElse": true,
+                    "actors": []
                 }
             ]
         },
@@ -1082,7 +1294,7 @@
                             }
                         },
                         {
-                            "name": "JobName",
+                            "name": "TableVerifyJobName",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -1114,7 +1326,7 @@
                     "hasElse": true,
                     "actors": [
                         {
-                            "name": "JobName1",
+                            "name": "FileVerifyJobName",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -1192,7 +1404,7 @@
                     ],
                     "actors": [
                         {
-                            "name": "Props2",
+                            "name": "FilesProps",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -1232,31 +1444,13 @@
         {
             "stages": [
                 {
-                    "name": "Stage 9",
+                    "name": "For each table defined",
                     "dependsOnList": [
                         "Table props"
                     ],
-                    "actors": []
-                },
-                {
-                    "name": "Stage 10",
-                    "dependsOnList": [
-                        "File pros"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 13",
-                    "dependsOnList": [
-                        "Stage 9"
-                    ],
                     "actors": [
                         {
-                            "name": "Split1",
+                            "name": "SourceTableName",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -1269,7 +1463,7 @@
                             }
                         },
                         {
-                            "name": "Split2",
+                            "name": "TargetTableName",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -1279,6 +1473,125 @@
                                     }
                                 ],
                                 "outputs": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "For each file defined",
+                    "dependsOnList": [
+                        "File pros"
+                    ],
+                    "actors": [
+                        {
+                            "name": "SrcFileName",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TarFileName",
+                            "actorType": {
+                                "parentType": "Split",
+                                "inputs": [
+                                    {
+                                        "name": "delimiter",
+                                        "const": "\\.(?=.*)"
+                                    },
+                                    {
+                                        "name": "regex",
+                                        "const": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "const": 2
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "tables details",
+                    "dependsOnList": [
+                        "For each table defined"
+                    ],
+                    "actors": [
+                        {
+                            "name": "TablesDetailsMap",
+                            "actorType": {
+                                "parentType": "JavaScript",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": {
+                                            "userCode": "const myMap = {};\n\nmyMap.src_schema =src_table[0];\nmyMap.src_table  = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table  = tar_table[1];\n\nmyMap;",
+                                            "script": "var myMap = {};\nmyMap.src_schema = src_table[0];\nmyMap.src_table = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table = tar_table[1];\nmyMap;"
+                                        }
+                                    },
+                                    {
+                                        "name": "src_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_table",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "src_schema": {
+                                                    "type": "string"
+                                                },
+                                                "src_table": {
+                                                    "type": "string"
+                                                },
+                                                "tar_schema": {
+                                                    "type": "string"
+                                                },
+                                                "tar_table": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
@@ -1286,53 +1599,11 @@
                 {
                     "name": "Stage 14",
                     "dependsOnList": [
-                        "Stage 10"
+                        "For each file defined"
                     ],
                     "actors": [
                         {
-                            "name": "SrcTableName",
-                            "actorType": {
-                                "parentType": "Split",
-                                "inputs": [
-                                    {
-                                        "name": "delimiter",
-                                        "const": "\\.(?=.*)"
-                                    },
-                                    {
-                                        "name": "regex",
-                                        "const": true
-                                    },
-                                    {
-                                        "name": "limit",
-                                        "const": 2
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "TarTableName",
-                            "actorType": {
-                                "parentType": "Split",
-                                "inputs": [
-                                    {
-                                        "name": "delimiter",
-                                        "const": "\\.(?=.*)"
-                                    },
-                                    {
-                                        "name": "regex",
-                                        "const": true
-                                    },
-                                    {
-                                        "name": "limit",
-                                        "const": 2
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "TablesMetadataMap",
+                            "name": "FilesMetadataMap",
                             "actorType": {
                                 "parentType": "JavaScript",
                                 "inputs": [
@@ -1395,111 +1666,76 @@
         {
             "stages": [
                 {
-                    "name": "Stage 15",
+                    "name": "Check table status",
                     "dependsOnList": [
-                        "Stage 13"
+                        "tables details"
                     ],
                     "actors": [
                         {
-                            "name": "JavaScript1",
+                            "name": "CheckTableStatus",
                             "actorType": {
-                                "parentType": "JavaScript",
+                                "parentType": "DbFetchField",
                                 "inputs": [
                                     {
-                                        "name": "script",
-                                        "const": {
-                                            "userCode": "const myMap = {};\n\nmyMap.src_schema =src_table[0];\nmyMap.src_table  = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table  = tar_table[1];\n\nmyMap;",
-                                            "script": "var myMap = {};\nmyMap.src_schema = src_table[0];\nmyMap.src_table = src_table[1];\nmyMap.tar_schema = tar_table[0];\nmyMap.tar_table = tar_table[1];\nmyMap;"
-                                        }
+                                        "name": "interface",
+                                        "const": null
                                     },
                                     {
-                                        "name": "src_table",
+                                        "name": "sql",
+                                        "const": "select status from ${@verify_schema}.task_execution_tables where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name}"
+                                    },
+                                    {
+                                        "name": "verify_schema",
                                         "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
+                                            "type": "string"
                                         },
+                                        "createdBy": "sql",
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "tar_table",
+                                        "name": "task_id",
                                         "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
+                                            "type": "string"
                                         },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
                                         "mandatory": false
                                     }
                                 ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "src_schema": {
-                                                    "type": "string"
-                                                },
-                                                "src_table": {
-                                                    "type": "string"
-                                                },
-                                                "tar_schema": {
-                                                    "type": "string"
-                                                },
-                                                "tar_table": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
+                                "outputs": []
                             }
                         }
                     ]
                 },
                 {
-                    "name": "Stage 16",
+                    "name": "Load files to LUI tables",
                     "dependsOnList": [
                         "Stage 14"
                     ],
                     "actors": [
                         {
-                            "name": "LoadCsvToTables",
+                            "name": "bwLoadFilesToTables1",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
                                     {
                                         "name": "flowName",
                                         "const": "bwLoadFilesToTables"
-                                    },
-                                    {
-                                        "name": "pattern",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "tarInterface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "interfaceType": [
-                                                "LOCAL",
-                                                "SFTP",
-                                                "filesystem"
-                                            ],
-                                            "interfaces": [
-                                                "file://"
-                                            ],
-                                            "id": "com.k2view.interface"
-                                        },
-                                        "mandatory": false
                                     },
                                     {
                                         "name": "srcInterface",
@@ -1521,8 +1757,31 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "const": "verify",
-                                        "name": "schema",
+                                        "name": "pattern",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "srcSchema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tarInterface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tarSchema",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1542,10 +1801,45 @@
                 {
                     "name": "Execute tables verify",
                     "dependsOnList": [
-                        "Stage 15"
+                        "Check table status"
                     ],
                     "isLast": 1,
+                    "remark": "Execute verify on the the if the execution is in retry mode and the tables status is Failed. Or the execution is regular mode (not retry)",
                     "actors": [
+                        {
+                            "name": "ExecuteVerify",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "JavaScript",
+                                "inputs": [
+                                    {
+                                        "name": "script",
+                                        "const": {
+                                            "userCode": "(IsRetryMode == \"true\" && table_status=='Failed') || !(IsRetryMode ==\"true\")",
+                                            "script": "IsRetryMode == \"true\" && table_status == 'Failed' || !(IsRetryMode == \"true\");"
+                                        }
+                                    },
+                                    {
+                                        "name": "IsRetryMode",
+                                        "schema": {},
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_status",
+                                        "schema": {},
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
                         {
                             "name": "VerifyTableExecution",
                             "actorType": {
@@ -1709,14 +2003,6 @@
                                     {
                                         "name": "IsRetryMode",
                                         "schema": {
-                                            "type": "boolean"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "retry_execution_id",
-                                        "schema": {
                                             "type": "string"
                                         },
                                         "createdBy": "flowName",
@@ -1729,9 +2015,18 @@
                     ]
                 },
                 {
-                    "name": "Stage 11",
+                    "name": "Stage 30",
                     "dependsOnList": [
-                        "Stage 16"
+                        "Check table status"
+                    ],
+                    "isLast": 1,
+                    "hasElse": true,
+                    "actors": []
+                },
+                {
+                    "name": "Execute csv verify",
+                    "dependsOnList": [
+                        "Load files to LUI tables"
                     ],
                     "isLast": 1,
                     "actors": [
@@ -2167,10 +2462,12 @@
             "stages": [
                 {
                     "name": "Create PK",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Update time before PK creation"
+                    ],
                     "actors": [
                         {
-                            "name": "NotRetryMode- Create PK",
+                            "name": "ToCreatePK",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "NotEquals",
@@ -2178,15 +2475,15 @@
                                     {
                                         "name": "a",
                                         "schema": {
-                                            "type": "boolean"
+                                            "type": "string"
                                         }
                                     },
                                     {
                                         "name": "b",
                                         "schema": {
-                                            "type": "boolean"
+                                            "type": "string"
                                         },
-                                        "const": true
+                                        "const": "true"
                                     }
                                 ],
                                 "outputs": []
@@ -2194,7 +2491,6 @@
                         },
                         {
                             "name": "FieldSumPK",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -2227,6 +2523,14 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Stage 7",
+                    "dependsOnList": [
+                        "Update time before PK creation"
+                    ],
+                    "hasElse": true,
+                    "actors": []
                 }
             ]
         },
@@ -2434,11 +2738,35 @@
             "stages": [
                 {
                     "name": "Create index",
-                    "dependsOnList": [],
+                    "dependsOnList": [
+                        "Update time before index creation"
+                    ],
                     "actors": [
                         {
+                            "name": "ToCreateIndex",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotEquals",
+                                "inputs": [
+                                    {
+                                        "name": "a",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "name": "b",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "const": "true"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "FieldSumIDX",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -2471,6 +2799,14 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Retry Mode - index already created",
+                    "dependsOnList": [
+                        "Update time before index creation"
+                    ],
+                    "hasElse": true,
+                    "actors": []
                 }
             ]
         },
@@ -2585,7 +2921,6 @@
                     "actors": [
                         {
                             "name": "RecordSummary",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -2681,7 +3016,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.task_execution_history(\n    execution_id,\n    number_of_fields_match,\n    number_of_fields_mismatch,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source\n)\nSELECT\n    execution_id,\n    sum(number_of_fields_match) as number_of_fields_match,\n    sum(number_of_fields_mismatch) as number_of_fields_mismatch,\n    sum(number_of_fields_only_in_target) as number_of_fields_only_in_target,\n    sum(number_of_fields_only_in_source) as number_of_fields_only_in_source\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\ngroup by execution_id"
+                                        "const": "INSERT INTO ${@result_schema}.task_execution_history(\n    execution_id,\n    number_of_fields_match,\n    number_of_fields_mismatch,\n    number_of_fields_only_in_target,\n    number_of_fields_only_in_source\n)\nSELECT\n    execution_id,\n    SUM(number_of_fields_match) AS number_of_fields_match,\n    SUM(number_of_fields_mismatch) AS number_of_fields_mismatch,\n    SUM(number_of_fields_only_in_target) AS number_of_fields_only_in_target,\n    SUM(number_of_fields_only_in_source) AS number_of_fields_only_in_source\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\nGROUP BY execution_id\nON CONFLICT (execution_id)\nDO UPDATE SET\n    number_of_fields_match = EXCLUDED.number_of_fields_match,\n    number_of_fields_mismatch = EXCLUDED.number_of_fields_mismatch,\n    number_of_fields_only_in_target = EXCLUDED.number_of_fields_only_in_target,\n    number_of_fields_only_in_source = EXCLUDED.number_of_fields_only_in_source;"
                                     },
                                     {
                                         "name": "execution_id",
@@ -2756,7 +3091,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "TimeAfterRecSumStr",
+                            "name": "TimeAfterRecSum",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -2764,7 +3099,7 @@
                             }
                         },
                         {
-                            "name": "END_TIME11111",
+                            "name": "TimeAfterRecSumStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -2856,31 +3191,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "NotRetryMode",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "NotEquals",
-                                "inputs": [
-                                    {
-                                        "name": "a",
-                                        "schema": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "boolean"
-                                        },
-                                        "const": true
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
                             "name": "TableSummaryRows",
-                            "isDisabled": true,
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -2890,7 +3201,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target,\n    match_result\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0)\n        AS number_of_records_mismatch,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0)\n        AS number_of_records_only_in_source,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0)\n        AS number_of_records_only_in_target,\n\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0)\n        AS number_of_records_unsecured_in_target,\n\n    CASE\n        WHEN\n            MAX(number_of_fields_mismatch) > 0\n            OR MAX(number_of_fields_only_in_source) > 0\n            OR MAX(number_of_fields_only_in_target) > 0\n        THEN 'NOT PASSED'\n        ELSE 'PASSED'\n    END AS match_result\n\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name;"
+                                        "const": "INSERT INTO ${@result_schema}.k2verify_table_summary (\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name,\n    number_of_records_match,\n    number_of_records_mismatch,\n    number_of_records_only_in_source,\n    number_of_records_only_in_target,\n    number_of_records_unsecured_in_target,\n    match_result\n)\nSELECT\n    execution_id,\n    0 AS iid,\n    source_table_name,\n    target_table_name,\n\n    COUNT(*) FILTER (\n        WHERE number_of_fields_mismatch = 0\n          AND number_of_fields_only_in_target = 0\n          AND number_of_fields_only_in_source = 0\n    ) AS number_of_records_match,\n\n    COUNT(*) FILTER (WHERE number_of_fields_mismatch > 0)\n        AS number_of_records_mismatch,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_source > 0)\n        AS number_of_records_only_in_source,\n\n    COUNT(*) FILTER (WHERE number_of_fields_only_in_target > 0)\n        AS number_of_records_only_in_target,\n\n    COUNT(*) FILTER (WHERE number_of_fields_unsecured_in_target > 0)\n        AS number_of_records_unsecured_in_target,\n\n    CASE\n        WHEN\n            MAX(number_of_fields_mismatch) > 0\n            OR MAX(number_of_fields_only_in_source) > 0\n            OR MAX(number_of_fields_only_in_target) > 0\n        THEN 'NOT PASSED'\n        ELSE 'PASSED'\n    END AS match_result\n\nFROM ${@result_schema}.k2verify_record_summary_${@execution_id}\nGROUP BY\n    execution_id,\n    iid,\n    source_table_name,\n    target_table_name\n\nON CONFLICT (execution_id, iid, source_table_name, target_table_name)\nDO UPDATE SET\n    number_of_records_match = EXCLUDED.number_of_records_match,\n    number_of_records_mismatch = EXCLUDED.number_of_records_mismatch,\n    number_of_records_only_in_source = EXCLUDED.number_of_records_only_in_source,\n    number_of_records_only_in_target = EXCLUDED.number_of_records_only_in_target,\n    number_of_records_unsecured_in_target = EXCLUDED.number_of_records_unsecured_in_target,\n    match_result = EXCLUDED.match_result;"
                                     },
                                     {
                                         "name": "execution_id",
@@ -2958,11 +3269,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 1",
+                    "name": "Loop Tables",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Props1",
+                            "name": "Task Tables",
                             "actorType": {
                                 "parentType": "Const",
                                 "inputs": [
@@ -3002,11 +3313,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 17",
+                    "name": "For each table",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "Split3",
+                            "name": "SrcTable",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -3027,7 +3338,7 @@
                             }
                         },
                         {
-                            "name": "Split4",
+                            "name": "TarTable",
                             "actorType": {
                                 "parentType": "Split",
                                 "inputs": [
@@ -3054,11 +3365,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 18",
+                    "name": "Tables metadata",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "JavaScript2",
+                            "name": "TablesMetadataMap",
                             "actorType": {
                                 "parentType": "JavaScript",
                                 "inputs": [
@@ -3121,12 +3432,11 @@
         {
             "stages": [
                 {
-                    "name": "Stage 2",
+                    "name": "Select table result",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "DbFetchField1",
-                            "isDisabled": true,
+                            "name": "FetchTableResult",
                             "actorType": {
                                 "parentType": "DbFetchField",
                                 "inputs": [
@@ -3188,13 +3498,13 @@
         {
             "stages": [
                 {
-                    "name": "Stage 4",
+                    "name": "Generate table result",
                     "dependsOnList": [
-                        "Stage 2"
+                        "Select table result"
                     ],
                     "actors": [
                         {
-                            "name": "IsNull1",
+                            "name": "ResultNotExists",
                             "condition": "result",
                             "actorType": {
                                 "parentType": "IsNull",
@@ -3203,8 +3513,7 @@
                             }
                         },
                         {
-                            "name": "DbCommand2",
-                            "isDisabled": true,
+                            "name": "GenerateResultData",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -3275,7 +3584,7 @@
                 {
                     "name": "Stage 5",
                     "dependsOnList": [
-                        "Stage 2"
+                        "Select table result"
                     ],
                     "hasElse": true,
                     "actors": []
@@ -3285,15 +3594,14 @@
         {
             "stages": [
                 {
-                    "name": "Stage 3",
+                    "name": "Load table result",
                     "dependsOnList": [
-                        "Stage 4"
+                        "Generate table result"
                     ],
                     "isLast": 1,
                     "actors": [
                         {
-                            "name": "DbLoad1",
-                            "isDisabled": true,
+                            "name": "LoadTableResult",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -3446,11 +3754,94 @@
         {
             "stages": [
                 {
-                    "name": "Stage 20",
+                    "name": "TablesStatus",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "ErrorFields2",
+                            "name": "FetchTablesStatus",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "select table_name,status  from ${@result_schema}.task_execution_tables where execution_id=${execution_id}"
+                                    },
+                                    {
+                                        "name": "result_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "?column?": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "ParseTablesStatus",
+                            "actorType": {
+                                "parentType": "JsonParser",
+                                "inputs": [
+                                    {
+                                        "name": "single",
+                                        "const": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "object",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "?column?": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Execute post process",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "PostProcessError",
                             "onError": "message",
                             "actorType": {
                                 "parentType": "ErrorFields",
@@ -3554,6 +3945,20 @@
                                                         }
                                                     }
                                                 },
+                                                "table_status_details": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "table_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
                                                 "task_id": {
                                                     "type": "string"
                                                 }
@@ -3564,7 +3969,7 @@
                             }
                         },
                         {
-                            "name": "bwExecutePostProcess",
+                            "name": "ExecutePostProcess",
                             "actorType": {
                                 "parentType": "InnerFlow",
                                 "inputs": [
@@ -3677,8 +4082,47 @@
                                         },
                                         "createdBy": "flowName",
                                         "mandatory": false
+                                    },
+                                    {
+                                        "name": "table_status_details",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "table_name": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "IsRetryMode",
+                                        "schema": {
+                                            "type": "boolean"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
                                     }
                                 ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TimeAfterPostProcess",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "TimeAfterPostProcessStr",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
                                 "outputs": []
                             }
                         }
@@ -3689,11 +4133,136 @@
         {
             "stages": [
                 {
-                    "name": "Stage 19",
-                    "dependsOnList": [],
+                    "name": "post process failed - stop task",
+                    "dependsOnList": [
+                        "Execute post process"
+                    ],
                     "actors": [
                         {
-                            "name": "LuFunction2",
+                            "name": "PostProcessFailed",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotNull",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "UpTaskEndTimeDueFail2",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@schema}.task_execution set execution_status='Stopped', end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id} and lower(execution_status) <> 'failed' AND lower(execution_status) <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status) <> 'killed'"
+                                    },
+                                    {
+                                        "name": "schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "integer"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "end_time",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "UpdatePostFailed",
+                            "minHeight": 309,
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": null
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "update ${@k2verify_schema}.task_execution_tables set status='Failed' , end_time='${@end_time}' where task_id=${task_id} and execution_id=${execution_id} and status='In_Progress'"
+                                    },
+                                    {
+                                        "name": "k2verify_schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "end_time",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "sql",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "StopTaskJob ",
                             "actorType": {
                                 "parentType": "LuFunction",
                                 "inputs": [
@@ -3719,6 +4288,14 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "Stage 26",
+                    "dependsOnList": [
+                        "Execute post process"
+                    ],
+                    "hasElse": true,
+                    "actors": []
                 }
             ]
         },
@@ -3729,7 +4306,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "TimeAfterTableSum",
+                            "name": "TskEndTime",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -3737,7 +4314,7 @@
                             }
                         },
                         {
-                            "name": "TimeAfterTableSumStr",
+                            "name": "TskEndTimeStr",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -3751,7 +4328,7 @@
         {
             "stages": [
                 {
-                    "name": "Update task end time",
+                    "name": "Update task completed",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -3846,556 +4423,6 @@
         },
         {
             "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchTaskProps",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "LoadTaskExec",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchExecutionID",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTaskEndTime",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchUser",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "CreateFieldSummary",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FieldSumPK",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FieldSumIDX",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "RecordSummary",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforePKCreation",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterPKCreation",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterIDXCreation",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforeIDXCreation",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimAfterRecSum",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbFetchField1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "CreateRecordSummary",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "ExecutionHistory",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchTablesProps",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchTaskProps",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "LoadTaskExec",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchExecutionID",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTaskEndTime",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchUser",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "CreateFieldSumCmd",
-                "name": "k2verify_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FieldSumPK",
-                "name": "k2verify_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FieldSumIDX",
-                "name": "k2verify_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "result_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "RecordSummary",
-                "name": "result_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforePKCreation",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterPKCreation",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterIDXCreation",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchUser",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforeIDXCreation",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "UpTimAfterRecSum",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbFetchField1",
-                "name": "result_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "CreateRecSumCmd",
-                "name": "k2verify_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "ExecutionHistory",
-                "name": "result_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "FetchTablesProps",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "FetchTaskProps",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "LoadTaskExec",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "FetchExecutionID",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "VerifyTableExecution",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTaskEndTime",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "FetchUser",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforePKCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterPKCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterIDXCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforeIDXCreation",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "UpTimAfterRecSum",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TASK_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "Now",
                 "name": "date"
             },
@@ -4410,18 +4437,588 @@
                 "name": "string"
             },
             "rightPort": {
-                "actor": "LoadTaskExec",
+                "actor": "LoadNewExecution",
                 "name": "start_time"
             }
         },
         {
             "leftPort": {
-                "actor": "RETRY_EXECUTION_ID",
-                "name": "number"
+                "actor": "START_TIME",
+                "name": "string"
             },
             "rightPort": {
-                "actor": "ToString2",
-                "name": "value"
+                "actor": "LoadExecutionStarted",
+                "name": "start_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadNewExecution",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTime",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateFieldSummary",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FieldSumPK",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FieldSumIDX",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "RecordSummary",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforePKCreation",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterPKCreation",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterIDXCreation",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforeIDXCreation",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimAfterRecSum",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTableResult",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadTableResult",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "GenerateResultData",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateRecordSummary",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesStatus",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesProps",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpPreProcessFailed",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail2",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpdatePostFailed",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadExecutionStarted",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CheckTableStatus",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadNewExecution",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTime",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateFieldSumCmd",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FieldSumPK",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FieldSumIDX",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "RecordSummary",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforePKCreation",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterPKCreation",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterIDXCreation",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchUser",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforeIDXCreation",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTimAfterRecSum",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTableResult",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadTableResult",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "GenerateResultData",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CreateRecSumCmd",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesStatus",
+                "name": "result_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "FetchTablesProps",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpPreProcessFailed",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail2",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "UpdatePostFailed",
+                "name": "k2verify_schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "LoadExecutionStarted",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "CheckTableStatus",
+                "name": "verify_schema"
             }
         },
         {
@@ -4430,17 +5027,37 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "LoadTaskExec",
+                "actor": "LoadNewExecution",
                 "name": "started_by"
             }
         },
         {
             "leftPort": {
-                "actor": "FetchExecutionID",
+                "actor": "FetchUser",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "VerifyTableExecution",
+                "actor": "LoadExecutionStarted",
+                "name": "started_by"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "RETRY_EXECUTION_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "Execution ID",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "RETRY_EXECUTION_ID",
+                "name": "number"
+            },
+            "rightPort": {
+                "actor": "LoadExecutionStarted",
                 "name": "execution_id"
             }
         },
@@ -4450,17 +5067,7 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "UpTaskEndTime",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ToString1",
+                "actor": "Execution ID",
                 "name": "value"
             }
         },
@@ -4470,187 +5077,17 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "UpTimeBeforePKCreation",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterPKCreation",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "UpTimeAfterIDXCreation",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "UpTimeBeforeIDXCreation",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "UpTimAfterRecSum",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ExecutionHistory",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FetchExecutionID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "VerifyCsvExecution",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "FieldSumPK",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
                 "actor": "CreateFieldSumCmd",
                 "name": "execution_id"
             }
         },
         {
             "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "FieldSumIDX",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "TableSummaryRows",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "RecordSummary",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbFetchField1",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
+                "actor": "FetchExecutionID",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "CreateRecSumCmd",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "bwExecutePreProcess",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "bwExecutePostProcess",
-                "name": "execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ToString2",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "CreateFieldSumCmd",
                 "name": "execution_id"
             }
         },
@@ -4672,6 +5109,246 @@
             "rightPort": {
                 "actor": "CreateRecordSummary",
                 "name": "sql"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTime",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforePKCreation",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterPKCreation",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterIDXCreation",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforeIDXCreation",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTimAfterRecSum",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "ExecutionHistory",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "FieldSumPK",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "FieldSumIDX",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "TableSummaryRows",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "RecordSummary",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "FetchTableResult",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "LoadTableResult",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "GenerateResultData",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "ExecutePreProcess",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "ExecutePostProcess",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "FetchTablesStatus",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpPreProcessFailed",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpdatePostFailed",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail2",
+                "name": "execution_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Execution ID",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "CheckTableStatus",
+                "name": "execution_id"
             }
         },
         {
@@ -4692,6 +5369,29 @@
             "rightPort": {
                 "actor": "Tables properties",
                 "name": "stream"
+            },
+            "path": [
+                "table_properties"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "ExecutePreProcess",
+                "name": "task_properties"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Task properties",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "ExecutePostProcess",
+                "name": "task_properties"
             }
         },
         {
@@ -4770,32 +5470,6 @@
             },
             "path": [
                 "K2VERIFY_INTERFACE_SRC"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "Task properties",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "LoadCsvToTables",
-                "name": "srcInterface"
-            },
-            "path": [
-                "K2VERIFY_INTERFACE_SRC"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "Task properties",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "LoadCsvToTables",
-                "name": "tarInterface"
-            },
-            "path": [
-                "K2VERIFY_INTERFACE_TAR"
             ]
         },
         {
@@ -4986,9 +5660,12 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "bwExecutePreProcess",
-                "name": "task_properties"
-            }
+                "actor": "bwLoadFilesToTables1",
+                "name": "srcInterface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_SRC"
+            ]
         },
         {
             "leftPort": {
@@ -4996,9 +5673,12 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "bwExecutePostProcess",
-                "name": "task_properties"
-            }
+                "actor": "bwLoadFilesToTables1",
+                "name": "tarInterface"
+            },
+            "path": [
+                "K2VERIFY_INTERFACE_TAR"
+            ]
         },
         {
             "leftPort": {
@@ -5006,23 +5686,23 @@
                 "name": "object"
             },
             "rightPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Props1",
+                "actor": "Task Tables",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             },
             "rightPort": {
@@ -5032,42 +5712,82 @@
         },
         {
             "leftPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Props2",
+                "actor": "FilesProps",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "bwExecutePreProcess",
+                "actor": "ExecutePreProcess",
                 "name": "table_properties"
             }
         },
         {
             "leftPort": {
-                "actor": "DeepCopy1",
+                "actor": "DeepCopyProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "bwExecutePostProcess",
+                "actor": "ExecutePostProcess",
                 "name": "table_properties"
             }
         },
         {
             "leftPort": {
-                "actor": "ErrorFields1",
+                "actor": "PreProcessErrorFields",
                 "name": "message"
             },
             "rightPort": {
-                "actor": "LuFunction1",
+                "actor": "StopTaskJob",
                 "name": "errorMessage"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "PreProcessErrorFields",
+                "name": "message"
+            },
+            "rightPort": {
+                "actor": "PreProcessFailed",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now1",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "TimeAfterPreProcess",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TimeAfterPreProcess",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpPreProcessFailed",
+                "name": "end_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TimeAfterPreProcess",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail",
+                "name": "end_time"
             }
         },
         {
@@ -5092,7 +5812,7 @@
         },
         {
             "leftPort": {
-                "actor": "JobName",
+                "actor": "TableVerifyJobName",
                 "name": "value"
             },
             "rightPort": {
@@ -5102,7 +5822,7 @@
         },
         {
             "leftPort": {
-                "actor": "JobName1",
+                "actor": "FileVerifyJobName",
                 "name": "value"
             },
             "rightPort": {
@@ -5116,7 +5836,7 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Split1",
+                "actor": "SourceTableName",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5130,7 +5850,7 @@
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Split2",
+                "actor": "TargetTableName",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5154,11 +5874,11 @@
         },
         {
             "leftPort": {
-                "actor": "Props2",
+                "actor": "FilesProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "SrcTableName",
+                "actor": "SrcFileName",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5168,11 +5888,11 @@
         },
         {
             "leftPort": {
-                "actor": "Props2",
+                "actor": "FilesProps",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "TarTableName",
+                "actor": "TarFileName",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5182,86 +5902,47 @@
         },
         {
             "leftPort": {
-                "actor": "Split1",
+                "actor": "SourceTableName",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "src_table"
             }
         },
         {
             "leftPort": {
-                "actor": "Split2",
+                "actor": "TargetTableName",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "tar_table"
             }
         },
         {
             "leftPort": {
-                "actor": "SrcTableName",
+                "actor": "SrcFileName",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "TablesMetadataMap",
+                "actor": "FilesMetadataMap",
                 "name": "src_table"
             }
         },
         {
             "leftPort": {
-                "actor": "TarTableName",
+                "actor": "TarFileName",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "TablesMetadataMap",
+                "actor": "FilesMetadataMap",
                 "name": "tar_table"
             }
         },
         {
             "leftPort": {
-                "actor": "TablesMetadataMap",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "VerifyCsvExecution",
-                "name": "Source_Table_Name"
-            },
-            "path": [
-                "src_table"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "TablesMetadataMap",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "VerifyCsvExecution",
-                "name": "Target_Table_Name"
-            },
-            "path": [
-                "tar_table"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "TablesMetadataMap",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "LoadCsvToTables",
-                "name": "pattern"
-            },
-            "path": [
-                "src_table"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "result"
             },
             "rightPort": {
@@ -5274,7 +5955,7 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "result"
             },
             "rightPort": {
@@ -5287,7 +5968,7 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "result"
             },
             "rightPort": {
@@ -5300,7 +5981,7 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript1",
+                "actor": "TablesDetailsMap",
                 "name": "result"
             },
             "rightPort": {
@@ -5310,6 +5991,94 @@
             "path": [
                 "tar_table"
             ]
+        },
+        {
+            "leftPort": {
+                "actor": "TablesDetailsMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "CheckTableStatus",
+                "name": "table_name"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "FilesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Source_Table_Name"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "FilesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "Target_Table_Name"
+            },
+            "path": [
+                "tar_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "FilesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "bwLoadFilesToTables1",
+                "name": "srcSchema"
+            },
+            "path": [
+                "src_schema"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "FilesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "bwLoadFilesToTables1",
+                "name": "pattern"
+            },
+            "path": [
+                "src_table"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "FilesMetadataMap",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "bwLoadFilesToTables1",
+                "name": "tarSchema"
+            },
+            "path": [
+                "tar_schema"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "CheckTableStatus",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "ExecuteVerify",
+                "name": "table_status"
+            }
         },
         {
             "leftPort": {
@@ -5418,17 +6187,17 @@
         },
         {
             "leftPort": {
-                "actor": "TimeAfterRecSumStr",
+                "actor": "TimeAfterRecSum",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "END_TIME11111",
+                "actor": "TimeAfterRecSumStr",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "END_TIME11111",
+                "actor": "TimeAfterRecSumStr",
                 "name": "string"
             },
             "rightPort": {
@@ -5438,11 +6207,11 @@
         },
         {
             "leftPort": {
-                "actor": "Props1",
+                "actor": "Task Tables",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Split3",
+                "actor": "SrcTable",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5452,11 +6221,11 @@
         },
         {
             "leftPort": {
-                "actor": "Props1",
+                "actor": "Task Tables",
                 "name": "value"
             },
             "rightPort": {
-                "actor": "Split4",
+                "actor": "TarTable",
                 "name": "string"
             },
             "iterate": "Iterate",
@@ -5466,31 +6235,31 @@
         },
         {
             "leftPort": {
-                "actor": "Split3",
+                "actor": "SrcTable",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "src_table"
             }
         },
         {
             "leftPort": {
-                "actor": "Split4",
+                "actor": "TarTable",
                 "name": "strings"
             },
             "rightPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "tar_table"
             }
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbFetchField1",
+                "actor": "FetchTableResult",
                 "name": "source_table_name"
             },
             "path": [
@@ -5499,11 +6268,11 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbFetchField1",
+                "actor": "FetchTableResult",
                 "name": "target_table_name"
             },
             "path": [
@@ -5512,11 +6281,11 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbCommand2",
+                "actor": "GenerateResultData",
                 "name": "table_name"
             },
             "path": [
@@ -5525,11 +6294,11 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "LoadTableResult",
                 "name": "source_table_name"
             },
             "path": [
@@ -5538,11 +6307,11 @@
         },
         {
             "leftPort": {
-                "actor": "JavaScript2",
+                "actor": "TablesMetadataMap",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "LoadTableResult",
                 "name": "target_table_name"
             },
             "path": [
@@ -5551,21 +6320,21 @@
         },
         {
             "leftPort": {
-                "actor": "DbFetchField1",
+                "actor": "FetchTableResult",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "IsNull1",
+                "actor": "ResultNotExists",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "DbCommand2",
+                "actor": "GenerateResultData",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "DbLoad1",
+                "actor": "LoadTableResult",
                 "name": "number_of_records_match"
             },
             "iterate": "First",
@@ -5575,27 +6344,87 @@
         },
         {
             "leftPort": {
-                "actor": "ErrorFields2",
+                "actor": "FetchTablesStatus",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "ParseTablesStatus",
+                "name": "stream"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ParseTablesStatus",
+                "name": "object"
+            },
+            "rightPort": {
+                "actor": "ExecutePostProcess",
+                "name": "table_status_details"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "PostProcessError",
                 "name": "message"
             },
             "rightPort": {
-                "actor": "LuFunction2",
+                "actor": "StopTaskJob ",
                 "name": "errorMessage"
             }
         },
         {
             "leftPort": {
-                "actor": "TimeAfterTableSum",
-                "name": "date"
+                "actor": "PostProcessError",
+                "name": "message"
             },
             "rightPort": {
-                "actor": "TimeAfterTableSumStr",
+                "actor": "PostProcessFailed",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "TimeAfterTableSumStr",
+                "actor": "TimeAfterPostProcess",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "TimeAfterPostProcessStr",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TimeAfterPostProcessStr",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail2",
+                "name": "end_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TimeAfterPostProcessStr",
+                "name": "string"
+            },
+            "rightPort": {
+                "actor": "UpdatePostFailed",
+                "name": "end_time"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TskEndTime",
+                "name": "date"
+            },
+            "rightPort": {
+                "actor": "TskEndTimeStr",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "TskEndTimeStr",
                 "name": "string"
             },
             "rightPort": {
@@ -5609,8 +6438,8 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "TASK_ID",
-                "name": "value"
+                "actor": "FetchUser",
+                "name": "task_id"
             }
         },
         {
@@ -5619,68 +6448,58 @@
                 "name": "IsRetryMode"
             },
             "rightPort": {
-                "actor": "IsRetryMode",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "IsRetryMode",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "IsRetryMode"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "execution_id"
-            },
-            "rightPort": {
-                "actor": "RETRY_EXECUTION_ID",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "RETRY_EXECUTION_ID",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "retry_execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "retry_execution_id"
-            },
-            "rightPort": {
-                "actor": "retry_execution_id_const",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "retry_execution_id_const",
-                "name": "number"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "retry_execution_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "IsRetryMode"
-            },
-            "rightPort": {
-                "actor": "NotEquals1",
+                "actor": "RegularMode",
                 "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "LoadNewExecution",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "retry_execution_id"
+            },
+            "rightPort": {
+                "actor": "RETRY_EXECUTION_ID",
+                "name": "value"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "FetchExecutionID",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "LoadExecutionStarted",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "FetchTaskProps",
+                "name": "task_id"
             }
         },
         {
@@ -5699,7 +6518,67 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "bwExecutePreProcess",
+                "actor": "ExecutePreProcess",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "ExecutePreProcess",
+                "name": "IsRetryMode"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpPreProcessFailed",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "CheckTableStatus",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "ExecuteVerify",
+                "name": "IsRetryMode"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "VerifyTableExecution",
                 "name": "task_id"
             }
         },
@@ -5711,16 +6590,6 @@
             "rightPort": {
                 "actor": "VerifyTableExecution",
                 "name": "IsRetryMode"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "retry_execution_id"
-            },
-            "rightPort": {
-                "actor": "VerifyTableExecution",
-                "name": "retry_execution_id"
             }
         },
         {
@@ -5736,11 +6605,11 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "IsRetryMode"
+                "name": "task_id"
             },
             "rightPort": {
-                "actor": "NotRetryMode- Create PK",
-                "name": "a"
+                "actor": "UpTimeBeforePKCreation",
+                "name": "task_id"
             }
         },
         {
@@ -5749,7 +6618,7 @@
                 "name": "IsRetryMode"
             },
             "rightPort": {
-                "actor": "NotRetryMode",
+                "actor": "ToCreatePK",
                 "name": "a"
             }
         },
@@ -5759,7 +6628,107 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "bwExecutePostProcess",
+                "actor": "UpTimeAfterPKCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTimeBeforeIDXCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "ToCreateIndex",
+                "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTimeAfterIDXCreation",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTimAfterRecSum",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "GenerateResultData",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "ExecutePostProcess",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "IsRetryMode"
+            },
+            "rightPort": {
+                "actor": "ExecutePostProcess",
+                "name": "IsRetryMode"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTimeDueFail2",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpdatePostFailed",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "UpTaskEndTime",
                 "name": "task_id"
             }
         }

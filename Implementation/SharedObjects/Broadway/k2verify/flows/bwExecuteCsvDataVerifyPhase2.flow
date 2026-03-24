@@ -8,7 +8,7 @@
         {
             "stages": [
                 {
-                    "name": "Flow Params",
+                    "name": "Stage 7",
                     "dependsOnList": [],
                     "actors": [
                         {
@@ -24,35 +24,6 @@
                                         }
                                     }
                                 ]
-                            }
-                        },
-                        {
-                            "name": "Now",
-                            "actorType": {
-                                "parentType": "Now",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "START_TIME",
-                            "actorType": {
-                                "parentType": "ToString",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "FabricSetRead1",
-                            "actorType": {
-                                "parentType": "FabricSetRead",
-                                "inputs": [
-                                    {
-                                        "name": "key",
-                                        "const": "PARTITION_SIZE"
-                                    }
-                                ],
-                                "outputs": []
                             }
                         },
                         {
@@ -80,6 +51,22 @@
                                 ],
                                 "outputs": []
                             }
+                        },
+                        {
+                            "name": "Now1",
+                            "actorType": {
+                                "parentType": "Now",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "ToString1",
+                            "actorType": {
+                                "parentType": "ToString",
+                                "inputs": [],
+                                "outputs": []
+                            }
                         }
                     ]
                 }
@@ -88,138 +75,53 @@
         {
             "stages": [
                 {
-                    "name": "Comparison config",
+                    "name": "Stage 1",
                     "dependsOnList": [],
-                    "remark": "Tables comparison custom configurations are stored in k2verify_config mtable. This actor retrieves those configurations from the mtable.",
                     "actors": [
                         {
-                            "name": "GetTableConfig",
+                            "name": "ls1",
                             "actorType": {
-                                "parentType": "InnerFlow",
+                                "parentType": "ls",
                                 "inputs": [
                                     {
-                                        "name": "flowName",
-                                        "const": "bwGetTableParams"
+                                        "name": "interface",
+                                        "const": null
                                     },
                                     {
-                                        "name": "Source_Table_Name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
+                                        "name": "pattern",
+                                        "const": null
                                     },
                                     {
-                                        "name": "Source_Interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Target_Table_Name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Target_Interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Target_Schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Buckets",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
+                                        "name": "directories",
+                                        "const": true
                                     }
                                 ],
                                 "outputs": [
                                     {
-                                        "name": "tableParams",
+                                        "name": "result",
                                         "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "Source_Table_Name": {
-                                                    "type": "string"
-                                                },
-                                                "Source_Interface": {
-                                                    "type": "string"
-                                                },
-                                                "Source_Schema": {
-                                                    "type": "string"
-                                                },
-                                                "Source_Transformation_Function_Name": {},
-                                                "source_columns_to_Ignore_null": {},
-                                                "Target_Table_Name": {
-                                                    "type": "string"
-                                                },
-                                                "Target_Interface": {
-                                                    "type": "string"
-                                                },
-                                                "Target_Schema": {
-                                                    "type": "string"
-                                                },
-                                                "Target_Transformation_Function_Name": {},
-                                                "target_columns_to_Ignore_null": {},
-                                                "Customized_Key_Comparison": {
-                                                    "type": "string"
-                                                },
-                                                "Pii_Columns": {},
-                                                "Excluded_Columns_Names": {},
-                                                "Active": {
-                                                    "type": "string"
-                                                },
-                                                "Mode": {},
-                                                "Excluded_Rows_Sql": {},
-                                                "Column_Mapping": {},
-                                                "Buckets": {
-                                                    "type": "string"
-                                                },
-                                                "Buckets_Method": {
-                                                    "type": "string"
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "size": {
+                                                        "type": "integer"
+                                                    },
+                                                    "createTime": {
+                                                        "type": "integer"
+                                                    },
+                                                    "lastModifiedTime": {
+                                                        "type": "integer"
+                                                    },
+                                                    "lastAccessTime": {
+                                                        "type": "integer"
+                                                    },
+                                                    "directory": {
+                                                        "type": "boolean"
+                                                    }
                                                 }
                                             }
                                         }
@@ -234,75 +136,20 @@
         {
             "stages": [
                 {
-                    "name": "Get Default Bucket Count",
+                    "name": "Stage 3",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "ResolveDefBucketCount",
+                            "name": "Mapper1",
                             "actorType": {
-                                "parentType": "InnerFlow",
+                                "parentType": "Mapper",
                                 "inputs": [
                                     {
                                         "name": "flowName",
-                                        "const": "bwResolveBucketCount"
-                                    },
-                                    {
-                                        "name": "partition_size",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "buckets_config",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Table",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "db_type",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
+                                        "const": "bwLoadFilesToBuckets"
                                     }
                                 ],
-                                "outputs": [
-                                    {
-                                        "name": "bucket_count",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                ]
+                                "outputs": []
                             }
                         }
                     ]
@@ -312,11 +159,11 @@
         {
             "stages": [
                 {
-                    "name": "Update table verify started",
+                    "name": "Flow inputs",
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "StartedTableVerify",
+                            "name": "StartedTableVerify1",
                             "actorType": {
                                 "parentType": "DbLoad",
                                 "inputs": [
@@ -411,6 +258,172 @@
                                 ],
                                 "outputs": []
                             }
+                        },
+                        {
+                            "name": "MTableLookup",
+                            "actorType": {
+                                "parentType": "MTableLookup",
+                                "inputs": [
+                                    {
+                                        "name": "mtable",
+                                        "const": "k2verify_config"
+                                    },
+                                    {
+                                        "name": "Source_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "mtable",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "mtable",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "mtable",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "mtable",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "result",
+                                        "schema": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "Source_Table_Name": {
+                                                        "type": "string"
+                                                    },
+                                                    "Source_Interface": {
+                                                        "type": "string"
+                                                    },
+                                                    "Source_Schema": {
+                                                        "type": "string"
+                                                    },
+                                                    "Source_Transformation_Function_Name": {},
+                                                    "source_columns_to_Ignore_null": {},
+                                                    "Target_Table_Name": {
+                                                        "type": "string"
+                                                    },
+                                                    "Target_Interface": {
+                                                        "type": "string"
+                                                    },
+                                                    "Target_Schema": {
+                                                        "type": "string"
+                                                    },
+                                                    "Target_Transformation_Function_Name": {},
+                                                    "target_columns_to_Ignore_null": {},
+                                                    "Customized_Key_Comparison": {
+                                                        "type": "string"
+                                                    },
+                                                    "Pii_Columns": {
+                                                        "type": "string"
+                                                    },
+                                                    "Excluded_Columns_Names": {},
+                                                    "Active": {
+                                                        "type": "string"
+                                                    },
+                                                    "Mode": {},
+                                                    "Excluded_Rows_Sql": {},
+                                                    "Column_Mapping": {},
+                                                    "Buckets": {
+                                                        "type": "string"
+                                                    },
+                                                    "Buckets_Method": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Opetational DB",
+                    "dependsOnList": [],
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Update table verify started",
+                    "dependsOnList": [],
+                    "actors": [
+                        {
+                            "name": "NotNull1",
+                            "condition": "result",
+                            "actorType": {
+                                "parentType": "NotNull",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "InterfaceType",
+                            "actorType": {
+                                "parentType": "InnerFlow",
+                                "inputs": [
+                                    {
+                                        "name": "flowName",
+                                        "const": "bwCheckDBType"
+                                    },
+                                    {
+                                        "name": "interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "type",
+                                        "schema": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
@@ -451,6 +464,23 @@
                                     {
                                         "name": "sql",
                                         "const": "set K2VERIFY_INTERFACE_SRC=?;"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "SRC Interface Type",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_INTERFACE_SRC_TYPE=?;"
                                     }
                                 ],
                                 "outputs": []
@@ -536,29 +566,6 @@
                                     {
                                         "name": "sql",
                                         "const": "set K2VERIFY_TABLE_TAR=?;"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "SRC Interface Type",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": "fabric"
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "set K2VERIFY_INTERFACE_SRC_TYPE=${interfaceType}"
-                                    },
-                                    {
-                                        "name": "interfaceType",
-                                        "schema": {},
-                                        "createdBy": "sql",
-                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []
@@ -659,6 +666,23 @@
                                         },
                                         "createdBy": "sql",
                                         "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "CSV MODE",
+                            "actorType": {
+                                "parentType": "DbCommand",
+                                "inputs": [
+                                    {
+                                        "name": "interface",
+                                        "const": "fabric"
+                                    },
+                                    {
+                                        "name": "sql",
+                                        "const": "set K2VERIFY_CSV_MODE='true'"
                                     }
                                 ],
                                 "outputs": []
@@ -788,118 +812,10 @@
         {
             "stages": [
                 {
-                    "name": "Cassandra interface",
-                    "dependsOnList": [
-                        "Set table verify globals"
-                    ],
-                    "actors": [
-                        {
-                            "name": "CassandraInterface",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "EqualsIgnoreCase",
-                                "inputs": [
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "Cassandra (Db)"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "ExtractKeysFromCassTable",
-                            "actorType": {
-                                "parentType": "InnerFlow",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwExtractKeyFromCassTable"
-                                    },
-                                    {
-                                        "name": "schema",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "customized_key",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "buckets_count",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Else",
-                    "dependsOnList": [
-                        "Set table verify globals"
-                    ],
-                    "hasElse": true,
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Merge 1",
-                    "dependsOnList": [],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
                     "name": "Batch command params",
-                    "dependsOnList": [
-                        "Merge 1"
-                    ],
+                    "dependsOnList": [],
                     "remark": "the batch is executed on the comparison buckets",
                     "actors": [
-                        {
-                            "name": "RegularMode",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "NotEquals",
-                                "inputs": [
-                                    {
-                                        "name": "a",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "true"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
                         {
                             "name": "MaxWorkers",
                             "actorType": {
@@ -934,108 +850,6 @@
                                 "inputs": [],
                                 "outputs": []
                             }
-                        },
-                        {
-                            "name": "FormatBatchSql",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "WITH RECURSIVE  cnt(IID) AS (SELECT 0 UNION ALL SELECT IID+1 FROM cnt LIMIT ${groupsCnt}  ) SELECT \"${table_name}_@_\"||IID as IID FROM cnt"
-                                    },
-                                    {
-                                        "name": "groupsCnt",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "table_name",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Retry Mode",
-                    "dependsOnList": [
-                        "Merge 1"
-                    ],
-                    "hasElse": true,
-                    "actors": [
-                        {
-                            "name": "SelectFailedBatchID",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "SELECT DISTINCT exe_tbl.batch_id as retry_batch_id\nFROM ${k2verify_schema}.task_execution_tables   exe_tbl\nWHERE exe_tbl.task_id =  ${task_id}\n  AND exe_tbl.table_name = ${Source_Table_Name}\n  and exe_tbl.execution_id=${execution_id}\n"
-                                    },
-                                    {
-                                        "name": "task_id",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Table_Name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "execution_id",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "k2verify_schema",
-                                        "schema": {},
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "retry_batch_id": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
                         }
                     ]
                 }
@@ -1045,9 +859,7 @@
             "stages": [
                 {
                     "name": "Batch command",
-                    "dependsOnList": [
-                        "Batch command params"
-                    ],
+                    "dependsOnList": [],
                     "actors": [
                         {
                             "name": "BatchCommand",
@@ -1056,7 +868,7 @@
                                 "inputs": [
                                     {
                                         "name": "format",
-                                        "const": "BATCH ${lut} from fabric using('${sql}') FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
+                                        "const": "BATCH ${lut}.(${iids}) FABRIC_COMMAND=\"sync_instance ${lut}.?\" with async='true' ${maxWorkers};"
                                     },
                                     {
                                         "const": "verify",
@@ -1074,68 +886,15 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "sql",
+                                        "name": "iids",
                                         "schema": {
                                             "type": "string"
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Batch Retry comand params",
-                    "dependsOnList": [
-                        "Retry Mode"
-                    ],
-                    "actors": [
-                        {
-                            "name": "batch_retry Command",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "batch_retry '${retry_batch_id}'"
-                                    },
-                                    {
-                                        "name": "retry_batch_id",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "retry_batch_id": {
-                                                    "type": "string"
-                                                }
-                                            }
                                         },
                                         "createdBy": "format",
                                         "mandatory": false
                                     }
                                 ],
                                 "outputs": []
-                            }
-                        },
-                        {
-                            "name": "RetryBatchID",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
                             }
                         }
                     ]
@@ -1146,58 +905,10 @@
             "stages": [
                 {
                     "name": "Execute buckets bacth",
-                    "dependsOnList": [
-                        "Batch command"
-                    ],
+                    "dependsOnList": [],
                     "actors": [
                         {
                             "name": "ExecuteBatch",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": "fabric"
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "Batch id": {
-                                                        "type": "string"
-                                                    },
-                                                    "Execution id": {
-                                                        "type": "string"
-                                                    },
-                                                    "Notes": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Execute Batch Retry",
-                    "dependsOnList": [
-                        "Batch Retry comand params"
-                    ],
-                    "actors": [
-                        {
-                            "name": "ExecuteBatchRetry",
                             "actorType": {
                                 "parentType": "DbCommand",
                                 "inputs": [
@@ -1272,8 +983,7 @@
                                             "execution_id",
                                             "table_name",
                                             "batch_id",
-                                            "status",
-                                            "start_time"
+                                            "status"
                                         ]
                                     },
                                     {
@@ -1323,14 +1033,6 @@
                                     {
                                         "const": "In_Progress",
                                         "name": "status",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "start_time",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1397,7 +1099,7 @@
                     "dependsOnList": [],
                     "actors": [
                         {
-                            "name": "TableVerifyEndTime",
+                            "name": "Now2",
                             "actorType": {
                                 "parentType": "Now",
                                 "inputs": [],
@@ -1405,7 +1107,7 @@
                             }
                         },
                         {
-                            "name": "TableVerifyEndTimeStr",
+                            "name": "END_TIME1",
                             "actorType": {
                                 "parentType": "ToString",
                                 "inputs": [],
@@ -1488,7 +1190,6 @@
                                             "table_name",
                                             "batch_id",
                                             "status",
-                                            "start_time",
                                             "end_time"
                                         ]
                                     },
@@ -1539,14 +1240,6 @@
                                     {
                                         "const": "Stopped",
                                         "name": "status",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "start_time",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1654,14 +1347,6 @@
                                     {
                                         "const": "Failed",
                                         "name": "status",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "start_time",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1842,7 +1527,6 @@
                                             "table_name",
                                             "batch_id",
                                             "status",
-                                            "start_time",
                                             "end_time"
                                         ]
                                     },
@@ -1892,14 +1576,6 @@
                                     },
                                     {
                                         "name": "status",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "table",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "start_time",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1960,213 +1636,158 @@
         },
         {
             "leftPort": {
-                "actor": "LUName",
-                "name": "lu_name"
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
             },
             "rightPort": {
-                "actor": "ExtractKeysFromCassTable",
+                "actor": "VerifyInProgress",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCompleted",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCancelled",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyFailed",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_INTERFACE",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "StartedTableVerify1",
+                "name": "interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyInProgress",
                 "name": "schema"
             }
         },
         {
             "leftPort": {
-                "actor": "Now",
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCompleted",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyCancelled",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "VerifyFailed",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "K2VERIFY_SCHEMA",
+                "name": "variableValue"
+            },
+            "rightPort": {
+                "actor": "StartedTableVerify1",
+                "name": "schema"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "Now1",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "START_TIME",
+                "actor": "ToString1",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "START_TIME",
+                "actor": "ToString1",
                 "name": "string"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
+                "actor": "StartedTableVerify1",
                 "name": "start_time"
             }
         },
         {
             "leftPort": {
-                "actor": "START_TIME",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "start_time"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "START_TIME",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "start_time"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "START_TIME",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "VerifyCancelled",
-                "name": "start_time"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "START_TIME",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "start_time"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FabricSetRead1",
+                "actor": "ls1",
                 "name": "result"
             },
             "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "partition_size"
-            }
+                "actor": "Mapper1",
+                "name": "values"
+            },
+            "path": [
+                "name"
+            ]
         },
         {
             "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
+                "actor": "NotNull1",
+                "name": "value"
             },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "interface"
-            }
+            "iterate": "First"
         },
         {
             "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCancelled",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyCancelled",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "variableValue"
-            },
-            "rightPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "k2verify_schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "SRC Table",
                 "name": "params"
             },
+            "iterate": "First",
             "path": [
                 "Source_Table_Name"
             ],
@@ -2174,26 +1795,14 @@
         },
         {
             "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
-            },
-            "rightPort": {
-                "actor": "FormatBatchSql",
-                "name": "table_name"
-            },
-            "path": [
-                "Source_Table_Name"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "SRC Interface",
                 "name": "params"
             },
+            "iterate": "First",
             "path": [
                 "Source_Interface"
             ],
@@ -2201,13 +1810,14 @@
         },
         {
             "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "SRC Schema",
                 "name": "params"
             },
+            "iterate": "First",
             "path": [
                 "Source_Schema"
             ],
@@ -2215,27 +1825,14 @@
         },
         {
             "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
-            },
-            "rightPort": {
-                "actor": "TAR Schema",
-                "name": "params"
-            },
-            "path": [
-                "Target_Schema"
-            ],
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "TAR Table",
                 "name": "params"
             },
+            "iterate": "First",
             "path": [
                 "Target_Table_Name"
             ],
@@ -2243,13 +1840,14 @@
         },
         {
             "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
                 "actor": "TAR Interface",
                 "name": "params"
             },
+            "iterate": "First",
             "path": [
                 "Target_Interface"
             ],
@@ -2257,54 +1855,40 @@
         },
         {
             "leftPort": {
-                "actor": "GetTableConfig",
-                "name": "tableParams"
+                "actor": "MTableLookup",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "ExtractKeysFromCassTable",
-                "name": "customized_key"
+                "actor": "TAR Schema",
+                "name": "params"
             },
+            "iterate": "First",
             "path": [
-                "Customized_Key_Comparison"
+                "Target_Schema"
+            ],
+            "arrayPosition": 0
+        },
+        {
+            "leftPort": {
+                "actor": "MTableLookup",
+                "name": "result"
+            },
+            "rightPort": {
+                "actor": "InterfaceType",
+                "name": "interface"
+            },
+            "iterate": "First",
+            "path": [
+                "Source_Interface"
             ]
         },
         {
             "leftPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "bucket_count"
+                "actor": "InterfaceType",
+                "name": "type"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
-                "name": "bucket_count"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "bucket_count"
-            },
-            "rightPort": {
-                "actor": "ExtractKeysFromCassTable",
-                "name": "buckets_count"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "bucket_count"
-            },
-            "rightPort": {
-                "actor": "FormatBatchSql",
-                "name": "groupsCnt"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "bucket_count"
-            },
-            "rightPort": {
-                "actor": "BUCKETS NUM",
+                "actor": "SRC Interface Type",
                 "name": "params"
             },
             "arrayPosition": 0
@@ -2341,44 +1925,6 @@
         },
         {
             "leftPort": {
-                "actor": "FormatBatchSql",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "BatchCommand",
-                "name": "sql"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "batch_retry Command",
-                "name": "retry_batch_id"
-            },
-            "iterate": "First",
-            "path": [
-                "retry_batch_id"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
-            },
-            "iterate": "First",
-            "path": [
-                "retry_batch_id"
-            ]
-        },
-        {
-            "leftPort": {
                 "actor": "BatchCommand",
                 "name": "string"
             },
@@ -2389,73 +1935,31 @@
         },
         {
             "leftPort": {
-                "actor": "batch_retry Command",
-                "name": "string"
-            },
-            "rightPort": {
                 "actor": "ExecuteBatch",
-                "name": "sql"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "batch_retry Command",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "ExecuteBatchRetry",
-                "name": "sql"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "batch_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
+                "name": "result"
             },
             "rightPort": {
                 "actor": "BatchWait1",
                 "name": "batchId"
-            }
+            },
+            "iterate": "First",
+            "path": [
+                "Batch id"
+            ]
         },
         {
             "leftPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
+                "actor": "ExecuteBatch",
+                "name": "result"
             },
             "rightPort": {
-                "actor": "VerifyCancelled",
+                "actor": "VerifyInProgress",
                 "name": "batch_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
             },
-            "rightPort": {
-                "actor": "VerifyFailed",
-                "name": "batch_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "RetryBatchID",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "VerifyCompleted",
-                "name": "batch_id"
-            }
+            "iterate": "First",
+            "path": [
+                "Batch id"
+            ]
         },
         {
             "leftPort": {
@@ -2493,34 +1997,6 @@
             "rightPort": {
                 "actor": "VerifyFailed",
                 "name": "batch_id"
-            },
-            "iterate": "First",
-            "path": [
-                "Batch id"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "ExecuteBatch",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "VerifyInProgress",
-                "name": "batch_id"
-            },
-            "iterate": "First",
-            "path": [
-                "Batch id"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "ExecuteBatch",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "BatchWait1",
-                "name": "batchId"
             },
             "iterate": "First",
             "path": [
@@ -2559,17 +2035,17 @@
         },
         {
             "leftPort": {
-                "actor": "TableVerifyEndTime",
+                "actor": "Now2",
                 "name": "date"
             },
             "rightPort": {
-                "actor": "TableVerifyEndTimeStr",
+                "actor": "END_TIME1",
                 "name": "value"
             }
         },
         {
             "leftPort": {
-                "actor": "TableVerifyEndTimeStr",
+                "actor": "END_TIME1",
                 "name": "string"
             },
             "rightPort": {
@@ -2579,7 +2055,7 @@
         },
         {
             "leftPort": {
-                "actor": "TableVerifyEndTimeStr",
+                "actor": "END_TIME1",
                 "name": "string"
             },
             "rightPort": {
@@ -2589,7 +2065,7 @@
         },
         {
             "leftPort": {
-                "actor": "TableVerifyEndTimeStr",
+                "actor": "END_TIME1",
                 "name": "string"
             },
             "rightPort": {
@@ -2620,101 +2096,11 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "Source_Table_Name"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Source_Table_Name"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
                 "name": "Source_Interface"
             },
             "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Source_Interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Source_Schema"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Source_Schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Target_Table_Name"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Target_Table_Name"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Target_Interface"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Target_Interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Target_Schema"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Target_Schema"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Buckets"
-            },
-            "rightPort": {
-                "actor": "GetTableConfig",
-                "name": "Buckets"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Buckets"
-            },
-            "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "buckets_config"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Source_Interface"
-            },
-            "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "Source_Interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Source_Schema"
-            },
-            "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "Source_Schema"
+                "actor": "ls1",
+                "name": "interface"
             }
         },
         {
@@ -2723,18 +2109,8 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "Source_Table"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "interfaceType"
-            },
-            "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "db_type"
+                "actor": "ls1",
+                "name": "pattern"
             }
         },
         {
@@ -2743,7 +2119,7 @@
                 "name": "task_id"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
+                "actor": "StartedTableVerify1",
                 "name": "task_id"
             }
         },
@@ -2753,7 +2129,7 @@
                 "name": "execution_id"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
+                "actor": "StartedTableVerify1",
                 "name": "execution_id"
             }
         },
@@ -2763,18 +2139,48 @@
                 "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "StartedTableVerify",
+                "actor": "StartedTableVerify1",
                 "name": "table_name"
             }
         },
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "interfaceType"
+                "name": "Source_Table_Name"
             },
             "rightPort": {
-                "actor": "SRC Interface Type",
-                "name": "interfaceType"
+                "actor": "MTableLookup",
+                "name": "Source_Table_Name"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "Source_Interface"
+            },
+            "rightPort": {
+                "actor": "MTableLookup",
+                "name": "Source_Interface"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "Target_Table_Name"
+            },
+            "rightPort": {
+                "actor": "MTableLookup",
+                "name": "Target_Table_Name"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "Target_Interface"
+            },
+            "rightPort": {
+                "actor": "MTableLookup",
+                "name": "Target_Interface"
             }
         },
         {
@@ -2860,26 +2266,6 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "interfaceType"
-            },
-            "rightPort": {
-                "actor": "CassandraInterface",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "IsRetryMode"
-            },
-            "rightPort": {
-                "actor": "RegularMode",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
                 "name": "maxWorkers"
             },
             "rightPort": {
@@ -2895,36 +2281,6 @@
             "rightPort": {
                 "actor": "MaxWorkersString",
                 "name": "maxWorkers"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "task_id"
-            },
-            "rightPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "task_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "Source_Table_Name"
-            },
-            "rightPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "Source_Table_Name"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "execution_id"
-            },
-            "rightPort": {
-                "actor": "SelectFailedBatchID",
-                "name": "execution_id"
             }
         },
         {

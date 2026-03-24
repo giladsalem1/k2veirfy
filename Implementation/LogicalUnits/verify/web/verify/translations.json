@@ -130,7 +130,7 @@
     "k2verifyConfiguration.newConfiguration":"New Configuration ",
     "k2verifyConfiguration.toasts.saveSuccess":"Configuration Saved successfully!",
     "K2VerifyTaskHistoryDetailed.retry":"Retry Task",
-    "k2verifyAdvancedSettings.title":"Error Handling Parameters",
+    "k2verifyAdvancedSettings.title":"Advanced Settings Parameters",
     "k2verifyAdvancedSettings.toasts.loadFailed": "Failed to load advanced settings.",
   "k2verifyAdvancedSettings.toasts.saveSuccess": "Advanced settings updated successfully.",
   "k2verifyAdvancedSettings.toasts.saveFailed": "Failed to update advanced settings.",
@@ -150,6 +150,8 @@
   "k2verifyAdvancedSettings.parameters.maxComparisonFailurePct.description": "Maximum allowed percentage of records where the comparison between the source and target could not be completed, for example due to missing records or processing errors. Range: 0-100.",
   "k2verifyAdvancedSettings.parameters.maxRecordMismatchPct.description": "Maximum allowed percentage of records where the comparison succeeded, but field values differ between source and target. Range: 0-100.",
   "k2verifyAdvancedSettings.parameters.maxSlidingWindowFailurePct.description": "Maximum allowed percentage of comparison failures within a recent sliding window of processed records. This monitors short-term failure spikes instead of a cumulative failure rate. Example: trigger if more than 30 percent failures in the last 1000 records. Range: 0-100.",
+  "k2verifyAdvancedSettings.parameters.partitionSize.description":"Partition size used to determine partition_count when Partitions is set to 0 or null. Verify estimates the source table row count and divides it by this value to determine how many comparison partitions to create. Range: 0-1000000",
+  "k2verifyAdvancedSettings.parameters.defaultPartitionSize.description":"Default number of partitions used for comparison when partitioning is not explicitly defined. If set to Auto, Verify automatically determines the optimal partition count based on data size and system characteristics. If a value is provided, it overrides automatic calculation and enforces a fixed number of partitions. Range: Auto or 1-1000000.",
   "k2verifyAdvancedSettings.toasts.loadFailed": "Failed to load advanced settings.",
   "k2verifyAdvancedSettings.toasts.saveSuccess": "Advanced settings updated successfully.",
   "k2verifyAdvancedSettings.toasts.saveFailed": "Failed to update advanced settings."

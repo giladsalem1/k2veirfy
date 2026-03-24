@@ -9,20 +9,12 @@ stages:
             const: null
             external: srcInterface
           pattern:
-            const: null
-            external: pattern
+            const: customer*
           directories:
             const: true
         out:
           result:
             schema: '#ref'
-      SEPERATOR:
-        parent: GetLUVariable
-        in:
-          variableName:
-            const: K2VERIFY_CONF_SEPARATOR
-          luName:
-            external: schema
   Stage 18:
     actors:
       File:
@@ -86,6 +78,48 @@ stages:
         out:
           result:
             schema: '#ref'
+      bwGetTableParams1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetTableParams
+          Source_Interface:
+            external: srcInterface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Source_Schema:
+            external: srcSchema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Source_Table_Name:
+            external: pattern
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Target_Interface:
+            external: tarInterface
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Target_Schema:
+            external: tarSchema
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Target_Table_Name:
+            external: pattern
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          Buckets:
+            schema: integer
+            mandatory: false
+            createdBy: flowName
+        out:
+          tableParams:
+            schema: '#ref'
   Stage 2:
     transactional: true
     actors:
@@ -95,7 +129,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: set K2VERIFY_DUMMY_GET='true';
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET='true';
   Stage 3:
     transactional: true
     actors:
@@ -135,7 +169,6 @@ stages:
             mandatory: false
             createdBy: flowName
           delim:
-            link: SEPERATOR/variableValue
             schema: string
             mandatory: false
             createdBy: flowName
@@ -162,7 +195,6 @@ stages:
           flowName:
             const: bwLoadFileToLUITable
           delim:
-            link: SEPERATOR/variableValue
             schema: string
             mandatory: false
             createdBy: flowName
@@ -205,7 +237,7 @@ stages:
           interface:
             const: fabric
           sql:
-            const: set K2VERIFY_DUMMY_GET='false';
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET='false';
 schemas:
   ls1.out.result:
     type: array
@@ -282,3 +314,7 @@ schemas:
           type: string
         Buckets_Method:
           type: string
+  bwGetTableParams1.out.tableParams:
+    type: object
+    properties: {
+      }

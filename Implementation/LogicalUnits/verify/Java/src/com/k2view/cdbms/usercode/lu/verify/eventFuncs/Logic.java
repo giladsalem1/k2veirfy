@@ -33,7 +33,7 @@ import static com.k2view.cdbms.usercode.lu.verify.Globals.*;
 public class Logic extends UserCode {
     @type(EventFunction)
     public static void fnReportBucketCompleted(EventDataContext eventDataContext) throws Exception {
-        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_DUMMY_GET").firstValue() + "");
+        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_CSV_MODE_DUMMY_GET").firstValue() + "");
         if (dummyGet)
             return;
         String operationalInterface = getGlobal("K2VERIFY_OPERATIONAL_INTERFACE", "verify") + "";
@@ -63,7 +63,7 @@ public class Logic extends UserCode {
 
     @type(EventFunction)
     public static void fnReportBucketFailed(EventDataContext eventDataContext) throws Exception {
-        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_DUMMY_GET").firstValue() + "");
+        Boolean dummyGet = Boolean.valueOf(fabric().fetch("set K2VERIFY_CSV_MODE_DUMMY_GET").firstValue() + "");
         if (dummyGet)
             return;
         String operationalInterface = getGlobal("K2VERIFY_OPERATIONAL_INTERFACE", "verify") + "";

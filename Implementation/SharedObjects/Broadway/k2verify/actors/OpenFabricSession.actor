@@ -1,0 +1,30 @@
+{
+    "type": "OpenFabricSession",
+    "badge": "Os",
+    "doc": [
+        "This actor opens a new fabric session for the current running thread."
+    ],
+    "inputs": [
+        {
+            "name": "bucket_id",
+            "schema": {},
+            "mandatory": false
+        }
+    ],
+    "outputs": [
+        {
+            "name": "sessionName",
+            "schema": {
+                "type": "string"
+            },
+            "doc": [
+                "The new session name.",
+                "The structure of the session name is 'fabric_bucket_threadID', threadID is the id of the current running thread."
+            ]
+        }
+    ],
+    "actorClass": "com.k2view.cdbms.usercode.common.OpenFabricSession",
+    "tags": [
+        "fabric"
+    ]
+}

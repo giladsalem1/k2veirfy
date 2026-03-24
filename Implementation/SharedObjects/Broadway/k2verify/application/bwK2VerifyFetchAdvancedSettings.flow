@@ -16,6 +16,8 @@ stages:
             - MAX_COMPARISON_FAILURE_PCT
             - MAX_RECORD_MISMATCH_PCT
             - MAX_SLIDING_WINDOW_FAILURE_PCT
+            - PARTITION_SIZE
+            - DEFAULT_PARTITION_COUNT
             schema: '#ref'
         out:
           value:

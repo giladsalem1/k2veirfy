@@ -27,7 +27,8 @@ stages:
                   task_id,
                   execution_id,
                   COUNT(*) AS total,
-                  SUM(CASE WHEN lower(status) = 'completed' THEN 1 ELSE 0 END) AS completed
+                  SUM(CASE WHEN lower(status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+                  SUM(CASE WHEN lower(status) = 'completed' THEN 0 ELSE 1 END) AS failed_execution_tables
                 FROM ${@schema_name}.task_execution_tables
                 GROUP BY task_id, execution_id
               ),
@@ -57,6 +58,7 @@ stages:
                 te.end_time,
                 t.source_interface,
                 t.target_interface,
+                tc.failed_execution_tables,
 
                 -- Query 1 field
                 CONCAT(COALESCE(tc.completed, 0), '/', COALESCE(tc.total, 0))

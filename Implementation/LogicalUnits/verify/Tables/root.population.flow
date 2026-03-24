@@ -41,21 +41,23 @@ stages:
             const: K2VERIFY_OPERATIONAL_SCHEMA
           luName:
             external: schema
-      Now:
+      K2VERIFY_SRC_TABLE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_TABLE_SRC
+          luName:
+            external: schema
+      RootPopStartTime:
         parent: Now
-      START_TIME:
+      RootPopStartTimeStr:
         parent: ToString
         in:
           value:
-            link: Now/date
-      K2VERIFY_INTERFACE_SRC_TYPE:
-        parent: FabricSetRead
-        in:
-          key:
-            const: K2VERIFY_INTERFACE_SRC_TYPE
-  Stage 4:
+            link: RootPopStartTime/date
+  Load root table:
     actors:
-      d2d_root:
+      LoadRootTable:
         parent: DbLoad
         in:
           interface:
@@ -74,21 +76,23 @@ stages:
           IID:
             link: PopulationArgs/iid
             schema: string
-  Stage 3:
+  Skip GET functionality:
+    remark: In CSV mode, we execute get to load the LUI tables. we don't need to execute
+      Verify logic
     actors:
-      DUMMY GET:
+      IgnoreGET:
         parent: DbCommand
         in:
           interface:
             const: fabric
           sql:
-            const: set K2VERIFY_DUMMY_GET
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET
         out:
           result:
             schema: '#ref'
-  Source:
+  Execute population logic:
     actors:
-      NotEquals1:
+      ExecutePop:
         parent: NotEquals
         condition: result
         in:
@@ -97,18 +101,19 @@ stages:
             schema: string
           a:
             link:
-              path: DUMMY GET/result/value
+              path: IgnoreGET/result/value
               iterate: First
       SplitIID:
         parent: Split
+        height: 254
         in:
           delimiter:
             const: _@_
           string:
             link: PopulationArgs/iid
-  Stage 5:
+  Check CSV moce:
     actors:
-      DUMMY GET1:
+      CSV Mode:
         parent: DbCommand
         in:
           interface:
@@ -118,10 +123,10 @@ stages:
         out:
           result:
             schema: '#ref'
-  LU Table:
-    dependsOn: Stage 5
+  Is CSV Verify mode:
+    dependsOn: Check CSV moce
     actors:
-      Equals1:
+      =TRUE:
         parent: Equals
         condition: result
         in:
@@ -130,51 +135,41 @@ stages:
             schema: string
           a:
             link:
-              path: DUMMY GET1/result/value
+              path: CSV Mode/result/value
               iterate: First
-      Const1:
+      CSV Verify Bucket:
         parent: Const
         in:
           value:
             const: null
             link: PopulationArgs/iid
     split: '--------------------'
-  Stage 6:
+  Table to table mode:
     else: true
-    dependsOn: Stage 5
+    dependsOn: Check CSV moce
     actors:
-      IID:
+      Table Verify Bucket:
         parent: JavaScript
         in:
           script:
             const: arr[1]
           arr:
             link: SplitIID/strings
-            schema: any
+            schema: '#ref'
             mandatory: false
         out:
           result:
             schema: string
-  Stage 2:
+  Load verify execution table:
     actors:
-      SRC Table:
-        parent: DbCommand
-        in:
-          interface:
-            const: fabric
-          sql:
-            const: set K2VERIFY_TABLE_SRC
-        out:
-          result:
-            schema: '#ref'
-  Post Load:
-    actors:
-      DbLoad1:
+      LoadExecutionTable:
         parent: DbLoad
         in:
           interface:
             const: null
             link: K2VERIFY_INTERFACE/variableValue
+          command:
+            const: upsert
           schema:
             const: null
             link: K2VERIFY_SCHEMA/variableValue
@@ -212,16 +207,14 @@ stages:
             mandatory: false
             createdBy: table
           table_name:
-            link:
-              path: SRC Table/result/value
-              iterate: First
+            link: K2VERIFY_SRC_TABLE/variableValue
             schema: string
             mandatory: false
             createdBy: table
           bucket_id:
             link:
-            - Const1/value
-            - IID/result
+            - CSV Verify Bucket/value
+            - Table Verify Bucket/result
             schema: string
             mandatory: false
             createdBy: table
@@ -231,12 +224,10 @@ stages:
             mandatory: false
             createdBy: table
           start_time:
-            link: START_TIME/string
+            link: RootPopStartTimeStr/string
             schema: string
             mandatory: false
             createdBy: table
-  Stage 1: {
-    }
 schemas:
   PopulationArgs.out.parent_rows:
     type: array
@@ -245,24 +236,21 @@ schemas:
       properties:
         IID:
           type: string
-  DUMMY GET.out.result:
+  IgnoreGET.out.result:
     type: array
     items:
       type: object
       properties:
         value:
           type: string
-  DUMMY GET1.out.result:
+  CSV Mode.out.result:
     type: array
     items:
       type: object
       properties:
         value:
           type: string
-  SRC Table.out.result:
+  Table Verify Bucket.in.arr:
     type: array
     items:
-      type: object
-      properties:
-        value:
-          type: string
+      type: string

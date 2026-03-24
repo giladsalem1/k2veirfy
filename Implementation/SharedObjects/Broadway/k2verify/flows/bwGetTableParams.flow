@@ -152,11 +152,15 @@ stages:
   Stage 2:
     dependsOn: Stage 1
     actors:
-      NotNull1:
-        parent: NotNull
+      NotEquals1:
+        parent: NotEquals
         condition: result
         in:
-          value:
+          b:
+            const: {
+              }
+            schema: object
+          a:
             link: DbFetchFirstRow1/result
       MapCreate2:
         parent: MapCreate

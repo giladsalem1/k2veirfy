@@ -32,17 +32,20 @@ public class SharedGlobals {
 	public static String K2VERIFY_RESULT_FILES_PATH = "/opt/apps/fabric/workspace/verify";
 	@category("K2VERIFY")		
 	public static String K2VERIFY_MAX_EXECUTIONS_TO_KEEP = "1";
-
+	 @category("K2VERIFY")  
+ 	public static String MIN_PROCESSED_THRESHOLD_PCT = "10";
 	@category("K2VERIFY")  
-    public static String MIN_PROCESSED_THRESHOLD_PCT = "10";
-    @category("K2VERIFY")  
-    public static String MAX_COMPARISON_FAILURE_PCT = "10";
-    @category("K2VERIFY")  
-    public static String MAX_RECORD_MISMATCH_PCT = "10";
-    @category("K2VERIFY")  
-    public static String MAX_SLIDING_WINDOW_FAILURE_PCT = "10";
-    @category("K2VERIFY")  
-    public static String PARTITION_SIZE = "10000";
+	public static String MAX_COMPARISON_FAILURE_PCT = "10";
+	@category("K2VERIFY")  
+	public static String MAX_RECORD_MISMATCH_PCT = "10";
+	@category("K2VERIFY")  
+	public static String MAX_SLIDING_WINDOW_FAILURE_PCT = "10";
+	@category("K2VERIFY")  
+	public static String PARTITION_SIZE = "10000";
+	@category("K2VERIFY")  
+	public static String DEFAULT_PARTITION_COUNT = "10";
+
+
 
 }
 
