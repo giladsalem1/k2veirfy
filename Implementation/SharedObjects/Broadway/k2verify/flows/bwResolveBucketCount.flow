@@ -32,13 +32,15 @@ stages:
         parent: JavaScript
         in:
           script:
-            const: |
+            const: |-
               var s = buckets_config;
 
-              if (s && s.length) s = s[0];
+              if (Array.isArray(s)) {
+                  s = s[0];
+              }
 
-              var n = parseInt(("" + s).trim(), 10);
-              if (isNaN(n) || n <= 0) n = 0;
+              var n = parseInt(String(s).trim(), 10);
+              if (isNaN(n) || !isFinite(n) || n <= 0) n = 0;
 
               n;
           buckets_config:
