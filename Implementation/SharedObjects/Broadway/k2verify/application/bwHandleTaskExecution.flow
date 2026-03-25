@@ -2490,6 +2490,15 @@
                             }
                         },
                         {
+                            "name": "ErrorFields1",
+                            "onError": "message",
+                            "actorType": {
+                                "parentType": "ErrorFields",
+                                "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "FieldSumPK",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -2530,6 +2539,49 @@
                         "Update time before PK creation"
                     ],
                     "hasElse": true,
+                    "actors": []
+                }
+            ]
+        },
+        {
+            "stages": [
+                {
+                    "name": "Stage 1",
+                    "dependsOnList": [
+                        "Create PK"
+                    ],
+                    "actors": [
+                        {
+                            "name": "LuFunction1",
+                            "actorType": {
+                                "parentType": "LuFunction",
+                                "inputs": [
+                                    {
+                                        "name": "functionName",
+                                        "const": "failJobWithoutRetry"
+                                    },
+                                    {
+                                        "name": "errorMessage",
+                                        "schema": {},
+                                        "createdBy": "functionName",
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": [
+                                    {
+                                        "name": "failureReason",
+                                        "schema": {}
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Stage 2",
+                    "dependsOnList": [
+                        "Stage 7"
+                    ],
                     "actors": []
                 }
             ]
@@ -6123,6 +6175,16 @@
             "rightPort": {
                 "actor": "UpTimeBeforePKCreation",
                 "name": "time_until_pk"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "ErrorFields1",
+                "name": "error"
+            },
+            "rightPort": {
+                "actor": "LuFunction1",
+                "name": "errorMessage"
             }
         },
         {
