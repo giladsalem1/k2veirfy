@@ -234,20 +234,6 @@
                                     }
                                 ]
                             }
-                        },
-                        {
-                            "name": "Read Source Environment",
-                            "actorType": {
-                                "parentType": "FabricSetRead",
-                                "inputs": [
-                                    {
-                                        "name": "key",
-                                        "const": "K2VERIFY_SOURCE_ENV",
-                                        "isDefault": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
                         }
                     ]
                 }
@@ -1503,16 +1489,6 @@
         },
         {
             "leftPort": {
-                "actor": "Read Source Environment",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "Get Columns from Source",
-                "name": "environment"
-            }
-        },
-        {
-            "leftPort": {
                 "actor": "UppercaseExcluded",
                 "name": "string"
             },
@@ -1841,6 +1817,16 @@
             "rightPort": {
                 "actor": "NotEquals1",
                 "name": "a"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "environment"
+            },
+            "rightPort": {
+                "actor": "Get Columns from Source",
+                "name": "environment"
             }
         },
         {

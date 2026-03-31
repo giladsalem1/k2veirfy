@@ -138,6 +138,23 @@ stages:
             const: ENVIRONMENT
           value:
             link: environment/value
+      Exclude Clause1:
+        parent: StringFormat
+        in:
+          format:
+            const: ' where ${where} '
+          where:
+            link: Exclude Condition/value
+            schema: string
+            mandatory: false
+      IfElse3:
+        parent: IfElse
+        in:
+          a:
+            link: Exclude Clause1/string
+        out:
+          result:
+            schema: string
   '# Buckets is 1':
     dependsOn: Prepare data
     actors:
@@ -192,7 +209,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 1:
@@ -234,7 +250,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Execute filtering query:
@@ -300,7 +315,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 10:
@@ -367,7 +381,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 11:
@@ -434,7 +447,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 12:
@@ -459,7 +471,7 @@ stages:
           sql:
             const: |-
               SELECT ${@key} AS "${@keysAlias}"
-              FROM ${@schema}.${@table}
+              FROM ${@schema}.${@table} ${@and}
           key:
             link: Replace1/string
             schema: string
@@ -480,9 +492,15 @@ stages:
             schema: string
             mandatory: false
             createdBy: sql
+          and:
+            link:
+            - IfElse1/result
+            - IfElse3/result
+            schema: any
+            mandatory: false
+            createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 4:
@@ -534,7 +552,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 2:
@@ -558,7 +575,7 @@ stages:
             external: interface
           sql:
             const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} WHERE
-              MOD(CAST(CRC32(${@concatKey}) AS UNSIGNED), ${@bucketsNum}) = ${@bucketID}
+              MOD(CAST(CRC32(${@concatKey}) AS "UNSIGNED"), ${@bucketsNum}) = ${@bucketID}
               ${@and}
           key:
             link: Replace1/string
@@ -602,7 +619,6 @@ stages:
             createdBy: sql
         out:
           result:
-            external: bucketRows
             schema: '#ref'
     split: '--------------------'
   Stage 5:
@@ -670,10 +686,28 @@ stages:
             createdBy: sql
         out:
           result:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      DeepCopyKeysRS1:
+        parent: DeepCopy
+        height: 3499
+        in:
+          value:
+            link:
+            - DbCommand4/result
+            - DbCommand1/result
+            - DbCommand9/result
+            - DbCommand5/result
+            - DbCommand6/result
+            - DbCommand2/result
+            - DbCommand7/result
+            - DbCommand2 - MySQL/result
+            - DbCommand3/result
+        out:
+          value:
             external: bucketRows
             schema: '#ref'
-  Stage 3: {
-    }
 schemas:
   DbCommand4.out.result:
     type: array
@@ -748,3 +782,12 @@ schemas:
       properties:
         AM_GEN_ORG_CODE:
           type: string
+  DeepCopyKeysRS1.out.value:
+    type: array
+    items:
+      type: object
+      properties:
+        ACTIVITY_ID:
+          type: integer
+        CUSTOMER_ID:
+          type: integer

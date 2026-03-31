@@ -293,7 +293,7 @@ CREATE TABLE ${@schema}.verify_configuration (
     PRIMARY KEY (source_table_name, target_table_name)
 );
 
-CREATE TABLE IF NOT EXISTS k2verify.k2verify_table_count  (
+CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_count  (
   source_interface  text   NOT NULL,
   source_schema     text   NOT NULL,
   source_table      text   NOT NULL,

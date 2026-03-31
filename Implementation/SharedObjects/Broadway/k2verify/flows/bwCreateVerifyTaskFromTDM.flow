@@ -1,0 +1,650 @@
+tags: k2verify
+stages:
+  Init:
+    actors:
+      TDM_TASK_EXE_ID:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: taskExeId
+        out:
+          value:
+            schema: string
+      getTDMDBSchema:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: getTDMDBSchema
+        out:
+          schema:
+            schema: string
+      '[DEBUG TDM TASK]1':
+        parent: Const
+        in:
+          value:
+            const:
+              task_id: 67
+              task_title: Load-Multiple-Datasources
+              task_status: Active
+              task_execution_status: Active
+              num_of_entities: 1
+              environment_id: 4
+              be_id: -1
+              selection_method: TABLES
+              selection_param_value: null
+              custom_logic_lu_name: null
+              parameters: ''
+              refresh_reference_data: null
+              delete_before_load: true
+              replace_sequences: false
+              scheduler: immediate
+              task_created_by: admin##admin
+              task_creation_date: '2026-03-03 17:43:20.383'
+              task_last_updated_date: '2026-03-03 17:43:20.383'
+              task_last_updated_by: admin
+              source_env_name: SRC
+              source_environment_id: 1
+              load_entity: true
+              task_type: LOAD
+              version_ind: true
+              retention_period_type: Do Not Delete
+              retention_period_value: -1
+              selected_version_task_exe_id: 0
+              selected_subset_task_exe_id: 0
+              scheduling_end_date: null
+              selected_ref_version_task_exe_id: 0
+              task_globals: false
+              sync_mode: 'ON'
+              reserve_ind: false
+              reserve_retention_period_type: Days
+              reserve_retention_period_value: 5
+              reserve_note: null
+              filterout_reserved: OTHERS
+              mask_sensitive_data: true
+              task_description: ''
+              clone_ind: false
+              execution_mode: INHERITED
+              enable_execution: true
+            schema: object
+        out:
+          value:
+            schema: '#ref'
+  Get tasks details:
+    actors:
+      TDM Task details:
+        parent: DbFetchFirstRow
+        in:
+          interface:
+            const: TDM
+          sql:
+            const: |-
+              select *, e.environment_name as tar_env_name, e.mask_sensitive_data as trg_mask_env, e2.mask_sensitive_data as src_mask_env from ${@schema}.tasks t
+              join ${@schema}.environments e on e.environment_id=t.environment_id
+              join ${@schema}.environments e2 on e2.environment_id=t.source_environment_id
+              where t.task_id = (select task_id from ${@schema}.task_execution_list where task_execution_id=${taskExeId})
+          taskExeId:
+            link: TDM_TASK_EXE_ID/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schema:
+            link: getTDMDBSchema/schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Get Interfaces in task:
+    actors:
+      Get Task Interfaces:
+        parent: DbCommand
+        in:
+          interface:
+            const: TDM
+          sql:
+            const: select distinct interface_name from ${@schema}.task_ref_tables
+              where task_id=${taskID}
+          schema:
+            link: getTDMDBSchema/schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          taskID:
+            link: TDM Task details/result/task_id
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      Get TDM_K2VERIFY_MAXWORKERSPERNODE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM_K2VERIFY_MAXWORKERSPERNODE
+            default: false
+      Get TDM_K2VERIFY_PII_ONLY_COMPARISON:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM_K2VERIFY_PII_ONLY_COMPARISON
+            default: false
+      Get TDM_K2VERIFY_LOGPASS:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM_K2VERIFY_LOGPASS
+            default: false
+      Get TDM_K2VERIFY_NUM_OF_BUCKETS:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM_K2VERIFY_NUM_OF_BUCKETS
+            default: false
+  Get Tasks tables per Interface:
+    actors:
+      Get Task Tables:
+        parent: DbCommand
+        in:
+          interface:
+            const: TDM
+          sql:
+            const: select * from ${@schema}.task_ref_tables where task_id=${taskID}
+              and interface_name = ${interface_name}
+          schema:
+            link: getTDMDBSchema/schema
+            schema: string
+            mandatory: false
+            createdBy: sql
+          taskID:
+            link: TDM Task details/result/task_id
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          interface_name:
+            link:
+              path: Get Task Interfaces/result/interface_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      Task Title:
+        parent: StringFormat
+        in:
+          format:
+            const: ${tdmTaskTitle}-Verify-${taskExeId}-${srcInterface}
+          tdmTaskTitle:
+            link: TDM Task details/result/task_title
+            schema: string
+            mandatory: false
+            createdBy: format
+          srcInterface:
+            link:
+              path: Get Task Interfaces/result/interface_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+          taskExeId:
+            external: taskExeId
+            schema: integer
+            mandatory: false
+            createdBy: format
+  Build tables map:
+    actors:
+      Build Tables Map:
+        parent: MapCreate
+        remark: Default buckets 5
+        in:
+          src:
+            link:
+              path: Get Task Tables/result/ref_table_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          tar:
+            link:
+              path: Get Task Tables/result/ref_table_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          buckets:
+            const: '5'
+            link: Get TDM_K2VERIFY_NUM_OF_BUCKETS/result
+            schema: string
+            default: true
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+  Agg tables map:
+    last: 1
+    actors:
+      Aggregate Tables Map:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: Build Tables Map/map
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+  Prepare Task params:
+    actors:
+      Build Task Params:
+        parent: MapCreate
+        in:
+          K2VERIFY_TASK_TITLE:
+            link: Task Title/string
+            schema: string
+            mandatory: false
+          K2VERIFY_TASK_DESCRIPTION:
+            link: TDM Task details/result/task_description
+            schema: string
+            mandatory: false
+          K2VERIFY_INTERFACE_SRC:
+            link:
+              path: Get Task Interfaces/result/interface_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          K2VERIFY_INTERFACE_TAR:
+            link:
+              path: Get Task Interfaces/result/interface_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
+          K2VERIFY_ENV_SRC:
+            link: TDM Task details/result/source_env_name
+            schema: string
+            mandatory: false
+          K2VERIFY_ENV_TAR:
+            link: TDM Task details/result/tar_env_name
+            schema: string
+            mandatory: false
+          K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+            link: TDM Task details/result/src_mask_env
+            schema: boolean
+            mandatory: false
+          K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+            link: TDM Task details/result/tar_mask_env
+            schema: boolean
+            mandatory: false
+          K2VERIFY_TABLE_LIST:
+            link: Aggregate Tables Map/array
+            schema: '#ref'
+            mandatory: false
+          K2VERIFY_MAXWORKERSPERNODE:
+            link: Get TDM_K2VERIFY_MAXWORKERSPERNODE/result
+            schema: any
+            mandatory: false
+          K2VERIFY_LOGPASS:
+            link: Get TDM_K2VERIFY_LOGPASS/result
+            schema: boolean
+            mandatory: false
+          K2VERIFY_PII_ONLY_COMPARISON:
+            link: Get TDM_K2VERIFY_PII_ONLY_COMPARISON/result
+            schema: boolean
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+  Create Verify task per interface:
+    actors:
+      Create Verify Task:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwK2VerifyTaskCreation
+          old_task_id:
+            schema: any
+            mandatory: false
+          task_params:
+            link: Build Task Params/map
+            schema: '#ref'
+            mandatory: false
+        out:
+          task_id:
+            schema: any
+  Aggregate Verify Task IDs:
+    last: 1
+    actors:
+      Agg Task IDs:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: Create Verify Task/task_id
+  Return all Tasks IDs:
+    actors:
+      Return Task IDs:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Agg Task IDs/array
+        out:
+          value:
+            external: value
+schemas:
+  '[DEBUG TDM TASK]1.out.value':
+    type: object
+    properties:
+      task_id:
+        type: integer
+      task_title:
+        type: string
+      task_status:
+        type: string
+      task_execution_status:
+        type: string
+      num_of_entities:
+        type: integer
+      environment_id:
+        type: integer
+      be_id:
+        type: integer
+      selection_method:
+        type: string
+      selection_param_value: {
+        }
+      custom_logic_lu_name: {
+        }
+      parameters:
+        type: string
+      refresh_reference_data: {
+        }
+      delete_before_load:
+        type: boolean
+      replace_sequences:
+        type: boolean
+      scheduler:
+        type: string
+      task_created_by:
+        type: string
+      task_creation_date:
+        type: string
+      task_last_updated_date:
+        type: string
+      task_last_updated_by:
+        type: string
+      source_env_name:
+        type: string
+      source_environment_id:
+        type: integer
+      load_entity:
+        type: boolean
+      task_type:
+        type: string
+      version_ind:
+        type: boolean
+      retention_period_type:
+        type: string
+      retention_period_value:
+        type: integer
+      selected_version_task_exe_id:
+        type: integer
+      selected_subset_task_exe_id:
+        type: integer
+      scheduling_end_date: {
+        }
+      selected_ref_version_task_exe_id:
+        type: integer
+      task_globals:
+        type: boolean
+      sync_mode:
+        type: string
+      reserve_ind:
+        type: boolean
+      reserve_retention_period_type:
+        type: string
+      reserve_retention_period_value:
+        type: integer
+      reserve_note: {
+        }
+      filterout_reserved:
+        type: string
+      mask_sensitive_data:
+        type: boolean
+      task_description:
+        type: string
+      clone_ind:
+        type: boolean
+      execution_mode:
+        type: string
+      enable_execution:
+        type: boolean
+  TDM Task details.out.result:
+    type: object
+    properties:
+      task_id:
+        type: integer
+      task_title:
+        type: string
+      task_status:
+        type: string
+      task_execution_status:
+        type: string
+      num_of_entities:
+        type: integer
+      environment_id:
+        type: integer
+      be_id:
+        type: integer
+      selection_method:
+        type: string
+      selection_param_value: {
+        }
+      custom_logic_lu_name: {
+        }
+      parameters:
+        type: string
+      refresh_reference_data: {
+        }
+      delete_before_load:
+        type: boolean
+      replace_sequences:
+        type: boolean
+      scheduler:
+        type: string
+      task_created_by:
+        type: string
+      task_creation_date:
+        type: date
+      task_last_updated_date:
+        type: date
+      task_last_updated_by:
+        type: string
+      source_env_name:
+        type: string
+      source_environment_id:
+        type: integer
+      load_entity:
+        type: boolean
+      task_type:
+        type: string
+      version_ind:
+        type: boolean
+      retention_period_type:
+        type: string
+      retention_period_value:
+        type: integer
+      selected_version_task_exe_id:
+        type: integer
+      selected_subset_task_exe_id:
+        type: integer
+      scheduling_end_date: {
+        }
+      selected_ref_version_task_exe_id:
+        type: integer
+      task_globals:
+        type: boolean
+      sync_mode:
+        type: string
+      reserve_ind:
+        type: boolean
+      reserve_retention_period_type:
+        type: string
+      reserve_retention_period_value:
+        type: integer
+      reserve_note: {
+        }
+      filterout_reserved:
+        type: string
+      mask_sensitive_data:
+        type: boolean
+      task_description:
+        type: string
+      clone_ind:
+        type: boolean
+      execution_mode:
+        type: string
+      enable_execution:
+        type: boolean
+      environment_name:
+        type: string
+      environment_description: {
+        }
+      environment_expiration_date: {
+        }
+      environment_point_of_contact_first_name: {
+        }
+      environment_point_of_contact_last_name: {
+        }
+      environment_point_of_contact_phone1: {
+        }
+      environment_point_of_contact_phone2: {
+        }
+      environment_point_of_contact_email: {
+        }
+      environment_created_by:
+        type: string
+      environment_creation_date:
+        type: date
+      environment_last_updated_date:
+        type: date
+      environment_last_updated_by:
+        type: string
+      environment_status:
+        type: string
+      allow_write:
+        type: boolean
+      allow_read:
+        type: boolean
+      tar_env_name:
+        type: string
+      tar_mask_env:
+        type: string
+      src_mask_env:
+        type: string
+  Get Task Interfaces.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        interface_name:
+          type: string
+  Get Task Tables.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        task_ref_table_id:
+          type: integer
+        task_id:
+          type: integer
+        ref_table_name:
+          type: string
+        lu_name:
+          type: string
+        schema_name:
+          type: string
+        interface_name:
+          type: string
+        update_date:
+          type: date
+        table_filter:
+          type: string
+        filter_type:
+          type: string
+        target_table_prefix:
+          type: string
+        target_table_suffix:
+          type: string
+        version_task_execution_id:
+          type: integer
+        version_task_name:
+          type: string
+        gui_filter:
+          type: string
+        filter_parameters:
+          type: string
+        filter_fields:
+          type: string
+  Build Tables Map.out.map:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string
+  Aggregate Tables Map.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          type: string
+        tar:
+          type: string
+        buckets:
+          type: string
+  Build Task Params.in.K2VERIFY_TABLE_LIST:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          type: string
+        tar:
+          type: string
+        buckets:
+          type: string
+  Build Task Params.out.map:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC: {
+        }
+      K2VERIFY_INTERFACE_TAR: {
+        }
+      K2VERIFY_ENV_SRC: {
+        }
+      K2VERIFY_ENV_TAR: {
+        }
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA: {
+        }
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA: {
+        }
+      K2VERIFY_TABLE_LIST: {
+        }
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS: {
+        }
+      K2VERIFY_PII_ONLY_COMPARISON: {
+        }
+  Create Verify Task.in.task_params:
+    type: array
+    items:
+      type: blob

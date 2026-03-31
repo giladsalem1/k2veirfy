@@ -2,6 +2,11 @@ tags: k2verify
 stages:
   Normalize Inputs:
     actors:
+      ToNumber1:
+        parent: ToNumber
+        in:
+          value:
+            external: bucket_count
       DefaultPartitionSize:
         parent: Const
         in:
@@ -28,33 +33,6 @@ stages:
         out:
           result:
             schema: integer
-      ParseBucketsConfig:
-        parent: JavaScript
-        in:
-          script:
-            const: |-
-              var s = buckets_config;
-
-              if (Array.isArray(s)) {
-                  s = s[0];
-              }
-
-              var n = parseInt(String(s).trim(), 10);
-              if (isNaN(n) || !isFinite(n) || n <= 0) n = 0;
-
-              n;
-          buckets_config:
-            external: buckets_config
-            schema: integer
-            mandatory: false
-        out:
-          result:
-            schema: integer
-      LUName:
-        parent: GetLUName
-        out:
-          lu_name:
-            schema: string
       OperationalInterface:
         parent: GetLUVariable
         in:
@@ -65,122 +43,6 @@ stages:
         in:
           variableName:
             const: K2VERIFY_OPERATIONAL_SCHEMA
-  Manual Buckets:
-    dependsOn: Normalize Inputs
-    actors:
-      IsManualBucketsProvided:
-        parent: GreaterThan
-        condition: result
-        in:
-          b:
-            const: 0
-          a:
-            link: ParseBucketsConfig/result
-      ReturnManualBucketCount:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: ParseBucketsConfig/result
-            schema: integer
-        out:
-          value:
-            external: bucket_count
-            schema: integer
-    split: '--------------------'
-  Cache:
-    else: true
-    dependsOn: Normalize Inputs
-    actors:
-      SuppressCacheLookupErrors:
-        parent: ErrorHandler
-        error: result
-        in:
-          config:
-            const:
-            - exceptionKey: java.sql.SQLException
-              conditions:
-                errorCode: ''
-              actions:
-                suppress: true
-                log: true
-                flowName: ''
-                number_of_retries: ''
-                retry_interval: ''
-      BuildCacheLookupParams:
-        parent: JavaScript
-        in:
-          script:
-            const: '[Source_Interface, Source_Schema, Source_Table];'
-          Source_Interface:
-            external: Source_Interface
-            schema: string
-            mandatory: false
-          Source_Schema:
-            external: Source_Schema
-            schema: string
-            mandatory: false
-          Source_Table:
-            external: Source_Table
-            schema: string
-            mandatory: false
-        out:
-          result:
-            schema: '#ref'
-  Stage 17:
-    dependsOn: Manual Buckets
-    split: '--------------------'
-  Lookup bucket_count:
-    dependsOn: Cache
-    actors:
-      FetchCachedBucketCountRow:
-        parent: DbFetchFirstRow
-        in:
-          interface:
-            const: null
-            link: OperationalInterface/variableValue
-          sql:
-            const: |-
-              SELECT (
-              SELECT bucket_count
-              FROM k2verify.k2verify_table_count
-              WHERE source_interface = ?
-                AND source_schema = ?
-                AND source_table = ?
-              ) AS bucket_count;
-          params:
-            link: BuildCacheLookupParams/result
-        out:
-          result:
-            schema: '#ref'
-  Stage 22:
-    dependsOn: Stage 17
-    split: '--------------------'
-  Detect Source DB Type:
-    else: false
-    dependsOn: Lookup bucket_count
-    actors:
-      HasCachedBucketCount:
-        parent: NotNull
-        condition: result
-        in:
-          value:
-            link: FetchCachedBucketCountRow/result/bucket_count
-      ReturnLookUpBucketCount:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: FetchCachedBucketCountRow/result/bucket_count
-        out:
-          value:
-            external: bucket_count
-            schema: '#ref'
-    split: '--------------------'
-  Stage 2:
-    else: true
-    dependsOn: Lookup bucket_count
-    actors:
       Const1:
         parent: Const
         in:
@@ -190,31 +52,107 @@ stages:
         out:
           value:
             schema: string
-  Stage 24:
-    dependsOn: Stage 22
-    split: '--------------------'
-  Cassandra – Extract Keys +Count:
-    dependsOn: Detect Source DB Type
-    split: '--------------------'
-  Stage 4:
-    dependsOn: Stage 2
-    actors:
-      BuildParams:
-        parent: JavaScript
+      Now:
+        parent: Now
+      Updated_At:
+        parent: ToString
         in:
-          script:
-            const: '[ Source_Schema, Source_Table ];'
-          Source_Schema:
+          value:
+            link: Now/date
+      source schema:
+        parent: Const
+        in:
+          value:
+            const: null
             external: Source_Schema
-            schema: string
-            mandatory: false
-          Source_Table:
-            external: Source_Table
-            schema: string
-            mandatory: false
         out:
-          result:
-            schema: '#ref'
+          value:
+            schema: string
+      Source_Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: Source_Table
+        out:
+          value:
+            schema: string
+      target schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: Target_Schema
+        out:
+          value:
+            schema: string
+      target table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: Target_Table_Name
+        out:
+          value:
+            schema: string
+      'task id ':
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+      source schema and table:
+        parent: Concat
+        in:
+          delimiter:
+            const: .
+          elements:
+            link:
+            - path: source schema/value
+              pos: 0
+            - path: Source_Table/value
+              pos: 1
+      taget table and schema:
+        parent: Concat
+        in:
+          delimiter:
+            const: .
+          elements:
+            link:
+            - path: target schema/value
+              pos: 0
+            - path: target table/value
+              pos: 1
+  Cache:
+    dependsOn: Normalize Inputs
+    actors:
+      IsManualBucketsProvided:
+        parent: GreaterThan
+        condition: result
+        in:
+          b:
+            const: 0
+          a:
+            link: ToNumber1/number
+      ReturnManualBucketCount:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: ToNumber1/number
+            schema: integer
+        out:
+          value:
+            external: bucket_count
+            schema: integer
+    split: '--------------------'
+  Stage 1:
+    else: true
+    dependsOn: Normalize Inputs
+    actors:
       BuildEstRowsSql:
         parent: JavaScript
         in:
@@ -234,7 +172,7 @@ stages:
                 sql =
                   "SELECT COALESCE(num_rows, 0) AS \"APPROX_ROWS\" " +
                   "FROM all_tables " +
-                  "WHERE owner = 'aa' AND table_name = 'aa'";
+                  "WHERE owner = ? AND table_name = ?";
               }
               else if (t.indexOf("DB2") >= 0) {
                 sql =
@@ -266,14 +204,27 @@ stages:
         out:
           result:
             schema: string
-  Stage 1:
-    dependsOn: Stage 24
+      BuildParams:
+        parent: JavaScript
+        in:
+          script:
+            const: '[ Source_Schema, Source_Table ];'
+          Source_Schema:
+            external: Source_Schema
+            schema: string
+            mandatory: false
+          Source_Table:
+            external: Source_Table
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Lookup bucket_count:
+    dependsOn: Cache
     split: '--------------------'
-  Stage 3:
-    dependsOn: Cassandra – Extract Keys +Count
-    split: '--------------------'
-  Stage 6:
-    dependsOn: Stage 4
+  Stage 2:
+    dependsOn: Stage 1
     actors:
       SuppressCatalogEstimateErrors:
         parent: ErrorHandler
@@ -292,7 +243,6 @@ stages:
                 retry_interval: ''
       DbFetchField1:
         parent: DbFetchField
-        disabled: true
         in:
           interface:
             const: null
@@ -305,15 +255,11 @@ stages:
         out:
           result:
             schema: integer
-  Fetch Est Rows:
-    dependsOn: Stage 1
+  Detect Source DB Type:
+    dependsOn: Lookup bucket_count
     split: '--------------------'
-  Default bucket_count:
-    else: false
-    dependsOn: Stage 3
-    split: '--------------------'
-  Stage 7:
-    dependsOn: Stage 6
+  Stage 4:
+    dependsOn: Stage 2
     actors:
       NotNull1:
         parent: NotNull
@@ -351,9 +297,9 @@ stages:
           result:
             schema: integer
     split: '--------------------'
-  Stage 23:
+  Stage 6:
     else: true
-    dependsOn: Stage 6
+    dependsOn: Stage 2
     actors:
       SuppressUpsertErrors:
         parent: ErrorHandler
@@ -393,25 +339,14 @@ stages:
         out:
           row_count:
             schema: integer
+  Cassandra – Extract Keys +Count:
+    dependsOn: Detect Source DB Type
+    split: '--------------------'
   Stage 5:
-    dependsOn: Fetch Est Rows
+    dependsOn: Stage 4
     split: '--------------------'
-  Calculate bucket_count:
-    dependsOn: Default bucket_count
-    split: '--------------------'
-  Stage 9:
-    dependsOn: Stage 7
-    actors:
-      Now:
-        parent: Now
-      Updated_At:
-        parent: ToString
-        in:
-          value:
-            link: Now/date
-    split: '--------------------'
-  Stage 25:
-    dependsOn: Stage 23
+  Stage 7:
+    dependsOn: Stage 6
     actors:
       HasCountResult:
         parent: NotNull
@@ -450,9 +385,9 @@ stages:
             external: bucket_count
             schema: integer
     split: '--------------------'
-  Stage 34:
+  Stage 8:
     else: true
-    dependsOn: Stage 23
+    dependsOn: Stage 6
     actors:
       Const2:
         parent: Const
@@ -464,15 +399,25 @@ stages:
           value:
             external: bucket_count
             schema: integer
-  Stage 13:
-    dependsOn: Stage 5
+  Stage 3:
+    dependsOn: Cassandra – Extract Keys +Count
     split: '--------------------'
-  Upsert Cache Row:
-    dependsOn: Calculate bucket_count
-    split: '--------------------'
-  Stage 12:
-    dependsOn: Stage 9
+  Stage 10:
+    dependsOn:
+    - Stage 7
+    - Stage 8
+    - Stage 5
     actors:
+      ReturnBucketCountFromEstRows:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: CalcBucketCount/result
+        out:
+          value:
+            external: bucket_count
+            schema: integer
       UpsertCacheRow:
         parent: DbLoad
         in:
@@ -529,7 +474,9 @@ stages:
             mandatory: false
             createdBy: schema
           bucket_count:
-            link: CalcBucketCount/result
+            link:
+            - CalcBucketCount/result
+            - CalcBucketCount1/result
             schema: integer
             mandatory: false
             createdBy: schema
@@ -538,44 +485,40 @@ stages:
             schema: string
             mandatory: false
             createdBy: schema
-    split: '--------------------'
-  Stage 26:
-    dependsOn: Stage 25
-    actors:
-      Now1:
-        parent: Now
-      Updated_At1:
+      MapCreate2:
+        parent: MapCreate
+        in:
+          src:
+            link: source schema and table/string
+            schema: string
+            mandatory: false
+          tar:
+            link: taget table and schema/string
+            schema: string
+            mandatory: false
+          buckets:
+            link:
+            - CalcBucketCount/result
+            - CalcBucketCount1/result
+            schema: string
+            mandatory: false
+        out:
+          map:
+            schema: '#ref'
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: MapCreate2/map
+        out:
+          array:
+            schema: '#ref'
+      ToString1:
         parent: ToString
         in:
           value:
-            link: Now1/date
-    split: '--------------------'
-  Stage 36:
-    dependsOn: Stage 34
-  Stage 16:
-    dependsOn: Stage 13
-    split: '--------------------'
-  Stage 29:
-    dependsOn: Upsert Cache Row
-    split: '--------------------'
-  Stage 14:
-    dependsOn: Stage 12
-    actors:
-      ReturnBucketCountFromEstRows:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: CalcBucketCount/result
-        out:
-          value:
-            external: bucket_count
-            schema: integer
-    split: '--------------------'
-  Stage 27:
-    dependsOn: Stage 26
-    actors:
-      UpsertCacheRow1:
+            link: ArrayBuilder1/array
+      DbLoad1:
         parent: DbLoad
         in:
           interface:
@@ -583,81 +526,76 @@ stages:
             link: OperationalInterface/variableValue
             default: true
           command:
-            const: upsert
+            const: update
           schema:
             const: null
             link: OperationalSchema/variableValue
           table:
-            const: k2verify_table_count
+            const: task_table_properties
           fields:
             const:
-            - source_interface
-            - source_schema
-            - source_table
-            - db_type
-            - est_rows
-            - bucket_count
-            - updated_at
+            - task_id
+            - source_table_name
+            - target_table_name
+            - table_properties
           keys:
             const:
-            - source_interface
-            - source_schema
-            - source_table
+            - task_id
+            - source_table_name
+            - target_table_name
           dialect:
             const: postgres
-          source_interface:
-            external: Source_Interface
+          task_id:
+            link: task id /value
             schema: string
             mandatory: false
-            createdBy: schema
-          source_schema:
-            external: Source_Schema
+            createdBy: table
+          source_table_name:
+            link: source schema and table/string
             schema: string
             mandatory: false
-            createdBy: schema
-          source_table:
-            external: Source_Table
+            createdBy: table
+          target_table_name:
+            link: taget table and schema/string
             schema: string
             mandatory: false
-            createdBy: schema
-          db_type:
-            link: Const1/value
-            schema: string
+            createdBy: table
+          table_properties:
+            link: ToString1/string
+            schema: '#ref'
             mandatory: false
-            createdBy: schema
-          est_rows:
-            link: CountRows/row_count
-            schema: integer
-            mandatory: false
-            createdBy: schema
-          bucket_count:
-            link: CalcBucketCount1/result
-            schema: integer
-            mandatory: false
-            createdBy: schema
-          updated_at:
-            link: Updated_At1/string
-            schema: string
-            mandatory: false
-            createdBy: schema
-    split: '--------------------'
-  Stage 37:
-    dependsOn: Stage 36
+            createdBy: table
 schemas:
-  BuildCacheLookupParams.out.result:
-    type: array
-    items:
-      type: string
-  FetchCachedBucketCountRow.out.result:
-    type: object
-    properties:
-      bucket_count: {
-        }
-  ReturnLookUpBucketCount.out.value:
-    type: object
-    properties: {
-      }
   BuildParams.out.result:
     type: array
     items:
       type: string
+  MapCreate2.out.map:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          type: string
+        tar:
+          type: string
+        buckets:
+          type: string
+  DbLoad1.in.table_properties:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string

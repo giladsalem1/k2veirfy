@@ -401,7 +401,7 @@ var React$1 = /* @__PURE__ */ _mergeNamespaces({
   "default": React
 }, [react.exports]);
 var client = {};
-var reactDom$1 = { exports: {} };
+var reactDom = { exports: {} };
 var reactDom_production_min = {};
 var scheduler$1 = { exports: {} };
 var scheduler_production_min = {};
@@ -7627,19 +7627,19 @@ function checkDCE() {
 }
 if (true) {
   checkDCE();
-  reactDom$1.exports = reactDom_production_min;
+  reactDom.exports = reactDom_production_min;
 } else {
   module.exports = require("./cjs/react-dom.development.js");
 }
-var reactDom = reactDom$1.exports;
-var ReactDOM = /* @__PURE__ */ _mergeNamespaces({
+var ReactDOM = reactDom.exports;
+var ReactDOM$1 = /* @__PURE__ */ _mergeNamespaces({
   __proto__: null,
-  "default": reactDom
-}, [reactDom$1.exports]);
+  "default": ReactDOM
+}, [reactDom.exports]);
 var hydrateRoot;
 var createRoot;
 "use strict";
-var m$2 = reactDom$1.exports;
+var m$2 = reactDom.exports;
 if (true) {
   createRoot = client.createRoot = m$2.createRoot;
   hydrateRoot = client.hydrateRoot = m$2.hydrateRoot;
@@ -13051,7 +13051,7 @@ if (false) {
 const START_TRANSITION = "startTransition";
 const startTransitionImpl = React$1[START_TRANSITION];
 const FLUSH_SYNC = "flushSync";
-const flushSyncImpl = ReactDOM[FLUSH_SYNC];
+const flushSyncImpl = ReactDOM$1[FLUSH_SYNC];
 const USE_ID = "useId";
 const useIdImpl = React$1[USE_ID];
 function startTransitionSafe(cb2) {
@@ -15918,7 +15918,8 @@ var Table$1 = "";
 function ComboCell({
   settingKey,
   externalValue,
-  onChange
+  onChange,
+  customSeedValue = ""
 }) {
   const [mode, setMode] = react.exports.useState(externalValue === "Auto" ? "auto" : "custom");
   const [customNumber, setCustomNumber] = react.exports.useState(externalValue === "Auto" ? "" : String(externalValue != null ? externalValue : ""));
@@ -15935,6 +15936,7 @@ function ComboCell({
       prevExternalRef.current = externalValue;
       if (externalValue === "Auto") {
         setMode("auto");
+        setCustomNumber("");
       } else {
         setMode("custom");
         setCustomNumber(String(externalValue != null ? externalValue : ""));
@@ -15963,14 +15965,61 @@ function ComboCell({
     }
     setDropdownOpen((prev) => !prev);
   };
+  const normalizeSeed = (value) => {
+    if (value === void 0 || value === null || value === "Auto" || value === "0") {
+      return "";
+    }
+    return String(value);
+  };
   const selectOption = (value) => {
     if (value === "Auto") {
       setMode("auto");
+      setCustomNumber("");
       onChange(settingKey, "Auto");
     } else {
       setMode("custom");
+      if (externalValue !== "Auto" && externalValue !== void 0 && externalValue !== null) {
+        setCustomNumber(String(externalValue));
+      } else {
+        const seeded = normalizeSeed(customSeedValue);
+        setCustomNumber(seeded);
+        if (seeded !== "") {
+          onChange(settingKey, seeded);
+        }
+      }
     }
     setDropdownOpen(false);
+  };
+  const handleNumberChange = (e) => {
+    const val = e.target.value.replace(/[^\d]/g, "");
+    if (val === "") {
+      setCustomNumber("");
+      return;
+    }
+    const num = Number(val);
+    if (num >= 1 && num <= 1e6) {
+      setCustomNumber(val);
+      onChange(settingKey, val);
+    }
+  };
+  const handleNumberBlur = () => {
+    if (customNumber === "") {
+      setMode("auto");
+      setCustomNumber("");
+      onChange(settingKey, "Auto");
+      return;
+    }
+    const num = Number(customNumber);
+    if (!Number.isFinite(num) || num < 1 || num > 1e6) {
+      setMode("auto");
+      setCustomNumber("");
+      onChange(settingKey, "Auto");
+    }
+  };
+  const handleNumberKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
   };
   const isAuto = mode === "auto";
   const wrapperStyle = {
@@ -15989,8 +16038,8 @@ function ComboCell({
     onClick: openDropdown,
     style: {
       position: "absolute",
-      right: "0",
-      top: "0",
+      right: 0,
+      top: 0,
       height: "36px",
       width: "32px",
       border: "none",
@@ -16030,7 +16079,7 @@ function ComboCell({
           width: "100%",
           padding: "10px 12px",
           border: "none",
-          borderRadius: "0",
+          borderRadius: 0,
           backgroundColor: isActive ? "#F2F4F7" : "#fff",
           color: "#101828",
           textAlign: "left",
@@ -16066,38 +16115,24 @@ function ComboCell({
         },
         children: "Auto"
       }) : /* @__PURE__ */ jsx("input", {
-        type: "number",
-        min: 1,
-        max: 1e6,
+        type: "text",
+        inputMode: "numeric",
         value: customNumber,
-        placeholder: "1 \u2013 1,000,000",
-        onChange: (e) => {
-          const val = e.target.value;
-          if (val === "") {
-            setCustomNumber("");
-            onChange(settingKey, "");
-            return;
-          }
-          if (!/^\d+$/.test(val))
-            return;
-          const num = Number(val);
-          if (num < 1 || num > 1e6)
-            return;
-          setCustomNumber(val);
-          onChange(settingKey, val);
-        },
+        onChange: handleNumberChange,
+        onBlur: handleNumberBlur,
+        onKeyDown: handleNumberKeyDown,
+        onClick: (e) => e.stopPropagation(),
         style: {
           flex: 1,
+          minWidth: 0,
           height: "100%",
-          padding: "0 32px 0 10px",
           border: "none",
           outline: "none",
-          borderRadius: "6px",
+          padding: "0 32px 0 10px",
           fontSize: "14px",
           color: "#101828",
           backgroundColor: "transparent",
-          boxSizing: "border-box",
-          minWidth: 0
+          boxSizing: "border-box"
         }
       }), chevron]
     }), fixedDropdown]
@@ -16105,12 +16140,14 @@ function ComboCell({
 }
 const DEFAULT_ENV = "_dev";
 const DEFAULT_PARTITION_METHOD = "bwGetBucketRows";
+const LOCAL_FILE_SYSTEM_TYPE = "LocalFileSystem";
 const REQUIRED_FIELDS = ["source_environment", "source_interface", "source_schema", "source_table_name", "target_environment", "target_interface", "target_schema", "target_table_name"];
 const overrides = {
   source_environment: "Source Environment",
   source_interface: "Source Interface",
   source_schema: "Source Schema",
   source_table_name: "Source Table Name",
+  source_file_filter: "File Filter",
   source_transformation_flow: "Source Transformation Flow",
   source_ignore_null_columns: "Source Ignore-Null Columns",
   target_environment: "Target Environment",
@@ -16135,10 +16172,17 @@ function formatLabel(field) {
     return overrides[field];
   return String(field).replace(/_/g, " ").replace(/\b\w/g, (c2) => c2.toUpperCase());
 }
-function extractListFromMapTables(raw) {
+function extractSchemas(raw) {
   var _a2, _b2, _c;
   const list = (_c = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables) == null ? void 0 : _c[0];
   return Array.isArray(list) ? list.map(String).filter(Boolean) : [];
+}
+function extractTableNames(raw) {
+  var _a2, _b2;
+  const list = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables;
+  if (!Array.isArray(list))
+    return [];
+  return list.map((item) => String((item == null ? void 0 : item.table) || "").trim()).filter(Boolean);
 }
 function normalizeEnvList(envData) {
   if (!Array.isArray(envData) || envData.length === 0)
@@ -16151,6 +16195,16 @@ function normalizeEnvList(envData) {
 function isBlank(value) {
   return !String(value != null ? value : "").trim();
 }
+function normalizePartitionsCount(raw) {
+  if (raw == null || raw === "")
+    return null;
+  if (raw === 0 || raw === "0" || raw === "Auto")
+    return "Auto";
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0)
+    return String(parsed);
+  return null;
+}
 function Field({
   label,
   value,
@@ -16159,7 +16213,8 @@ function Field({
   multiline = false,
   min,
   required = false,
-  error = false
+  error = false,
+  placeholder
 }) {
   const borderColor = error ? "#ef4444" : "#d9d9d9";
   if (multiline) {
@@ -16178,6 +16233,7 @@ function Field({
       }), /* @__PURE__ */ jsx("textarea", {
         value: value != null ? value : "",
         required,
+        placeholder,
         onChange: (e) => onChange(e.target.value),
         style: {
           minHeight: 80,
@@ -16208,6 +16264,7 @@ function Field({
       value: value != null ? value : "",
       min,
       required,
+      placeholder,
       onChange: (e) => onChange(e.target.value),
       style: {
         height: 34,
@@ -16258,7 +16315,8 @@ function SelectField({
         border: `1px solid ${borderColor}`,
         borderRadius: 4,
         background: disabled ? "#f3f3f3" : "white",
-        outline: "none"
+        outline: "none",
+        color: !value ? "#9ca3af" : "#111"
       },
       children
     })]
@@ -16376,9 +16434,7 @@ function normalizeInitialDraft(row) {
   next.target_interface = String(next.target_interface || "").trim();
   next.target_schema = String(next.target_schema || "").trim();
   next.target_table_name = String(next.target_table_name || "").trim();
-  const rawCount = next.partitions_count;
-  const parsedCount = Number(rawCount);
-  next.partitions_count = rawCount === "Auto" ? "Auto" : Number.isFinite(parsedCount) && parsedCount > 0 ? String(parsedCount) : "Auto";
+  next.partitions_count = normalizePartitionsCount(next.partitions_count);
   next.partitions_assignment_method = next.partitions_assignment_method || DEFAULT_PARTITION_METHOD;
   if (typeof next.active !== "boolean") {
     const rawActive = String((_a2 = next.active) != null ? _a2 : "").trim().toLowerCase();
@@ -16401,10 +16457,17 @@ function buildPayload(draft) {
     target_interface: String(draft.target_interface || "").trim(),
     target_schema: String(draft.target_schema || "").trim(),
     target_table_name: String(draft.target_table_name || "").trim(),
-    partitions_count: draft.partitions_count === "Auto" ? 0 : Number(draft.partitions_count) || 0,
+    partitions_count: draft.partitions_count === "Auto" || draft.partitions_count == null ? 0 : Number(draft.partitions_count) || 0,
     partitions_assignment_method: draft.partitions_assignment_method || DEFAULT_PARTITION_METHOD,
     active: !!draft.active
   };
+}
+function getIfaceType(ifaceByEnv, env, ifaceName) {
+  var _a2, _b2;
+  const list = ifaceByEnv[env];
+  if (!Array.isArray(list))
+    return "";
+  return (_b2 = (_a2 = list.find((x2) => x2.name === ifaceName)) == null ? void 0 : _a2.type) != null ? _b2 : "";
 }
 function ExpandedRowEditor({
   row,
@@ -16412,11 +16475,12 @@ function ExpandedRowEditor({
   onSave,
   isEditMode
 }) {
-  var _a2, _b2, _c;
+  var _a2, _b2;
   const apiBasePath2 = window.__API_BASE_PATH__ || "";
   const [draft, setDraft] = react.exports.useState({});
   const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
   const [saveAttempted, setSaveAttempted] = react.exports.useState(false);
+  const [defaultPartitions, setDefaultPartitions] = react.exports.useState(null);
   const [envData, setEnvData] = react.exports.useState([]);
   const [envsLoaded, setEnvsLoaded] = react.exports.useState(false);
   const [envsLoading, setEnvsLoading] = react.exports.useState(false);
@@ -16432,11 +16496,31 @@ function ExpandedRowEditor({
     const res = await fetch(url, {
       credentials: "include"
     });
-    if (!res.ok) {
+    if (!res.ok)
       throw new Error(`HTTP ${res.status}`);
-    }
     return await res.json();
   }, [apiBasePath2]);
+  react.exports.useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      var _a3, _b3;
+      try {
+        const data2 = await fetchCmd("broadway verify.bwK2VerifyFetchAdvancedSettings");
+        const rawValue = (_b3 = (_a3 = data2 == null ? void 0 : data2[0]) == null ? void 0 : _a3.map) == null ? void 0 : _b3.DEFAULT_PARTITION_COUNT;
+        const normalized = String(rawValue != null ? rawValue : "10") === "0" ? "Auto" : String(rawValue != null ? rawValue : "10");
+        if (!cancelled)
+          setDefaultPartitions(normalized);
+      } catch (e) {
+        console.error("Failed to load DEFAULT_PARTITION_COUNT", e);
+        if (!cancelled)
+          setDefaultPartitions("Auto");
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCmd]);
   const ensureEnvsLoaded = react.exports.useCallback(async () => {
     if (envsLoaded || envsLoading)
       return;
@@ -16461,14 +16545,13 @@ function ExpandedRowEditor({
       return;
     if (ifaceLoadingKeys.has(env))
       return;
-    setIfaceLoadingKeys((prev) => {
-      const next = new Set(prev);
-      next.add(env);
-      return next;
-    });
+    setIfaceLoadingKeys((prev) => /* @__PURE__ */ new Set([...prev, env]));
     try {
       const raw = await fetchCmd(`broadway verify.bwK2VerifyListInterfaces envName=${env} RESULT_STRUCTURE=CURSOR`);
-      const list = Array.isArray(raw) ? raw.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort() : [];
+      const list = Array.isArray(raw) ? raw.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => ({
+        name: r2.INTERFACE.trim(),
+        type: String(r2.TYPE || "").trim()
+      })).sort((a2, b3) => a2.name.localeCompare(b3.name)) : [];
       setIfaceByEnv((prev) => ({
         ...prev,
         [env]: list
@@ -16493,18 +16576,14 @@ function ExpandedRowEditor({
     if (!env || !iface)
       return;
     const key = `${env}||${iface}`;
-    if (Array.isArray(schemasByEnvIface[key]))
+    if (Object.prototype.hasOwnProperty.call(schemasByEnvIface, key))
       return;
     if (schemaLoadingKeys.has(key))
       return;
-    setSchemaLoadingKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
+    setSchemaLoadingKeys((prev) => /* @__PURE__ */ new Set([...prev, key]));
     try {
       const raw = await fetchCmd(`broadway verify.bwK2VerifyFetchSchema interfaceName='${iface}' envName='${env}';`);
-      const schemas = extractListFromMapTables(raw).sort();
+      const schemas = extractSchemas(raw).sort((a2, b3) => a2.localeCompare(b3));
       setSchemasByEnvIface((prev) => ({
         ...prev,
         [key]: schemas
@@ -16530,18 +16609,14 @@ function ExpandedRowEditor({
     if (!env || !iface || !schema)
       return;
     const key = `${env}||${iface}||${schema}`;
-    if (Array.isArray(tablesByKey[key]))
+    if (Object.prototype.hasOwnProperty.call(tablesByKey, key))
       return;
     if (tablesLoadingKeys.has(key))
       return;
-    setTablesLoadingKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
+    setTablesLoadingKeys((prev) => /* @__PURE__ */ new Set([...prev, key]));
     try {
       const raw = await fetchCmd(`broadway verify.bwK2VerifyFetchTablesFromSchemas interfaceName='${iface}' envName='${env}' schemaName='${schema}';`);
-      const tables = extractListFromMapTables(raw).sort();
+      const tables = extractTableNames(raw).sort((a2, b3) => a2.localeCompare(b3));
       setTablesByKey((prev) => ({
         ...prev,
         [key]: tables
@@ -16600,55 +16675,109 @@ function ExpandedRowEditor({
       return next;
     });
   }, []);
+  const handleFileFilterChange = react.exports.useCallback((v2) => {
+    setDraft((prev) => ({
+      ...prev,
+      source_table_name: v2,
+      target_table_name: v2
+    }));
+  }, []);
+  const handleSourceIfaceChange = react.exports.useCallback((ifaceName) => {
+    const type = getIfaceType(ifaceByEnv, draft.source_environment, ifaceName);
+    const isFS = type === LOCAL_FILE_SYSTEM_TYPE;
+    setDraft((prev) => ({
+      ...prev,
+      source_interface: ifaceName,
+      source_schema: isFS ? "main" : "",
+      source_table_name: "",
+      ...isFS && {
+        target_interface: "",
+        target_schema: "",
+        target_table_name: ""
+      }
+    }));
+  }, [ifaceByEnv, draft.source_environment]);
+  const handleTargetIfaceChange = react.exports.useCallback((ifaceName) => {
+    const type = getIfaceType(ifaceByEnv, draft.target_environment, ifaceName);
+    const isFS = type === LOCAL_FILE_SYSTEM_TYPE;
+    setDraft((prev) => ({
+      ...prev,
+      target_interface: ifaceName,
+      target_schema: isFS ? "main" : "",
+      target_table_name: ""
+    }));
+  }, [ifaceByEnv, draft.target_environment]);
   const srcEnv = String(draft.source_environment || DEFAULT_ENV).trim();
   const tarEnv = String(draft.target_environment || DEFAULT_ENV).trim();
   const srcIface = String(draft.source_interface || "").trim();
   const tarIface = String(draft.target_interface || "").trim();
   const srcSchema = String(draft.source_schema || "").trim();
   const tarSchema = String(draft.target_schema || "").trim();
+  const srcIfaceType = getIfaceType(ifaceByEnv, srcEnv, srcIface);
+  const tarIfaceType = getIfaceType(ifaceByEnv, tarEnv, tarIface);
+  const srcIsFileSystem = srcIfaceType === LOCAL_FILE_SYSTEM_TYPE;
+  const tarIsFileSystem = tarIfaceType === LOCAL_FILE_SYSTEM_TYPE;
   const srcSchemasKey = `${srcEnv}||${srcIface}`;
   const tarSchemasKey = `${tarEnv}||${tarIface}`;
   const srcTablesKey = `${srcEnv}||${srcIface}||${srcSchema}`;
   const tarTablesKey = `${tarEnv}||${tarIface}||${tarSchema}`;
+  const srcSchemasLoaded = Object.prototype.hasOwnProperty.call(schemasByEnvIface, srcSchemasKey);
+  const tarSchemasLoaded = Object.prototype.hasOwnProperty.call(schemasByEnvIface, tarSchemasKey);
+  const srcTablesLoaded = Object.prototype.hasOwnProperty.call(tablesByKey, srcTablesKey);
+  const tarTablesLoaded = Object.prototype.hasOwnProperty.call(tablesByKey, tarTablesKey);
   const srcIfaceLoading = ifaceLoadingKeys.has(srcEnv);
   const tarIfaceLoading = ifaceLoadingKeys.has(tarEnv);
   const srcSchemasLoading = schemaLoadingKeys.has(srcSchemasKey);
   const tarSchemasLoading = schemaLoadingKeys.has(tarSchemasKey);
   const srcTablesLoading = tablesLoadingKeys.has(srcTablesKey);
   const tarTablesLoading = tablesLoadingKeys.has(tarTablesKey);
-  const srcInterfaces = Array.isArray(ifaceByEnv[srcEnv]) ? ifaceByEnv[srcEnv] : [];
-  const tarInterfaces = Array.isArray(ifaceByEnv[tarEnv]) ? ifaceByEnv[tarEnv] : [];
+  const srcIfaceItems = Array.isArray(ifaceByEnv[srcEnv]) ? ifaceByEnv[srcEnv] : [];
+  const tarIfaceItems = Array.isArray(ifaceByEnv[tarEnv]) ? ifaceByEnv[tarEnv] : [];
+  const srcIfaceOptions = (srcIfaceItems.length ? srcIfaceItems : draft.source_interface ? [{
+    name: draft.source_interface,
+    type: srcIfaceType
+  }] : []).filter((x2) => !tarIsFileSystem || x2.type === LOCAL_FILE_SYSTEM_TYPE);
+  const tarIfaceOptions = (tarIfaceItems.length ? tarIfaceItems : draft.target_interface ? [{
+    name: draft.target_interface,
+    type: tarIfaceType
+  }] : []).filter((x2) => !srcIsFileSystem || x2.type === LOCAL_FILE_SYSTEM_TYPE);
   const srcSchemas = Array.isArray(schemasByEnvIface[srcSchemasKey]) ? schemasByEnvIface[srcSchemasKey] : [];
   const tarSchemas = Array.isArray(schemasByEnvIface[tarSchemasKey]) ? schemasByEnvIface[tarSchemasKey] : [];
   const srcTables = Array.isArray(tablesByKey[srcTablesKey]) ? tablesByKey[srcTablesKey] : [];
   const tarTables = Array.isArray(tablesByKey[tarTablesKey]) ? tablesByKey[tarTablesKey] : [];
+  const effectiveRequiredFields = react.exports.useMemo(() => {
+    const eitherIsFileSystem = srcIsFileSystem || tarIsFileSystem;
+    if (eitherIsFileSystem) {
+      return REQUIRED_FIELDS.filter((f2) => f2 !== "source_schema" && f2 !== "target_schema" && f2 !== "target_table_name");
+    }
+    return REQUIRED_FIELDS;
+  }, [srcIsFileSystem, tarIsFileSystem]);
   const invalidFields = react.exports.useMemo(() => {
     const result = {};
-    for (const key of REQUIRED_FIELDS) {
+    for (const key of effectiveRequiredFields) {
       result[key] = saveAttempted && isBlank(draft[key]);
     }
     return result;
-  }, [draft, saveAttempted]);
+  }, [draft, saveAttempted, effectiveRequiredFields]);
   const validateDraft = react.exports.useCallback(() => {
-    return REQUIRED_FIELDS.every((key) => !isBlank(draft[key]));
-  }, [draft]);
+    return effectiveRequiredFields.every((key) => !isBlank(draft[key]));
+  }, [draft, effectiveRequiredFields]);
   const handleSave = react.exports.useCallback((e) => {
     if (e)
       e.preventDefault();
     setSaveAttempted(true);
-    if (!validateDraft()) {
+    if (!validateDraft())
       return;
-    }
     onSave == null ? void 0 : onSave(buildPayload(draft));
   }, [draft, onSave, validateDraft]);
   const handleAdvancedSubmit = react.exports.useCallback(() => {
     setSaveAttempted(true);
-    if (!validateDraft()) {
+    if (!validateDraft())
       return;
-    }
     setAdvancedOpen(false);
     onSave == null ? void 0 : onSave(buildPayload(draft));
   }, [draft, onSave, validateDraft]);
+  const partitionsDisplayValue = draft.partitions_count == null ? defaultPartitions != null ? defaultPartitions : "Auto" : draft.partitions_count;
   if (!row)
     return null;
   return /* @__PURE__ */ jsxs("div", {
@@ -16686,16 +16815,19 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: envsLoading ? "Loading..." : "Select Environment"
+              children: envsLoading ? "Loading..." : "e.g. _dev"
             }), (allEnvironments.length ? allEnvironments : [draft.source_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
               value: e,
+              style: {
+                color: "#111"
+              },
               children: e
             }, e))]
           }), /* @__PURE__ */ jsxs(SelectField, {
             name: "source_interface",
             label: "source_interface",
             value: draft.source_interface || "",
-            onChange: (v2) => updateField("source_interface", v2),
+            onChange: handleSourceIfaceChange,
             onOpen: () => ensureInterfacesLoaded(srcEnv),
             disabled: !srcEnv || isEditMode,
             required: true,
@@ -16703,45 +16835,72 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: srcIfaceLoading ? "Loading..." : "Select Interface"
-            }), (srcInterfaces.length ? srcInterfaces : [draft.source_interface].filter(Boolean)).map((x2) => /* @__PURE__ */ jsx("option", {
-              value: x2,
-              children: x2
-            }, x2))]
-          }), /* @__PURE__ */ jsxs(SelectField, {
-            name: "source_schema",
-            label: "source_schema",
-            value: draft.source_schema || "",
-            onChange: (v2) => updateField("source_schema", v2),
-            onOpen: () => ensureSchemasLoaded(srcEnv, srcIface),
-            disabled: !srcEnv || !srcIface || isEditMode,
-            required: true,
-            error: invalidFields.source_schema,
-            children: [/* @__PURE__ */ jsx("option", {
-              value: "",
-              disabled: true,
-              children: srcSchemasLoading ? "Loading..." : "Select Schema"
-            }), (srcSchemas.length ? srcSchemas : [draft.source_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
-              value: s2,
-              children: s2
-            }, s2))]
-          }), /* @__PURE__ */ jsxs(SelectField, {
-            name: "source_table_name",
-            label: "source_table_name",
-            value: draft.source_table_name || "",
-            onChange: (v2) => updateField("source_table_name", v2),
-            onOpen: () => ensureTablesLoaded(srcEnv, srcIface, srcSchema),
-            disabled: !srcEnv || !srcIface || !srcSchema || isEditMode,
-            required: true,
-            error: invalidFields.source_table_name,
-            children: [/* @__PURE__ */ jsx("option", {
-              value: "",
-              disabled: true,
-              children: srcTablesLoading ? "Loading..." : "Select Table"
-            }), (srcTables.length ? srcTables : [draft.source_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
-              value: t3,
-              children: t3
-            }, t3))]
+              children: srcIfaceLoading ? "Loading..." : "e.g. Oracle_PROD"
+            }), srcIfaceOptions.map((x2) => /* @__PURE__ */ jsx("option", {
+              value: x2.name,
+              style: {
+                color: "#111"
+              },
+              children: x2.name
+            }, x2.name))]
+          }), srcIsFileSystem ? /* @__PURE__ */ jsxs("div", {
+            children: [/* @__PURE__ */ jsx(Field, {
+              label: "source_file_filter",
+              value: draft.source_table_name,
+              onChange: handleFileFilterChange,
+              placeholder: "e.g. *.csv",
+              required: true,
+              error: !!invalidFields.source_table_name
+            }), /* @__PURE__ */ jsx("div", {
+              style: {
+                marginTop: 4,
+                fontSize: 11,
+                color: "#6b7280"
+              },
+              children: "Applied to both source and target filesystem interfaces."
+            })]
+          }) : /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsxs(SelectField, {
+              name: "source_schema",
+              label: "source_schema",
+              value: draft.source_schema || "",
+              onChange: (v2) => updateField("source_schema", v2),
+              onOpen: () => ensureSchemasLoaded(srcEnv, srcIface),
+              disabled: !srcEnv || !srcIface || isEditMode,
+              required: true,
+              error: invalidFields.source_schema,
+              children: [/* @__PURE__ */ jsx("option", {
+                value: "",
+                disabled: true,
+                children: srcSchemasLoading ? "Loading..." : srcSchemasLoaded && srcSchemas.length === 0 ? "No schemas found" : "e.g. CUSTOMER"
+              }), (srcSchemas.length ? srcSchemas : [draft.source_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
+                value: s2,
+                style: {
+                  color: "#111"
+                },
+                children: s2
+              }, s2))]
+            }), /* @__PURE__ */ jsxs(SelectField, {
+              name: "source_table_name",
+              label: "source_table_name",
+              value: draft.source_table_name || "",
+              onChange: (v2) => updateField("source_table_name", v2),
+              onOpen: () => ensureTablesLoaded(srcEnv, srcIface, srcSchema),
+              disabled: !srcEnv || !srcIface || !srcSchema || isEditMode,
+              required: true,
+              error: invalidFields.source_table_name,
+              children: [/* @__PURE__ */ jsx("option", {
+                value: "",
+                disabled: true,
+                children: srcTablesLoading ? "Loading..." : srcTablesLoaded && srcTables.length === 0 ? "No tables found" : "e.g. CUSTOMER_SRC"
+              }), (srcTables.length ? srcTables : [draft.source_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
+                value: t3,
+                style: {
+                  color: "#111"
+                },
+                children: t3
+              }, t3))]
+            })]
           })]
         }), /* @__PURE__ */ jsxs("div", {
           style: {
@@ -16761,16 +16920,19 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: envsLoading ? "Loading..." : "Select Environment"
+              children: envsLoading ? "Loading..." : "e.g. _dev"
             }), (allEnvironments.length ? allEnvironments : [draft.target_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
               value: e,
+              style: {
+                color: "#111"
+              },
               children: e
             }, e))]
           }), /* @__PURE__ */ jsxs(SelectField, {
             name: "target_interface",
             label: "target_interface",
             value: draft.target_interface || "",
-            onChange: (v2) => updateField("target_interface", v2),
+            onChange: handleTargetIfaceChange,
             onOpen: () => ensureInterfacesLoaded(tarEnv),
             disabled: !tarEnv || isEditMode,
             required: true,
@@ -16778,45 +16940,56 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: tarIfaceLoading ? "Loading..." : "Select Interface"
-            }), (tarInterfaces.length ? tarInterfaces : [draft.target_interface].filter(Boolean)).map((x2) => /* @__PURE__ */ jsx("option", {
-              value: x2,
-              children: x2
-            }, x2))]
-          }), /* @__PURE__ */ jsxs(SelectField, {
-            name: "target_schema",
-            label: "target_schema",
-            value: draft.target_schema || "",
-            onChange: (v2) => updateField("target_schema", v2),
-            onOpen: () => ensureSchemasLoaded(tarEnv, tarIface),
-            disabled: !tarEnv || !tarIface || isEditMode,
-            required: true,
-            error: invalidFields.target_schema,
-            children: [/* @__PURE__ */ jsx("option", {
-              value: "",
-              disabled: true,
-              children: tarSchemasLoading ? "Loading..." : "Select Schema"
-            }), (tarSchemas.length ? tarSchemas : [draft.target_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
-              value: s2,
-              children: s2
-            }, s2))]
-          }), /* @__PURE__ */ jsxs(SelectField, {
-            name: "target_table_name",
-            label: "target_table_name",
-            value: draft.target_table_name || "",
-            onChange: (v2) => updateField("target_table_name", v2),
-            onOpen: () => ensureTablesLoaded(tarEnv, tarIface, tarSchema),
-            disabled: !tarEnv || !tarIface || !tarSchema || isEditMode,
-            required: true,
-            error: invalidFields.target_table_name,
-            children: [/* @__PURE__ */ jsx("option", {
-              value: "",
-              disabled: true,
-              children: tarTablesLoading ? "Loading..." : "Select Table"
-            }), (tarTables.length ? tarTables : [draft.target_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
-              value: t3,
-              children: t3
-            }, t3))]
+              children: tarIfaceLoading ? "Loading..." : "e.g. Oracle_UAT"
+            }), tarIfaceOptions.map((x2) => /* @__PURE__ */ jsx("option", {
+              value: x2.name,
+              style: {
+                color: "#111"
+              },
+              children: x2.name
+            }, x2.name))]
+          }), !tarIsFileSystem && /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsxs(SelectField, {
+              name: "target_schema",
+              label: "target_schema",
+              value: draft.target_schema || "",
+              onChange: (v2) => updateField("target_schema", v2),
+              onOpen: () => ensureSchemasLoaded(tarEnv, tarIface),
+              disabled: !tarEnv || !tarIface || isEditMode,
+              required: true,
+              error: invalidFields.target_schema,
+              children: [/* @__PURE__ */ jsx("option", {
+                value: "",
+                disabled: true,
+                children: tarSchemasLoading ? "Loading..." : tarSchemasLoaded && tarSchemas.length === 0 ? "No schemas found" : "e.g. CUSTOMER"
+              }), (tarSchemas.length ? tarSchemas : [draft.target_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
+                value: s2,
+                style: {
+                  color: "#111"
+                },
+                children: s2
+              }, s2))]
+            }), /* @__PURE__ */ jsxs(SelectField, {
+              name: "target_table_name",
+              label: "target_table_name",
+              value: draft.target_table_name || "",
+              onChange: (v2) => updateField("target_table_name", v2),
+              onOpen: () => ensureTablesLoaded(tarEnv, tarIface, tarSchema),
+              disabled: !tarEnv || !tarIface || !tarSchema || isEditMode,
+              required: true,
+              error: invalidFields.target_table_name,
+              children: [/* @__PURE__ */ jsx("option", {
+                value: "",
+                disabled: true,
+                children: tarTablesLoading ? "Loading..." : tarTablesLoaded && tarTables.length === 0 ? "No tables found" : "e.g. CUSTOMER_TAR"
+              }), (tarTables.length ? tarTables : [draft.target_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
+                value: t3,
+                style: {
+                  color: "#111"
+                },
+                children: t3
+              }, t3))]
+            })]
           })]
         }), /* @__PURE__ */ jsxs("div", {
           style: {
@@ -16831,9 +17004,15 @@ function ExpandedRowEditor({
             onChange: (v2) => updateField("partitions_assignment_method", v2),
             children: [/* @__PURE__ */ jsx("option", {
               value: "bwGetBucketRows",
+              style: {
+                color: "#111"
+              },
               children: "bwGetBucketRows"
             }), /* @__PURE__ */ jsx("option", {
               value: "bwGetBucketRange",
+              style: {
+                color: "#111"
+              },
               children: "bwGetBucketRange"
             })]
           }), /* @__PURE__ */ jsxs("div", {
@@ -16850,7 +17029,7 @@ function ExpandedRowEditor({
               children: formatLabel("partitions_count")
             }), /* @__PURE__ */ jsx(ComboCell, {
               settingKey: "partitions_count",
-              externalValue: (_a2 = draft.partitions_count) != null ? _a2 : "Auto",
+              externalValue: partitionsDisplayValue,
               onChange: (_key, value) => updateField("partitions_count", value)
             })]
           }), /* @__PURE__ */ jsxs("div", {
@@ -16883,7 +17062,7 @@ function ExpandedRowEditor({
           color: "#ef4444",
           fontSize: 13
         },
-        children: "Please fill in all 8 compulsory fields."
+        children: "Please fill in all required fields."
       }), /* @__PURE__ */ jsx("div", {
         style: {
           display: "flex",
@@ -16949,31 +17128,38 @@ function ExpandedRowEditor({
           children: [/* @__PURE__ */ jsx(Field, {
             label: "source_transformation_flow",
             value: draft.source_transformation_flow,
-            onChange: (v2) => updateField("source_transformation_flow", v2)
+            onChange: (v2) => updateField("source_transformation_flow", v2),
+            placeholder: "e.g. myTransformFlow"
           }), /* @__PURE__ */ jsx(Field, {
             label: "target_transformation_flow",
             value: draft.target_transformation_flow,
-            onChange: (v2) => updateField("target_transformation_flow", v2)
+            onChange: (v2) => updateField("target_transformation_flow", v2),
+            placeholder: "e.g. myTransformFlow"
           }), /* @__PURE__ */ jsx(Field, {
             label: "source_ignore_null_columns",
             value: draft.source_ignore_null_columns,
-            onChange: (v2) => updateField("source_ignore_null_columns", v2)
+            onChange: (v2) => updateField("source_ignore_null_columns", v2),
+            placeholder: "e.g. COL_A|COL_B"
           }), /* @__PURE__ */ jsx(Field, {
             label: "target_ignore_null_columns",
             value: draft.target_ignore_null_columns,
-            onChange: (v2) => updateField("target_ignore_null_columns", v2)
+            onChange: (v2) => updateField("target_ignore_null_columns", v2),
+            placeholder: "e.g. COL_A|COL_B"
           }), /* @__PURE__ */ jsx(Field, {
             label: "comparison_keys",
             value: draft.comparison_keys,
-            onChange: (v2) => updateField("comparison_keys", v2)
+            onChange: (v2) => updateField("comparison_keys", v2),
+            placeholder: "e.g. CUSTOMER_ID|SSN"
           }), /* @__PURE__ */ jsx(Field, {
             label: "pii_column_names",
             value: draft.pii_column_names,
-            onChange: (v2) => updateField("pii_column_names", v2)
+            onChange: (v2) => updateField("pii_column_names", v2),
+            placeholder: "e.g. SSN|EMAIL"
           }), /* @__PURE__ */ jsx(Field, {
             label: "excluded_columns_names",
             value: draft.excluded_columns_names,
-            onChange: (v2) => updateField("excluded_columns_names", v2)
+            onChange: (v2) => updateField("excluded_columns_names", v2),
+            placeholder: "e.g. CREATED_AT|UPDATED_AT"
           }), /* @__PURE__ */ jsx("div", {})]
         }), /* @__PURE__ */ jsxs("div", {
           style: {
@@ -16995,7 +17181,8 @@ function ExpandedRowEditor({
               },
               children: formatLabel("rows_filter_condition")
             }), /* @__PURE__ */ jsx("textarea", {
-              value: (_b2 = draft.rows_filter_condition) != null ? _b2 : "",
+              value: (_a2 = draft.rows_filter_condition) != null ? _a2 : "",
+              placeholder: "e.g. STATUS = 'ACTIVE'",
               onChange: (e) => updateField("rows_filter_condition", e.target.value),
               style: {
                 minHeight: 110,
@@ -17020,7 +17207,8 @@ function ExpandedRowEditor({
               },
               children: formatLabel("column_name_mapping")
             }), /* @__PURE__ */ jsx("textarea", {
-              value: (_c = draft.column_name_mapping) != null ? _c : "",
+              value: (_b2 = draft.column_name_mapping) != null ? _b2 : "",
+              placeholder: "e.g. OLD_COL_NAME=NEW_COL_NAME",
               onChange: (e) => updateField("column_name_mapping", e.target.value),
               style: {
                 minHeight: 110,
@@ -17333,6 +17521,7 @@ function ReactTable({
     if (!Array.isArray(payload))
       return [];
     return payload.map((row, _rowIdx) => {
+      var _a3;
       const obj = {
         ...row,
         _rowIdx
@@ -17485,7 +17674,9 @@ function ReactTable({
         });
       }
       if (infoParams) {
-        obj.infoParams = /* @__PURE__ */ jsx("div", {
+        const batchId = String((_a3 = row.batch_id) != null ? _a3 : "").toLowerCase();
+        const isExcludedBatch = batchId === "post-execution process" || batchId === "pre-execution process";
+        obj.infoParams = !isExcludedBatch ? /* @__PURE__ */ jsx("div", {
           className: "infoparams-icons",
           style: {
             display: "flex",
@@ -17514,7 +17705,7 @@ function ReactTable({
               onInfoClick(row, e);
             }
           })
-        });
+        }) : null;
       }
       if (resultSvgRequired) {
         const executionStatus = row.execution_status;
@@ -19113,7 +19304,7 @@ function dispatchToast(content, options) {
       lazy = false;
       containerDomNode = document.createElement("div");
       document.body.appendChild(containerDomNode);
-      reactDom$1.exports.render(react.exports.createElement(ToastContainer, Object.assign({}, containerConfig)), containerDomNode);
+      reactDom.exports.render(react.exports.createElement(ToastContainer, Object.assign({}, containerConfig)), containerDomNode);
     }
   }
   return options.toastId;
@@ -19515,1238 +19706,6 @@ function K2VerifyHomePage() {
     })]
   });
 }
-var BuildMapModal$1 = "";
-var databaseIcon = window.__vite_asset_base__ + "database.3af57eef.svg";
-var folderIcon = window.__vite_asset_base__ + "folder.7584a421.svg";
-var tableIcon = window.__vite_asset_base__ + "table.10415a97.svg";
-var deleteIcon = window.__vite_asset_base__ + "delete-icon-2.c48157bc.svg";
-function useSchemaTree({
-  apiBasePath: apiBasePath2,
-  srcInterface,
-  srcEnv,
-  tarInterface,
-  tarEnv,
-  targetExpanded,
-  srcSearch,
-  tarSearch
-}) {
-  const [srcSchemas, setSrcSchemas] = react.exports.useState([]);
-  const [tarSchemas, setTarSchemas] = react.exports.useState([]);
-  const [srcSchemasLoading, setSrcSchemasLoading] = react.exports.useState(false);
-  const [tarSchemasLoading, setTarSchemasLoading] = react.exports.useState(false);
-  const [error, setError] = react.exports.useState(null);
-  const [srcTablesBySchema, setSrcTablesBySchema] = react.exports.useState({});
-  const [tarTablesBySchema, setTarTablesBySchema] = react.exports.useState({});
-  const [srcTablesLoading, setSrcTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
-  const [tarTablesLoading, setTarTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
-  const [srcTablesError, setSrcTablesError] = react.exports.useState({});
-  const [tarTablesError, setTarTablesError] = react.exports.useState({});
-  const [srcExpandedSchemas, setSrcExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
-  const [tarExpandedSchemas, setTarExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
-  const extractListFromMapTables2 = react.exports.useCallback((raw) => {
-    var _a2, _b2, _c;
-    const list = (_c = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables) == null ? void 0 : _c[0];
-    return Array.isArray(list) ? list.map(String).filter(Boolean) : [];
-  }, []);
-  const fetchSchemas = react.exports.useCallback(
-    async (side) => {
-      const isSrc = side === "src";
-      const interfaceName = isSrc ? srcInterface : tarInterface;
-      const envName = isSrc ? srcEnv : tarEnv;
-      if (!interfaceName || !envName)
-        return;
-      if (isSrc)
-        setSrcSchemasLoading(true);
-      else
-        setTarSchemasLoading(true);
-      setError(null);
-      try {
-        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
-          `broadway verify.bwK2VerifyFetchSchema interfaceName='${interfaceName}' envName='${envName}';`
-        )}`;
-        const res = await fetch(cmdUrl, { credentials: "include" });
-        if (!res.ok)
-          throw new Error(`HTTP ${res.status}`);
-        const raw = await res.json();
-        const schemas = extractListFromMapTables2(raw);
-        if (isSrc)
-          setSrcSchemas(schemas);
-        else
-          setTarSchemas(schemas);
-      } catch (e) {
-        setError((e == null ? void 0 : e.message) || String(e));
-      } finally {
-        if (isSrc)
-          setSrcSchemasLoading(false);
-        else
-          setTarSchemasLoading(false);
-      }
-    },
-    [apiBasePath2, srcInterface, srcEnv, tarInterface, tarEnv, extractListFromMapTables2]
-  );
-  react.exports.useEffect(() => {
-    fetchSchemas("src");
-  }, [fetchSchemas]);
-  react.exports.useEffect(() => {
-    if (!targetExpanded)
-      return;
-    fetchSchemas("tar");
-  }, [targetExpanded, fetchSchemas]);
-  const ensureTablesLoaded = react.exports.useCallback(
-    async (side, schemaName) => {
-      const isSrc = side === "src";
-      const interfaceName = isSrc ? srcInterface : tarInterface;
-      const envName = isSrc ? srcEnv : tarEnv;
-      if (!interfaceName || !envName || !schemaName)
-        return [];
-      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
-      if (Array.isArray(cache[schemaName]))
-        return cache[schemaName];
-      if (isSrc) {
-        setSrcTablesLoading((prev) => new Set(prev).add(schemaName));
-        setSrcTablesError((prev) => ({ ...prev, [schemaName]: null }));
-      } else {
-        setTarTablesLoading((prev) => new Set(prev).add(schemaName));
-        setTarTablesError((prev) => ({ ...prev, [schemaName]: null }));
-      }
-      try {
-        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
-          `broadway verify.bwK2VerifyFetchTablesFromSchemas interfaceName='${interfaceName}' envName='${envName}' schemaName='${schemaName}';`
-        )}`;
-        const res = await fetch(cmdUrl, { credentials: "include" });
-        if (!res.ok)
-          throw new Error(`HTTP ${res.status}`);
-        const raw = await res.json();
-        const tables = extractListFromMapTables2(raw);
-        if (isSrc)
-          setSrcTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
-        else
-          setTarTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
-        return tables;
-      } catch (e) {
-        const msg = (e == null ? void 0 : e.message) || String(e);
-        if (isSrc)
-          setSrcTablesError((prev) => ({ ...prev, [schemaName]: msg }));
-        else
-          setTarTablesError((prev) => ({ ...prev, [schemaName]: msg }));
-        return [];
-      } finally {
-        if (isSrc) {
-          setSrcTablesLoading((prev) => {
-            const next = new Set(prev);
-            next.delete(schemaName);
-            return next;
-          });
-        } else {
-          setTarTablesLoading((prev) => {
-            const next = new Set(prev);
-            next.delete(schemaName);
-            return next;
-          });
-        }
-      }
-    },
-    [
-      apiBasePath2,
-      srcInterface,
-      srcEnv,
-      tarInterface,
-      tarEnv,
-      srcTablesBySchema,
-      tarTablesBySchema,
-      extractListFromMapTables2
-    ]
-  );
-  const toggleSchemaExpand = react.exports.useCallback(
-    (schema, side) => {
-      if (side === "src") {
-        setSrcExpandedSchemas((prev) => {
-          const next = new Set(prev);
-          const willExpand = !next.has(schema);
-          willExpand ? next.add(schema) : next.delete(schema);
-          if (willExpand)
-            ensureTablesLoaded("src", schema);
-          return next;
-        });
-      } else {
-        setTarExpandedSchemas((prev) => {
-          const next = new Set(prev);
-          const willExpand = !next.has(schema);
-          willExpand ? next.add(schema) : next.delete(schema);
-          if (willExpand)
-            ensureTablesLoaded("tar", schema);
-          return next;
-        });
-      }
-    },
-    [ensureTablesLoaded]
-  );
-  const getTables = react.exports.useCallback(
-    (side, schema) => {
-      const isSrc = side === "src";
-      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
-      return Array.isArray(cache[schema]) ? cache[schema] : [];
-    },
-    [srcTablesBySchema, tarTablesBySchema]
-  );
-  const filteredSrcSchemas = react.exports.useMemo(() => {
-    if (!srcSearch.trim())
-      return srcSchemas;
-    const q2 = srcSearch.toLowerCase();
-    return (srcSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
-  }, [srcSchemas, srcSearch]);
-  const filteredTarSchemas = react.exports.useMemo(() => {
-    if (!tarSearch.trim())
-      return tarSchemas;
-    const q2 = tarSearch.toLowerCase();
-    return (tarSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
-  }, [tarSchemas, tarSearch]);
-  react.exports.useEffect(() => {
-    if (!srcSearch.trim())
-      return;
-    setSrcExpandedSchemas(new Set(filteredSrcSchemas));
-  }, [srcSearch, filteredSrcSchemas]);
-  react.exports.useEffect(() => {
-    if (!tarSearch.trim())
-      return;
-    setTarExpandedSchemas(new Set(filteredTarSchemas));
-  }, [tarSearch, filteredTarSchemas]);
-  return {
-    srcSchemas,
-    tarSchemas,
-    filteredSrcSchemas,
-    filteredTarSchemas,
-    srcSchemasLoading,
-    tarSchemasLoading,
-    srcExpandedSchemas,
-    tarExpandedSchemas,
-    toggleSchemaExpand,
-    ensureTablesLoaded,
-    getTables,
-    srcTablesBySchema,
-    tarTablesBySchema,
-    srcTablesLoading,
-    tarTablesLoading,
-    srcTablesError,
-    tarTablesError,
-    error
-  };
-}
-const pairKey = (sSchema, sTable, tSchema, tTable) => `${sSchema}.${sTable}\u2192${tSchema}.${tTable}`;
-function usePairBuilder({
-  targetExpanded,
-  srcInterface,
-  tarInterface,
-  defaultBuckets,
-  ensureTablesLoaded,
-  getTables
-}) {
-  const [pairs, setPairs] = react.exports.useState([]);
-  const [pendingSrc, setPendingSrc] = react.exports.useState(null);
-  const [selectedSrcTables, setSelectedSrcTables] = react.exports.useState(/* @__PURE__ */ new Set());
-  const [selectedTarTables, setSelectedTarTables] = react.exports.useState(/* @__PURE__ */ new Set());
-  const addPair = react.exports.useCallback(
-    (sSchema, sTable, tSchema, tTable) => {
-      const key = pairKey(sSchema, sTable, tSchema, tTable);
-      setPairs((prev) => {
-        const withoutSameKey = prev.filter(
-          (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
-        );
-        return [
-          ...withoutSameKey,
-          {
-            id: `${Date.now()}-${Math.random()}`,
-            Source_Interface: srcInterface,
-            Source_Schema: sSchema,
-            Source_Table: sTable,
-            Target_Interface: targetExpanded ? tarInterface : srcInterface,
-            Target_Schema: tSchema,
-            Target_Table: tTable,
-            Buckets: (defaultBuckets != null ? defaultBuckets : "10").toString()
-          }
-        ];
-      });
-    },
-    [srcInterface, tarInterface, targetExpanded, defaultBuckets]
-  );
-  const removePair = react.exports.useCallback((id2) => {
-    setPairs((prev) => prev.filter((p2) => p2.id !== id2));
-  }, []);
-  const removeSourceOnlyPair = react.exports.useCallback((schema, table) => {
-    const key = pairKey(schema, table, schema, table);
-    setPairs(
-      (prev) => prev.filter(
-        (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
-      )
-    );
-  }, []);
-  const toggleSourceOnlyTable = react.exports.useCallback(
-    (schema, table, nextChecked) => {
-      const key = `${schema}.${table}`;
-      setSelectedSrcTables((prev) => {
-        const next = new Set(prev);
-        if (nextChecked)
-          next.add(key);
-        else
-          next.delete(key);
-        return next;
-      });
-      if (nextChecked)
-        addPair(schema, table, schema, table);
-      else
-        removeSourceOnlyPair(schema, table);
-    },
-    [addPair, removeSourceOnlyPair]
-  );
-  const handleTableClick = react.exports.useCallback(
-    (schema, table, side) => {
-      if (!targetExpanded) {
-        if (side !== "src")
-          return;
-        const key = `${schema}.${table}`;
-        const isSelected = selectedSrcTables.has(key);
-        toggleSourceOnlyTable(schema, table, !isSelected);
-        return;
-      }
-      if (side === "src") {
-        setPendingSrc({ schema, table });
-        return;
-      }
-      if (pendingSrc) {
-        addPair(pendingSrc.schema, pendingSrc.table, schema, table);
-        setPendingSrc(null);
-      }
-    },
-    [targetExpanded, selectedSrcTables, toggleSourceOnlyTable, pendingSrc, addPair]
-  );
-  const handleSchemaCheckbox = react.exports.useCallback(
-    async (schema, side, nextChecked) => {
-      if (targetExpanded)
-        return;
-      if (side !== "src")
-        return;
-      const tables = await ensureTablesLoaded("src", schema);
-      (tables || []).forEach((t3) => toggleSourceOnlyTable(schema, t3, nextChecked));
-    },
-    [targetExpanded, ensureTablesLoaded, toggleSourceOnlyTable]
-  );
-  const resetOnToggleTarget = react.exports.useCallback(() => {
-    setPendingSrc(null);
-    setSelectedTarTables(/* @__PURE__ */ new Set());
-  }, []);
-  const updatePairBuckets = react.exports.useCallback((id2, buckets) => {
-    setPairs(
-      (prev) => prev.map((p2) => p2.id === id2 ? { ...p2, Buckets: (buckets != null ? buckets : "10").toString() } : p2)
-    );
-  }, []);
-  const canConfirm = react.exports.useMemo(() => pairs.length > 0, [pairs.length]);
-  return {
-    pairs,
-    pendingSrc,
-    selectedSrcTables,
-    selectedTarTables,
-    addPair,
-    removePair,
-    toggleSourceOnlyTable,
-    handleTableClick,
-    handleSchemaCheckbox,
-    resetOnToggleTarget,
-    updatePairBuckets,
-    canConfirm
-  };
-}
-function BuildMapModal({
-  srcInterface,
-  srcEnv,
-  tarInterface,
-  tarEnv,
-  onConfirm,
-  onClose
-}) {
-  const apiBasePath2 = window.__API_BASE_PATH__ || "";
-  const [srcSearch, setSrcSearch] = react.exports.useState("");
-  const [tarSearch, setTarSearch] = react.exports.useState("");
-  const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
-  const targetExpanded = advancedOpen;
-  const [defaultBuckets, setDefaultBuckets] = react.exports.useState("10");
-  const [editingPairId, setEditingPairId] = react.exports.useState(null);
-  const [draftBuckets, setDraftBuckets] = react.exports.useState("10");
-  const tree = useSchemaTree({
-    apiBasePath: apiBasePath2,
-    srcInterface,
-    srcEnv,
-    tarInterface,
-    tarEnv,
-    targetExpanded,
-    srcSearch,
-    tarSearch
-  });
-  const pair = usePairBuilder({
-    targetExpanded,
-    srcInterface,
-    tarInterface,
-    defaultBuckets,
-    ensureTablesLoaded: tree.ensureTablesLoaded,
-    getTables: tree.getTables
-  });
-  const handleToggleAdvanced = react.exports.useCallback(() => {
-    pair.resetOnToggleTarget();
-    setAdvancedOpen((v2) => !v2);
-  }, [pair]);
-  const handleConfirm = react.exports.useCallback(() => {
-    onConfirm(pair.pairs.map(({
-      id: id2,
-      ...rest
-    }) => rest));
-  }, [pair.pairs, onConfirm]);
-  const renderTree = (schemas, side) => {
-    const expandedSchemas = side === "src" ? tree.srcExpandedSchemas : tree.tarExpandedSchemas;
-    const tablesLoading = side === "src" ? tree.srcTablesLoading : tree.tarTablesLoading;
-    const tablesError = side === "src" ? tree.srcTablesError : tree.tarTablesError;
-    return (Array.isArray(schemas) ? schemas : []).map((schema) => {
-      const isExpanded = expandedSchemas.has(schema);
-      const tables = tree.getTables(side, schema);
-      const tableKeys = tables.map((t3) => `${schema}.${t3}`);
-      const selectedTables = side === "src" ? pair.selectedSrcTables : pair.selectedTarTables;
-      const allTablesSelected = !targetExpanded && side === "src" && tableKeys.length > 0 && tableKeys.every((k3) => selectedTables.has(k3));
-      const someTablesSelected = !targetExpanded && side === "src" && tableKeys.some((k3) => selectedTables.has(k3)) && !allTablesSelected;
-      return /* @__PURE__ */ jsxs("div", {
-        className: "bm-schemaBlock",
-        children: [/* @__PURE__ */ jsxs("div", {
-          className: "bm-schemaRow",
-          children: [/* @__PURE__ */ jsx("input", {
-            type: "checkbox",
-            checked: !targetExpanded && side === "src" ? allTablesSelected : false,
-            ref: (input) => {
-              if (input) {
-                input.indeterminate = !targetExpanded && side === "src" ? someTablesSelected : false;
-              }
-            },
-            disabled: targetExpanded || side !== "src",
-            onChange: (e) => {
-              if (targetExpanded || side !== "src")
-                return;
-              pair.handleSchemaCheckbox(schema, "src", e.target.checked);
-            },
-            onClick: (e) => e.stopPropagation(),
-            className: "bm-checkbox",
-            style: {
-              visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
-            },
-            "aria-hidden": targetExpanded || side !== "src"
-          }), /* @__PURE__ */ jsxs("div", {
-            className: "bm-schemaToggle",
-            onClick: () => tree.toggleSchemaExpand(schema, side),
-            title: schema,
-            children: [/* @__PURE__ */ jsx("span", {
-              className: "bm-caret",
-              style: {
-                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)"
-              },
-              children: "\u25B6"
-            }), /* @__PURE__ */ jsx("img", {
-              src: folderIcon,
-              alt: "folder",
-              className: "bm-iconFolder"
-            }), /* @__PURE__ */ jsx("span", {
-              className: "bm-schemaLabel",
-              children: schema
-            })]
-          })]
-        }), isExpanded && /* @__PURE__ */ jsx("div", {
-          style: {
-            paddingLeft: 28
-          },
-          children: tablesLoading.has(schema) ? /* @__PURE__ */ jsx("div", {
-            className: "bm-centered",
-            style: {
-              padding: "6px 0"
-            },
-            children: "Loading tables\u2026"
-          }) : (tablesError == null ? void 0 : tablesError[schema]) ? /* @__PURE__ */ jsx("div", {
-            className: "bm-centered bm-error",
-            style: {
-              padding: "6px 0"
-            },
-            children: tablesError[schema]
-          }) : tables.length === 0 ? /* @__PURE__ */ jsx("div", {
-            className: "bm-emptySearch",
-            style: {
-              padding: "6px 0"
-            },
-            children: "No tables found."
-          }) : tables.map((table) => {
-            var _a2, _b2;
-            const key = `${schema}.${table}`;
-            const isSelectedSourceOnly = !targetExpanded && side === "src" && pair.selectedSrcTables.has(key);
-            const isPending = targetExpanded && side === "src" && ((_a2 = pair.pendingSrc) == null ? void 0 : _a2.schema) === schema && ((_b2 = pair.pendingSrc) == null ? void 0 : _b2.table) === table;
-            return /* @__PURE__ */ jsxs("div", {
-              className: `bm-tableRow ${isSelectedSourceOnly ? "is-selected" : ""} ${isPending ? "is-pending" : ""}`,
-              onClick: () => pair.handleTableClick(schema, table, side),
-              title: table,
-              children: [/* @__PURE__ */ jsx("input", {
-                type: "checkbox",
-                checked: isSelectedSourceOnly,
-                onChange: (e) => {
-                  if (targetExpanded || side !== "src")
-                    return;
-                  pair.toggleSourceOnlyTable(schema, table, e.target.checked);
-                },
-                onClick: (e) => e.stopPropagation(),
-                className: "bm-checkbox",
-                style: {
-                  visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
-                },
-                "aria-hidden": targetExpanded || side !== "src"
-              }), /* @__PURE__ */ jsx("img", {
-                src: tableIcon,
-                alt: "table",
-                className: "bm-iconTable"
-              }), /* @__PURE__ */ jsx("span", {
-                className: "bm-tableLabel",
-                children: table
-              })]
-            }, table);
-          })
-        })]
-      }, schema);
-    });
-  };
-  const renderDbTreeBox = (side) => {
-    const isSrc = side === "src";
-    const schemas = isSrc ? tree.filteredSrcSchemas : tree.filteredTarSchemas;
-    const search = isSrc ? srcSearch : tarSearch;
-    const setSearch = isSrc ? setSrcSearch : setTarSearch;
-    const dbName = isSrc ? srcInterface : tarInterface;
-    const showLocalLoading = !isSrc && targetExpanded && tree.tarSchemasLoading && (!schemas || schemas.length === 0);
-    return /* @__PURE__ */ jsxs("div", {
-      className: "bm-dbBox",
-      children: [/* @__PURE__ */ jsx("input", {
-        type: "text",
-        placeholder: "Type to filter schemas...",
-        value: search,
-        onChange: (e) => setSearch(e.target.value),
-        className: "bm-filterInput"
-      }), /* @__PURE__ */ jsxs("div", {
-        className: "bm-dbRow",
-        children: [/* @__PURE__ */ jsx("img", {
-          src: databaseIcon,
-          alt: "db",
-          className: "bm-iconDb"
-        }), /* @__PURE__ */ jsx("span", {
-          className: "bm-dbLabel",
-          children: dbName
-        })]
-      }), showLocalLoading ? /* @__PURE__ */ jsx("div", {
-        className: "bm-centered",
-        children: "Loading schemas\u2026"
-      }) : schemas.length === 0 && search.trim() ? /* @__PURE__ */ jsxs("div", {
-        className: "bm-emptySearch",
-        children: ['No results for "', search, '"']
-      }) : /* @__PURE__ */ jsx("div", {
-        className: "bm-treeBody bm-scroll",
-        children: renderTree(schemas, side)
-      })]
-    });
-  };
-  const showFullLoading = tree.srcSchemasLoading && (!tree.srcSchemas || tree.srcSchemas.length === 0);
-  const cleanDigits = (val) => (val != null ? val : "").toString().replace(/[^\d]/g, "");
-  const commitBucketsEdit = react.exports.useCallback((pairId) => {
-    const cleaned = cleanDigits(draftBuckets);
-    const next = cleaned === "" ? cleanDigits(defaultBuckets) || "10" : cleaned;
-    if (typeof pair.updatePairBuckets === "function") {
-      pair.updatePairBuckets(pairId, next);
-    }
-    setEditingPairId(null);
-  }, [draftBuckets, defaultBuckets, pair]);
-  const cancelBucketsEdit = react.exports.useCallback(() => {
-    setEditingPairId(null);
-  }, []);
-  return /* @__PURE__ */ jsx("div", {
-    className: "bm-overlay",
-    children: /* @__PURE__ */ jsxs("div", {
-      className: "bm-modal",
-      children: [/* @__PURE__ */ jsxs("div", {
-        className: "bm-header",
-        children: [/* @__PURE__ */ jsx("div", {
-          className: "bm-headerLeft",
-          children: /* @__PURE__ */ jsx("h2", {
-            className: "bm-title",
-            children: "Add tables"
-          })
-        }), /* @__PURE__ */ jsxs("div", {
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginLeft: "auto",
-            marginRight: 12
-          },
-          title: "Applies to newly added pairs",
-          children: [/* @__PURE__ */ jsx("span", {
-            style: {
-              fontSize: 13,
-              whiteSpace: "nowrap"
-            },
-            children: "Default Partitions"
-          }), /* @__PURE__ */ jsx("input", {
-            className: "bm-control",
-            type: "number",
-            min: "1",
-            step: "1",
-            value: defaultBuckets,
-            onChange: (e) => setDefaultBuckets(e.target.value),
-            onBlur: (e) => {
-              const n2 = Math.max(1, Math.floor(Number(e.target.value) || 1));
-              setDefaultBuckets(String(n2));
-            }
-          })]
-        }), /* @__PURE__ */ jsx("button", {
-          type: "button",
-          onClick: handleToggleAdvanced,
-          className: `bm-toggleModeBtn ${advancedOpen ? "is-selected" : ""}`,
-          "aria-pressed": advancedOpen,
-          title: advancedOpen ? "Pairing mode (Source + Target)" : "Source-only mode",
-          style: {
-            background: advancedOpen ? "#1483F3" : "#ffffff",
-            borderColor: advancedOpen ? "#1483F3" : "#000000",
-            color: advancedOpen ? "#ffffff" : "#000000"
-          },
-          children: "Advanced Settings"
-        })]
-      }), showFullLoading ? /* @__PURE__ */ jsx("div", {
-        className: "bm-centered",
-        children: "Loading schemas\u2026"
-      }) : tree.error ? /* @__PURE__ */ jsx("div", {
-        className: "bm-centered bm-error",
-        children: tree.error
-      }) : /* @__PURE__ */ jsxs("div", {
-        className: "bm-columns",
-        children: [/* @__PURE__ */ jsx("div", {
-          className: "bm-column",
-          children: renderDbTreeBox("src")
-        }), targetExpanded && /* @__PURE__ */ jsxs(Fragment, {
-          children: [/* @__PURE__ */ jsx("div", {
-            className: "bm-gap"
-          }), /* @__PURE__ */ jsx("div", {
-            className: "bm-column",
-            children: renderDbTreeBox("tar")
-          })]
-        }), /* @__PURE__ */ jsx("div", {
-          className: "bm-divider"
-        }), /* @__PURE__ */ jsx("div", {
-          className: "bm-pairsColumn",
-          children: pair.pairs.length === 0 ? /* @__PURE__ */ jsx("div", {
-            className: "bm-emptyPairs",
-            children: targetExpanded ? `Pick one source table, then one target table to add a pair (default partitions: ${cleanDigits(defaultBuckets) || "10"})` : `Select tables (or schema) to add pairs (default partitions: ${cleanDigits(defaultBuckets) || "10"})`
-          }) : /* @__PURE__ */ jsxs("div", {
-            className: "bm-pairsWrap",
-            children: [/* @__PURE__ */ jsxs("div", {
-              style: {
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 8px",
-                fontSize: 12,
-                color: "#6b7280",
-                borderBottom: "1px solid #e5e7eb",
-                marginBottom: 6
-              },
-              children: [/* @__PURE__ */ jsx("span", {
-                style: {
-                  flex: 1,
-                  minWidth: 0
-                },
-                children: "Source"
-              }), /* @__PURE__ */ jsx("span", {
-                style: {
-                  width: 20,
-                  textAlign: "center"
-                }
-              }), /* @__PURE__ */ jsx("span", {
-                style: {
-                  flex: 1,
-                  minWidth: 0
-                },
-                children: "Target"
-              }), /* @__PURE__ */ jsx("span", {
-                style: {
-                  width: 90,
-                  textAlign: "right"
-                },
-                children: "Partitions"
-              }), /* @__PURE__ */ jsx("span", {
-                style: {
-                  width: 34
-                }
-              })]
-            }), pair.pairs.map((p2) => {
-              var _a2;
-              const isEditing = editingPairId === p2.id;
-              const bucketsVal = (((_a2 = p2.Buckets) != null ? _a2 : cleanDigits(defaultBuckets)) || "10").toString().replace(/[^\d]/g, "");
-              return /* @__PURE__ */ jsxs("div", {
-                className: "bm-pairRow bm-pairRowDeletable",
-                children: [/* @__PURE__ */ jsxs("span", {
-                  className: "bm-pairSide",
-                  style: {
-                    flex: 1,
-                    minWidth: 0
-                  },
-                  children: [p2.Source_Schema, ".", p2.Source_Table]
-                }), /* @__PURE__ */ jsxs("span", {
-                  className: "bm-pairSide",
-                  style: {
-                    flex: 1,
-                    minWidth: 0
-                  },
-                  children: [p2.Target_Schema, ".", p2.Target_Table]
-                }), /* @__PURE__ */ jsx("span", {
-                  style: {
-                    width: 90,
-                    textAlign: "right",
-                    cursor: "pointer",
-                    userSelect: "none"
-                  },
-                  title: "Double-click to edit buckets",
-                  onDoubleClick: () => {
-                    setEditingPairId(p2.id);
-                    setDraftBuckets(bucketsVal);
-                  },
-                  children: isEditing ? /* @__PURE__ */ jsx("input", {
-                    className: "k2-table-input",
-                    style: {
-                      width: 80,
-                      textAlign: "right"
-                    },
-                    inputMode: "numeric",
-                    pattern: "[0-9]*",
-                    autoFocus: true,
-                    value: draftBuckets,
-                    onChange: (e) => setDraftBuckets(cleanDigits(e.target.value)),
-                    onBlur: () => commitBucketsEdit(p2.id),
-                    onKeyDown: (e) => {
-                      if (e.key === "Enter")
-                        commitBucketsEdit(p2.id);
-                      if (e.key === "Escape")
-                        cancelBucketsEdit();
-                    }
-                  }) : /* @__PURE__ */ jsx("span", {
-                    children: bucketsVal || cleanDigits(defaultBuckets) || "10"
-                  })
-                }), /* @__PURE__ */ jsx("button", {
-                  type: "button",
-                  className: "bm-pairDelete",
-                  onClick: () => {
-                    if (editingPairId === p2.id)
-                      setEditingPairId(null);
-                    pair.removePair(p2.id);
-                  },
-                  title: "Remove",
-                  style: {
-                    width: 34
-                  },
-                  children: /* @__PURE__ */ jsx("img", {
-                    src: deleteIcon,
-                    alt: "delete",
-                    className: "bm-deleteIcon"
-                  })
-                })]
-              }, p2.id);
-            })]
-          })
-        })]
-      }), /* @__PURE__ */ jsxs("div", {
-        className: "bm-footer",
-        children: [/* @__PURE__ */ jsxs("button", {
-          className: `btn btnPrimary${!pair.canConfirm ? " disabled" : ""}`,
-          onClick: handleConfirm,
-          disabled: !pair.canConfirm,
-          children: ["Confirm (", pair.pairs.length, " ", pair.pairs.length === 1 ? "pair" : "pairs", ")"]
-        }), /* @__PURE__ */ jsx("button", {
-          className: "btn btnCancel",
-          onClick: onClose,
-          children: "Cancel"
-        })]
-      })]
-    })
-  });
-}
-function TableMappingMultiSelect({
-  params,
-  mtableData,
-  mtableLoading,
-  mtableError,
-  handleInputChange,
-  className = "group2",
-  title = "Tables"
-}) {
-  const srcIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_SRC) || "").trim();
-  const tarIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_TAR) || "").trim();
-  const srcEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_SRC) || "").trim();
-  const tarEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_TAR) || "").trim();
-  const currentList = react.exports.useMemo(() => {
-    const raw = Array.isArray(params == null ? void 0 : params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST : [];
-    return raw.filter((p2) => (p2 == null ? void 0 : p2.src) && (p2 == null ? void 0 : p2.tar)).map((p2) => {
-      var _a2;
-      return {
-        src: p2.src,
-        tar: p2.tar,
-        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString()
-      };
-    });
-  }, [params == null ? void 0 : params.K2VERIFY_TABLE_LIST]);
-  const haveFilters = !!(srcIF && tarIF);
-  const canBuildMap = !!(srcIF && tarIF && srcEnv && tarEnv);
-  const mrows = Array.isArray(mtableData) ? mtableData : [];
-  const [buildMapOpen, setBuildMapOpen] = react.exports.useState(false);
-  const [extraRows, setExtraRows] = react.exports.useState([]);
-  const mkKey = (s2, t3) => `${s2}__\u2192__${t3}`;
-  const listHas = react.exports.useCallback((list, pair) => list.some((p2) => p2.src === pair.src && p2.tar === pair.tar), []);
-  const updateList = react.exports.useCallback((nextList) => {
-    handleInputChange({
-      target: {
-        name: "K2VERIFY_TABLE_LIST",
-        value: nextList
-      }
-    });
-  }, [handleInputChange]);
-  const tablePairs = react.exports.useMemo(() => {
-    if (!haveFilters)
-      return [];
-    const fromMtable = mrows.filter((r2) => r2.Source_Interface === srcIF && r2.Target_Interface === tarIF).map((r2) => {
-      var _a2;
-      const src = `${r2.Source_Schema}.${r2.Source_Table_Name}`;
-      const tar = `${r2.Target_Schema}.${r2.Target_Table_Name}`;
-      return {
-        src,
-        tar,
-        buckets: ((_a2 = r2.Buckets) != null ? _a2 : "10").toString(),
-        key: mkKey(src, tar)
-      };
-    });
-    const fromExtra = extraRows.map((r2) => {
-      var _a2;
-      return {
-        src: r2.src,
-        tar: r2.tar,
-        buckets: ((_a2 = r2.buckets) != null ? _a2 : "10").toString(),
-        key: mkKey(r2.src, r2.tar)
-      };
-    });
-    const fromCurrent = currentList.map((p2) => {
-      var _a2;
-      return {
-        src: p2.src,
-        tar: p2.tar,
-        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString(),
-        key: mkKey(p2.src, p2.tar)
-      };
-    });
-    const byKey = /* @__PURE__ */ new Map();
-    fromMtable.forEach((p2) => byKey.set(p2.key, p2));
-    fromExtra.forEach((p2) => byKey.set(p2.key, p2));
-    fromCurrent.forEach((p2) => byKey.set(p2.key, p2));
-    return Array.from(byKey.values());
-  }, [mrows, srcIF, tarIF, haveFilters, extraRows, currentList]);
-  const [showSelectedOnly, setShowSelectedOnly] = react.exports.useState(false);
-  const [filterOpen, setFilterOpen] = react.exports.useState({
-    src: false,
-    tar: false
-  });
-  const [filters, setFilters] = react.exports.useState({
-    src: "",
-    tar: ""
-  });
-  const toggleFilter = react.exports.useCallback((col) => setFilterOpen((p2) => ({
-    ...p2,
-    [col]: !p2[col]
-  })), []);
-  const setFilterValue = react.exports.useCallback((col, val) => setFilters((p2) => ({
-    ...p2,
-    [col]: val
-  })), []);
-  const [editingKey, setEditingKey] = react.exports.useState(null);
-  const [draftBuckets, setDraftBuckets] = react.exports.useState("10");
-  const getBuckets = react.exports.useCallback((pair, fallback = "10") => {
-    var _a2, _b2;
-    const found = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
-    return ((_b2 = (_a2 = found == null ? void 0 : found.buckets) != null ? _a2 : fallback) != null ? _b2 : "10").toString();
-  }, [currentList]);
-  const updateBucketsIfSelected = react.exports.useCallback((pair, val) => {
-    const cleaned = (val != null ? val : "").toString().replace(/[^\d]/g, "");
-    const nextBuckets = cleaned === "" ? "10" : cleaned;
-    const idx = currentList.findIndex((p2) => p2.src === pair.src && p2.tar === pair.tar);
-    if (idx < 0)
-      return;
-    const next = [...currentList];
-    next[idx] = {
-      ...next[idx],
-      buckets: nextBuckets
-    };
-    updateList(next);
-  }, [currentList, updateList]);
-  const startEditBuckets = react.exports.useCallback((p2) => {
-    setEditingKey(p2.key);
-    setDraftBuckets(getBuckets(p2, p2.buckets));
-  }, [getBuckets]);
-  const commitEditBuckets = react.exports.useCallback((p2) => {
-    updateBucketsIfSelected(p2, draftBuckets);
-    setEditingKey(null);
-  }, [updateBucketsIfSelected, draftBuckets]);
-  const cancelEditBuckets = react.exports.useCallback(() => {
-    setEditingKey(null);
-  }, []);
-  const handleBuildMapConfirm = react.exports.useCallback((tableList) => {
-    const newExtras = [];
-    const merged = [...currentList];
-    tableList.forEach((r2) => {
-      var _a2;
-      const bucketsFromModal = ((_a2 = r2.Buckets) != null ? _a2 : "10").toString();
-      const src = `${r2.Source_Schema}.${r2.Source_Table}`;
-      if (r2.Target_Interface && r2.Target_Schema && r2.Target_Table) {
-        const tar = `${r2.Target_Schema}.${r2.Target_Table}`;
-        const pair = {
-          src,
-          tar
-        };
-        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, tar));
-        if (!alreadyInTable)
-          newExtras.push({
-            src,
-            tar,
-            buckets: bucketsFromModal
-          });
-        if (!listHas(merged, pair))
-          merged.push({
-            ...pair,
-            buckets: bucketsFromModal
-          });
-      } else {
-        const pair = {
-          src,
-          tar: src
-        };
-        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, src));
-        if (!alreadyInTable)
-          newExtras.push({
-            src,
-            tar: src,
-            buckets: bucketsFromModal
-          });
-        if (!listHas(merged, pair))
-          merged.push({
-            ...pair,
-            buckets: bucketsFromModal
-          });
-      }
-    });
-    if (newExtras.length)
-      setExtraRows((prev) => [...prev, ...newExtras]);
-    updateList(merged);
-    setBuildMapOpen(false);
-  }, [currentList, tablePairs, updateList, listHas]);
-  const togglePair = react.exports.useCallback((pair) => {
-    const exists = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
-    if (exists) {
-      updateList(currentList.filter((p2) => !(p2.src === pair.src && p2.tar === pair.tar)));
-    } else {
-      updateList([...currentList, {
-        src: pair.src,
-        tar: pair.tar,
-        buckets: getBuckets(pair, pair.buckets)
-      }]);
-    }
-  }, [currentList, updateList, getBuckets]);
-  const selectAll = react.exports.useCallback(() => {
-    updateList(tablePairs.map((p2) => ({
-      src: p2.src,
-      tar: p2.tar,
-      buckets: getBuckets(p2, p2.buckets)
-    })));
-  }, [tablePairs, updateList, getBuckets]);
-  const clearAll = react.exports.useCallback(() => updateList([]), [updateList]);
-  const filteredPairs = react.exports.useMemo(() => {
-    const srcNeedle = filters.src.trim().toLowerCase();
-    const tarNeedle = filters.tar.trim().toLowerCase();
-    return tablePairs.filter((p2) => {
-      var _a2, _b2;
-      const srcOk = srcNeedle ? (_a2 = p2.src) == null ? void 0 : _a2.toLowerCase().includes(srcNeedle) : true;
-      const tarOk = tarNeedle ? (_b2 = p2.tar) == null ? void 0 : _b2.toLowerCase().includes(tarNeedle) : true;
-      return srcOk && tarOk;
-    });
-  }, [tablePairs, filters.src, filters.tar]);
-  const visiblePairs = react.exports.useMemo(() => {
-    if (!showSelectedOnly)
-      return filteredPairs;
-    const selectedKeys = new Set(currentList.map((p2) => mkKey(p2.src, p2.tar)));
-    return filteredPairs.filter((p2) => selectedKeys.has(p2.key));
-  }, [showSelectedOnly, filteredPairs, currentList]);
-  const checkedCount = currentList.length;
-  return /* @__PURE__ */ jsxs(Fragment, {
-    children: [buildMapOpen && /* @__PURE__ */ jsx(BuildMapModal, {
-      srcInterface: srcIF,
-      srcEnv,
-      tarInterface: tarIF,
-      tarEnv,
-      onConfirm: handleBuildMapConfirm,
-      onClose: () => setBuildMapOpen(false)
-    }), /* @__PURE__ */ jsxs("div", {
-      className,
-      children: [/* @__PURE__ */ jsxs("div", {
-        className: "label",
-        style: {
-          display: "flex",
-          alignItems: "center"
-        },
-        children: [/* @__PURE__ */ jsxs("span", {
-          children: [title, /* @__PURE__ */ jsx("span", {
-            className: "required",
-            children: "*"
-          })]
-        }), /* @__PURE__ */ jsx("button", {
-          type: "button",
-          disabled: !canBuildMap,
-          onClick: () => setBuildMapOpen(true),
-          title: !canBuildMap ? "Select source & target interfaces and environments first" : "",
-          style: {
-            background: "none",
-            border: "none",
-            padding: 0,
-            color: canBuildMap ? "#1a56db" : "#aaa",
-            cursor: canBuildMap ? "pointer" : "not-allowed",
-            fontSize: "inherit",
-            textDecoration: canBuildMap ? "underline" : "none",
-            marginLeft: "auto"
-          },
-          children: "+ Add tables"
-        })]
-      }), !haveFilters ? /* @__PURE__ */ jsx("div", {
-        className: "miniTableBox",
-        children: /* @__PURE__ */ jsx("div", {
-          className: "miniTableWrap miniTableWrapPlaceholder",
-          children: /* @__PURE__ */ jsx("div", {
-            style: {
-              padding: "10px 8px",
-              color: "#6b7280",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              textAlign: "center"
-            },
-            children: "Select Source & Target interfaces to load table pairs."
-          })
-        })
-      }) : mtableLoading ? /* @__PURE__ */ jsx("div", {
-        className: "note",
-        children: "Loading table mappings\u2026"
-      }) : mtableError ? /* @__PURE__ */ jsx("div", {
-        className: "error",
-        children: "Error loading table mappings"
-      }) : tablePairs.length === 0 ? /* @__PURE__ */ jsx("div", {
-        className: "miniTableBox",
-        children: /* @__PURE__ */ jsx("div", {
-          style: {
-            padding: "10px 8px",
-            color: "#6b7280"
-          },
-          children: "No table pairs found for the selected interfaces."
-        })
-      }) : /* @__PURE__ */ jsxs("div", {
-        className: "miniTableBox",
-        children: [/* @__PURE__ */ jsxs("div", {
-          className: "miniTableActions",
-          children: [/* @__PURE__ */ jsx("button", {
-            type: "button",
-            className: "btn btnAll",
-            onClick: selectAll,
-            children: "Select all"
-          }), /* @__PURE__ */ jsx("button", {
-            type: "button",
-            className: "btn btnClearAll",
-            onClick: clearAll,
-            children: "Clear all"
-          }), /* @__PURE__ */ jsxs("label", {
-            style: {
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              marginLeft: 8,
-              cursor: "pointer",
-              userSelect: "none",
-              fontSize: "0.9rem",
-              color: "#374151",
-              whiteSpace: "nowrap"
-            },
-            title: "Show only selected table pairs",
-            children: [/* @__PURE__ */ jsx("input", {
-              type: "checkbox",
-              checked: showSelectedOnly,
-              onChange: () => setShowSelectedOnly((v2) => !v2)
-            }), "Show selected only"]
-          }), /* @__PURE__ */ jsxs("span", {
-            style: {
-              marginLeft: "auto",
-              fontSize: "0.9rem"
-            },
-            children: ["Selected: ", /* @__PURE__ */ jsx("strong", {
-              children: checkedCount
-            }), " / ", tablePairs.length]
-          })]
-        }), /* @__PURE__ */ jsx("div", {
-          className: "miniTableWrap",
-          children: /* @__PURE__ */ jsxs("table", {
-            className: "miniTable",
-            children: [/* @__PURE__ */ jsx("thead", {
-              children: /* @__PURE__ */ jsxs("tr", {
-                children: [/* @__PURE__ */ jsx("th", {
-                  style: {
-                    width: 36
-                  }
-                }), /* @__PURE__ */ jsxs("th", {
-                  children: [/* @__PURE__ */ jsxs("div", {
-                    style: {
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 6
-                    },
-                    children: [/* @__PURE__ */ jsx("span", {
-                      style: {
-                        whiteSpace: "nowrap"
-                      },
-                      children: "Source table"
-                    }), /* @__PURE__ */ jsx("img", {
-                      src: filterOpen.src ? filterOn : filterOff,
-                      alt: filterOpen.src ? "Filter On" : "Filter Off",
-                      title: "Filter Source",
-                      className: "icons",
-                      style: {
-                        cursor: "pointer",
-                        width: 16,
-                        height: 16
-                      },
-                      onClick: () => toggleFilter("src")
-                    })]
-                  }), filterOpen.src && /* @__PURE__ */ jsx("div", {
-                    style: {
-                      marginTop: 6
-                    },
-                    children: /* @__PURE__ */ jsx("input", {
-                      className: "k2-table-input",
-                      placeholder: "Search source\u2026",
-                      value: filters.src,
-                      onChange: (e) => setFilterValue("src", e.target.value),
-                      autoFocus: true
-                    })
-                  })]
-                }), /* @__PURE__ */ jsxs("th", {
-                  children: [/* @__PURE__ */ jsxs("div", {
-                    style: {
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 6
-                    },
-                    children: [/* @__PURE__ */ jsx("span", {
-                      style: {
-                        whiteSpace: "nowrap"
-                      },
-                      children: "Target table"
-                    }), /* @__PURE__ */ jsx("img", {
-                      src: filterOpen.tar ? filterOn : filterOff,
-                      alt: filterOpen.tar ? "Filter On" : "Filter Off",
-                      title: "Filter Target",
-                      className: "icons",
-                      style: {
-                        cursor: "pointer",
-                        width: 16,
-                        height: 16
-                      },
-                      onClick: () => toggleFilter("tar")
-                    })]
-                  }), filterOpen.tar && /* @__PURE__ */ jsx("div", {
-                    style: {
-                      marginTop: 6
-                    },
-                    children: /* @__PURE__ */ jsx("input", {
-                      className: "k2-table-input",
-                      placeholder: "Search target\u2026",
-                      value: filters.tar,
-                      onChange: (e) => setFilterValue("tar", e.target.value)
-                    })
-                  })]
-                }), /* @__PURE__ */ jsx("th", {
-                  style: {
-                    whiteSpace: "nowrap"
-                  },
-                  children: "Partitions"
-                })]
-              })
-            }), /* @__PURE__ */ jsxs("tbody", {
-              children: [visiblePairs.map((p2) => {
-                const checked = listHas(currentList, p2);
-                const isEditing = editingKey === p2.key;
-                const bucketsVal = getBuckets(p2, p2.buckets);
-                return /* @__PURE__ */ jsxs("tr", {
-                  children: [/* @__PURE__ */ jsx("td", {
-                    children: /* @__PURE__ */ jsx("input", {
-                      type: "checkbox",
-                      checked,
-                      onChange: () => togglePair(p2)
-                    })
-                  }), /* @__PURE__ */ jsx("td", {
-                    children: p2.src
-                  }), /* @__PURE__ */ jsx("td", {
-                    children: p2.tar
-                  }), /* @__PURE__ */ jsx("td", {
-                    onDoubleClick: () => startEditBuckets(p2),
-                    title: checked ? "Double-click to edit buckets" : "Select the row to edit buckets",
-                    style: {
-                      cursor: "pointer"
-                    },
-                    children: isEditing ? /* @__PURE__ */ jsx("input", {
-                      className: "k2-table-input",
-                      style: {
-                        width: 80
-                      },
-                      inputMode: "numeric",
-                      pattern: "[0-9]*",
-                      autoFocus: true,
-                      value: draftBuckets,
-                      onChange: (e) => {
-                        var _a2;
-                        return setDraftBuckets(((_a2 = e.target.value) != null ? _a2 : "").toString().replace(/[^\d]/g, ""));
-                      },
-                      onBlur: () => commitEditBuckets(p2),
-                      onKeyDown: (e) => {
-                        if (e.key === "Enter")
-                          commitEditBuckets(p2);
-                        if (e.key === "Escape")
-                          cancelEditBuckets();
-                      }
-                    }) : /* @__PURE__ */ jsx("span", {
-                      children: bucketsVal
-                    })
-                  })]
-                }, p2.key);
-              }), visiblePairs.length === 0 && /* @__PURE__ */ jsx("tr", {
-                children: /* @__PURE__ */ jsx("td", {
-                  colSpan: 4,
-                  style: {
-                    padding: 12,
-                    color: "#6b7280"
-                  },
-                  children: showSelectedOnly ? "No selected pairs to display." : "No pairs match your filter(s)."
-                })
-              })]
-            })]
-          })
-        })]
-      })]
-    })]
-  });
-}
 function K2VerifyProcessTab({
   mode,
   processes,
@@ -21055,6 +20014,1253 @@ function K2VerifyProcessTab({
     })]
   });
 }
+var BuildMapModal$1 = "";
+var databaseIcon = window.__vite_asset_base__ + "database.3af57eef.svg";
+var folderIcon = window.__vite_asset_base__ + "folder.7584a421.svg";
+var tableIcon = window.__vite_asset_base__ + "table.10415a97.svg";
+var deleteIcon = window.__vite_asset_base__ + "delete-icon-2.c48157bc.svg";
+function useSchemaTree({
+  apiBasePath: apiBasePath2,
+  srcInterface,
+  srcEnv,
+  tarInterface,
+  tarEnv,
+  targetExpanded,
+  srcSearch,
+  tarSearch
+}) {
+  const [srcSchemas, setSrcSchemas] = react.exports.useState([]);
+  const [tarSchemas, setTarSchemas] = react.exports.useState([]);
+  const [srcSchemasLoading, setSrcSchemasLoading] = react.exports.useState(false);
+  const [tarSchemasLoading, setTarSchemasLoading] = react.exports.useState(false);
+  const [error, setError] = react.exports.useState(null);
+  const [srcTablesBySchema, setSrcTablesBySchema] = react.exports.useState({});
+  const [tarTablesBySchema, setTarTablesBySchema] = react.exports.useState({});
+  const [srcTablesLoading, setSrcTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [tarTablesLoading, setTarTablesLoading] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [srcTablesError, setSrcTablesError] = react.exports.useState({});
+  const [tarTablesError, setTarTablesError] = react.exports.useState({});
+  const [srcExpandedSchemas, setSrcExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [tarExpandedSchemas, setTarExpandedSchemas] = react.exports.useState(/* @__PURE__ */ new Set());
+  const extractSchemas2 = react.exports.useCallback((raw) => {
+    var _a2, _b2, _c;
+    const list = (_c = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables) == null ? void 0 : _c[0];
+    return Array.isArray(list) ? list.map(String).filter(Boolean) : [];
+  }, []);
+  const extractTables = react.exports.useCallback((raw) => {
+    var _a2, _b2;
+    const list = (_b2 = (_a2 = raw == null ? void 0 : raw[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.tables;
+    if (!Array.isArray(list))
+      return [];
+    return list.map((item) => ({
+      table: String((item == null ? void 0 : item.table) || "").trim(),
+      bucket: (item == null ? void 0 : item.bucket) === "any" || (item == null ? void 0 : item.bucket) == null || (item == null ? void 0 : item.bucket) === 0 ? "Auto" : String(item.bucket)
+    })).filter((t3) => t3.table).sort((a2, b3) => a2.table.localeCompare(b3.table));
+  }, []);
+  const fetchSchemas = react.exports.useCallback(
+    async (side) => {
+      const isSrc = side === "src";
+      const interfaceName = isSrc ? srcInterface : tarInterface;
+      const envName = isSrc ? srcEnv : tarEnv;
+      if (!interfaceName || !envName)
+        return;
+      if (isSrc)
+        setSrcSchemasLoading(true);
+      else
+        setTarSchemasLoading(true);
+      setError(null);
+      try {
+        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
+          `broadway verify.bwK2VerifyFetchSchema interfaceName='${interfaceName}' envName='${envName}';`
+        )}`;
+        const res = await fetch(cmdUrl, { credentials: "include" });
+        if (!res.ok)
+          throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+        const schemas = extractSchemas2(raw);
+        if (isSrc)
+          setSrcSchemas(schemas);
+        else
+          setTarSchemas(schemas);
+      } catch (e) {
+        setError((e == null ? void 0 : e.message) || String(e));
+      } finally {
+        if (isSrc)
+          setSrcSchemasLoading(false);
+        else
+          setTarSchemasLoading(false);
+      }
+    },
+    [apiBasePath2, srcInterface, srcEnv, tarInterface, tarEnv, extractSchemas2]
+  );
+  react.exports.useEffect(() => {
+    fetchSchemas("src");
+  }, [fetchSchemas]);
+  react.exports.useEffect(() => {
+    if (!targetExpanded)
+      return;
+    fetchSchemas("tar");
+  }, [targetExpanded, fetchSchemas]);
+  react.exports.useEffect(() => {
+    setSrcExpandedSchemas(/* @__PURE__ */ new Set());
+    setSrcTablesBySchema({});
+    setSrcTablesLoading(/* @__PURE__ */ new Set());
+    setSrcTablesError({});
+  }, [srcInterface, srcEnv]);
+  react.exports.useEffect(() => {
+    setTarExpandedSchemas(/* @__PURE__ */ new Set());
+    setTarTablesBySchema({});
+    setTarTablesLoading(/* @__PURE__ */ new Set());
+    setTarTablesError({});
+  }, [tarInterface, tarEnv]);
+  const ensureTablesLoaded = react.exports.useCallback(
+    async (side, schemaName) => {
+      const isSrc = side === "src";
+      const interfaceName = isSrc ? srcInterface : tarInterface;
+      const envName = isSrc ? srcEnv : tarEnv;
+      if (!interfaceName || !envName || !schemaName)
+        return [];
+      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
+      if (Array.isArray(cache[schemaName]))
+        return cache[schemaName];
+      if (isSrc) {
+        setSrcTablesLoading((prev) => new Set(prev).add(schemaName));
+        setSrcTablesError((prev) => ({ ...prev, [schemaName]: null }));
+      } else {
+        setTarTablesLoading((prev) => new Set(prev).add(schemaName));
+        setTarTablesError((prev) => ({ ...prev, [schemaName]: null }));
+      }
+      try {
+        const cmdUrl = `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(
+          `broadway verify.bwK2VerifyFetchTablesFromSchemas interfaceName='${interfaceName}' envName='${envName}' schemaName='${schemaName}';`
+        )}`;
+        const res = await fetch(cmdUrl, { credentials: "include" });
+        if (!res.ok)
+          throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+        const tables = extractTables(raw);
+        if (isSrc)
+          setSrcTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
+        else
+          setTarTablesBySchema((prev) => ({ ...prev, [schemaName]: tables }));
+        return tables;
+      } catch (e) {
+        const msg = (e == null ? void 0 : e.message) || String(e);
+        if (isSrc)
+          setSrcTablesError((prev) => ({ ...prev, [schemaName]: msg }));
+        else
+          setTarTablesError((prev) => ({ ...prev, [schemaName]: msg }));
+        return [];
+      } finally {
+        if (isSrc) {
+          setSrcTablesLoading((prev) => {
+            const next = new Set(prev);
+            next.delete(schemaName);
+            return next;
+          });
+        } else {
+          setTarTablesLoading((prev) => {
+            const next = new Set(prev);
+            next.delete(schemaName);
+            return next;
+          });
+        }
+      }
+    },
+    [
+      apiBasePath2,
+      srcInterface,
+      srcEnv,
+      tarInterface,
+      tarEnv,
+      srcTablesBySchema,
+      tarTablesBySchema,
+      extractTables
+    ]
+  );
+  const toggleSchemaExpand = react.exports.useCallback(
+    (schema, side) => {
+      if (side === "src") {
+        setSrcExpandedSchemas((prev) => {
+          const next = new Set(prev);
+          const willExpand = !next.has(schema);
+          willExpand ? next.add(schema) : next.delete(schema);
+          if (willExpand)
+            ensureTablesLoaded("src", schema);
+          return next;
+        });
+      } else {
+        setTarExpandedSchemas((prev) => {
+          const next = new Set(prev);
+          const willExpand = !next.has(schema);
+          willExpand ? next.add(schema) : next.delete(schema);
+          if (willExpand)
+            ensureTablesLoaded("tar", schema);
+          return next;
+        });
+      }
+    },
+    [ensureTablesLoaded]
+  );
+  const getTables = react.exports.useCallback(
+    (side, schema) => {
+      const isSrc = side === "src";
+      const cache = isSrc ? srcTablesBySchema : tarTablesBySchema;
+      return Array.isArray(cache[schema]) ? cache[schema] : [];
+    },
+    [srcTablesBySchema, tarTablesBySchema]
+  );
+  const filteredSrcSchemas = react.exports.useMemo(() => {
+    if (!srcSearch.trim())
+      return srcSchemas;
+    const q2 = srcSearch.toLowerCase();
+    return (srcSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
+  }, [srcSchemas, srcSearch]);
+  const filteredTarSchemas = react.exports.useMemo(() => {
+    if (!tarSearch.trim())
+      return tarSchemas;
+    const q2 = tarSearch.toLowerCase();
+    return (tarSchemas || []).filter((s2) => String(s2).toLowerCase().includes(q2));
+  }, [tarSchemas, tarSearch]);
+  react.exports.useEffect(() => {
+    if (!srcSearch.trim())
+      return;
+    setSrcExpandedSchemas(new Set(filteredSrcSchemas));
+  }, [srcSearch, filteredSrcSchemas]);
+  react.exports.useEffect(() => {
+    if (!tarSearch.trim())
+      return;
+    setTarExpandedSchemas(new Set(filteredTarSchemas));
+  }, [tarSearch, filteredTarSchemas]);
+  return {
+    srcSchemas,
+    tarSchemas,
+    filteredSrcSchemas,
+    filteredTarSchemas,
+    srcSchemasLoading,
+    tarSchemasLoading,
+    srcExpandedSchemas,
+    tarExpandedSchemas,
+    toggleSchemaExpand,
+    ensureTablesLoaded,
+    getTables,
+    srcTablesBySchema,
+    tarTablesBySchema,
+    srcTablesLoading,
+    tarTablesLoading,
+    srcTablesError,
+    tarTablesError,
+    error
+  };
+}
+const pairKey = (sSchema, sTable, tSchema, tTable) => `${sSchema}.${sTable}\u2192${tSchema}.${tTable}`;
+function usePairBuilder({
+  targetExpanded,
+  srcInterface,
+  tarInterface,
+  ensureTablesLoaded,
+  getTables,
+  defaultBuckets
+}) {
+  const [pairs, setPairs] = react.exports.useState([]);
+  const [pendingSrc, setPendingSrc] = react.exports.useState(null);
+  const [selectedSrcTables, setSelectedSrcTables] = react.exports.useState(/* @__PURE__ */ new Set());
+  const [selectedTarTables, setSelectedTarTables] = react.exports.useState(/* @__PURE__ */ new Set());
+  const resolveBuckets = react.exports.useCallback(
+    (sSchema, sTable) => {
+      const srcTables = getTables("src", sSchema) || [];
+      const selected = srcTables.find((t3) => t3.table === sTable);
+      if (!selected)
+        return null;
+      return selected.bucket === "Auto" || selected.bucket === "0" || !selected.bucket ? null : String(selected.bucket);
+    },
+    [getTables]
+  );
+  react.exports.useEffect(() => {
+    setPairs([]);
+    setPendingSrc(null);
+    setSelectedSrcTables(/* @__PURE__ */ new Set());
+    setSelectedTarTables(/* @__PURE__ */ new Set());
+  }, [srcInterface, tarInterface]);
+  const addPair = react.exports.useCallback(
+    (sSchema, sTable, tSchema, tTable, resolvedTables) => {
+      const key = pairKey(sSchema, sTable, tSchema, tTable);
+      setPairs((prev) => {
+        const withoutSameKey = prev.filter(
+          (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
+        );
+        const tablesToSearch = resolvedTables != null ? resolvedTables : getTables("src", sSchema);
+        const selected = (tablesToSearch || []).find((t3) => t3.table === sTable);
+        const precomputed = selected && selected.bucket !== "Auto" && selected.bucket !== "0" && selected.bucket ? String(selected.bucket) : null;
+        return [
+          ...withoutSameKey,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            Source_Interface: srcInterface,
+            Source_Schema: sSchema,
+            Source_Table: sTable,
+            Target_Interface: targetExpanded ? tarInterface : srcInterface,
+            Target_Schema: tSchema,
+            Target_Table: tTable,
+            Buckets: precomputed != null ? precomputed : defaultBuckets || "Auto",
+            originalBuckets: precomputed != null ? precomputed : "",
+            _precomputed: !!precomputed
+          }
+        ];
+      });
+    },
+    [srcInterface, tarInterface, targetExpanded, getTables, defaultBuckets]
+  );
+  const removePair = react.exports.useCallback((id2) => {
+    setPairs((prev) => prev.filter((p2) => p2.id !== id2));
+  }, []);
+  const removeSourceOnlyPair = react.exports.useCallback((schema, table) => {
+    const key = pairKey(schema, table, schema, table);
+    setPairs(
+      (prev) => prev.filter(
+        (p2) => pairKey(p2.Source_Schema, p2.Source_Table, p2.Target_Schema, p2.Target_Table) !== key
+      )
+    );
+  }, []);
+  const toggleSourceOnlyTable = react.exports.useCallback(
+    (schema, table, nextChecked, resolvedTables) => {
+      const key = `${schema}.${table}`;
+      setSelectedSrcTables((prev) => {
+        const next = new Set(prev);
+        if (nextChecked)
+          next.add(key);
+        else
+          next.delete(key);
+        return next;
+      });
+      if (nextChecked)
+        addPair(schema, table, schema, table, resolvedTables);
+      else
+        removeSourceOnlyPair(schema, table);
+    },
+    [addPair, removeSourceOnlyPair]
+  );
+  const handleTableClick = react.exports.useCallback(
+    (schema, table, side) => {
+      if (!targetExpanded) {
+        if (side !== "src")
+          return;
+        const key = `${schema}.${table}`;
+        toggleSourceOnlyTable(schema, table, !selectedSrcTables.has(key));
+        return;
+      }
+      if (side === "src") {
+        setPendingSrc({ schema, table });
+        return;
+      }
+      if (pendingSrc) {
+        addPair(pendingSrc.schema, pendingSrc.table, schema, table);
+        setPendingSrc(null);
+      }
+    },
+    [targetExpanded, selectedSrcTables, toggleSourceOnlyTable, pendingSrc, addPair]
+  );
+  const handleSchemaCheckbox = react.exports.useCallback(
+    async (schema, side, nextChecked) => {
+      if (targetExpanded || side !== "src")
+        return;
+      const tables = await ensureTablesLoaded("src", schema);
+      (tables || []).forEach(
+        (t3) => toggleSourceOnlyTable(schema, t3.table, nextChecked, tables)
+      );
+    },
+    [targetExpanded, ensureTablesLoaded, toggleSourceOnlyTable]
+  );
+  const resetOnToggleTarget = react.exports.useCallback(() => {
+    setPendingSrc(null);
+    setSelectedTarTables(/* @__PURE__ */ new Set());
+  }, []);
+  const updatePairBuckets = react.exports.useCallback((id2, value) => {
+    setPairs(
+      (prev) => prev.map(
+        (p2) => p2.id === id2 ? { ...p2, Buckets: value === "" ? "Auto" : String(value), _precomputed: false } : p2
+      )
+    );
+  }, []);
+  const canConfirm = react.exports.useMemo(() => pairs.length > 0, [pairs.length]);
+  return {
+    pairs,
+    pendingSrc,
+    selectedSrcTables,
+    selectedTarTables,
+    addPair,
+    removePair,
+    toggleSourceOnlyTable,
+    handleTableClick,
+    handleSchemaCheckbox,
+    resetOnToggleTarget,
+    updatePairBuckets,
+    canConfirm
+  };
+}
+function BuildMapModal({
+  srcInterface,
+  srcEnv,
+  tarInterface,
+  tarEnv,
+  onConfirm,
+  onClose
+}) {
+  const apiBasePath2 = window.__API_BASE_PATH__ || "";
+  const [srcSearch, setSrcSearch] = react.exports.useState("");
+  const [tarSearch, setTarSearch] = react.exports.useState("");
+  const [advancedOpen, setAdvancedOpen] = react.exports.useState(false);
+  const targetExpanded = advancedOpen;
+  const [defaultBuckets, setDefaultBuckets] = react.exports.useState("10");
+  react.exports.useEffect(() => {
+    let cancelled = false;
+    const loadDefaultPartitionCount = async () => {
+      var _a2, _b2;
+      try {
+        const data2 = await runFabricCommand("broadway verify.bwK2VerifyFetchAdvancedSettings");
+        const rawValue = (_b2 = (_a2 = data2 == null ? void 0 : data2[0]) == null ? void 0 : _a2.map) == null ? void 0 : _b2.DEFAULT_PARTITION_COUNT;
+        const normalized = String(rawValue != null ? rawValue : "10") === "0" ? "Auto" : String(rawValue != null ? rawValue : "10");
+        if (!cancelled) {
+          setDefaultBuckets(normalized);
+        }
+      } catch (err2) {
+        console.error("Failed to load DEFAULT_PARTITION_COUNT", err2);
+      }
+    };
+    loadDefaultPartitionCount();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const tree = useSchemaTree({
+    apiBasePath: apiBasePath2,
+    srcInterface,
+    srcEnv,
+    tarInterface,
+    tarEnv,
+    targetExpanded,
+    srcSearch,
+    tarSearch
+  });
+  const pair = usePairBuilder({
+    targetExpanded,
+    srcInterface,
+    tarInterface,
+    ensureTablesLoaded: tree.ensureTablesLoaded,
+    getTables: tree.getTables,
+    defaultBuckets
+  });
+  const handleToggleAdvanced = react.exports.useCallback(() => {
+    pair.resetOnToggleTarget();
+    setAdvancedOpen((v2) => !v2);
+  }, [pair]);
+  const handleConfirm = react.exports.useCallback(() => {
+    onConfirm(pair.pairs.map(({
+      id: id2,
+      ...rest
+    }) => rest));
+  }, [pair.pairs, onConfirm]);
+  const renderTree = (schemas, side) => {
+    const expandedSchemas = side === "src" ? tree.srcExpandedSchemas : tree.tarExpandedSchemas;
+    const tablesLoading = side === "src" ? tree.srcTablesLoading : tree.tarTablesLoading;
+    const tablesError = side === "src" ? tree.srcTablesError : tree.tarTablesError;
+    return (Array.isArray(schemas) ? schemas : []).map((schema) => {
+      const isExpanded = expandedSchemas.has(schema);
+      const tables = tree.getTables(side, schema);
+      const tableKeys = tables.map((t3) => `${schema}.${t3.table}`);
+      const selectedTables = side === "src" ? pair.selectedSrcTables : pair.selectedTarTables;
+      const allTablesSelected = !targetExpanded && side === "src" && tableKeys.length > 0 && tableKeys.every((k3) => selectedTables.has(k3));
+      const someTablesSelected = !targetExpanded && side === "src" && tableKeys.some((k3) => selectedTables.has(k3)) && !allTablesSelected;
+      return /* @__PURE__ */ jsxs("div", {
+        className: "bm-schemaBlock",
+        children: [/* @__PURE__ */ jsxs("div", {
+          className: "bm-schemaRow",
+          children: [/* @__PURE__ */ jsx("input", {
+            type: "checkbox",
+            checked: !targetExpanded && side === "src" ? allTablesSelected : false,
+            ref: (input) => {
+              if (input) {
+                input.indeterminate = !targetExpanded && side === "src" ? someTablesSelected : false;
+              }
+            },
+            disabled: targetExpanded || side !== "src",
+            onChange: (e) => {
+              if (targetExpanded || side !== "src")
+                return;
+              pair.handleSchemaCheckbox(schema, "src", e.target.checked);
+            },
+            onClick: (e) => e.stopPropagation(),
+            className: "bm-checkbox",
+            style: {
+              visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
+            },
+            "aria-hidden": targetExpanded || side !== "src"
+          }), /* @__PURE__ */ jsxs("div", {
+            className: "bm-schemaToggle",
+            onClick: () => tree.toggleSchemaExpand(schema, side),
+            title: schema,
+            children: [/* @__PURE__ */ jsx("span", {
+              className: "bm-caret",
+              style: {
+                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)"
+              },
+              children: "\u25B6"
+            }), /* @__PURE__ */ jsx("img", {
+              src: folderIcon,
+              alt: "folder",
+              className: "bm-iconFolder"
+            }), /* @__PURE__ */ jsx("span", {
+              className: "bm-schemaLabel",
+              children: schema
+            })]
+          })]
+        }), isExpanded && /* @__PURE__ */ jsx("div", {
+          style: {
+            paddingLeft: 28
+          },
+          children: tablesLoading.has(schema) ? /* @__PURE__ */ jsx("div", {
+            className: "bm-centered",
+            style: {
+              padding: "6px 0"
+            },
+            children: "Loading tables\u2026"
+          }) : (tablesError == null ? void 0 : tablesError[schema]) ? /* @__PURE__ */ jsx("div", {
+            className: "bm-centered bm-error",
+            style: {
+              padding: "6px 0"
+            },
+            children: tablesError[schema]
+          }) : tables.length === 0 ? /* @__PURE__ */ jsx("div", {
+            className: "bm-emptySearch",
+            style: {
+              padding: "6px 0"
+            },
+            children: "No tables found."
+          }) : tables.map((tableObj) => {
+            var _a2, _b2;
+            const tableName = tableObj.table;
+            const key = `${schema}.${tableName}`;
+            const isSelectedSourceOnly = !targetExpanded && side === "src" && pair.selectedSrcTables.has(key);
+            const isPending = targetExpanded && side === "src" && ((_a2 = pair.pendingSrc) == null ? void 0 : _a2.schema) === schema && ((_b2 = pair.pendingSrc) == null ? void 0 : _b2.table) === tableName;
+            return /* @__PURE__ */ jsxs("div", {
+              className: `bm-tableRow ${isSelectedSourceOnly ? "is-selected" : ""} ${isPending ? "is-pending" : ""}`,
+              onClick: () => pair.handleTableClick(schema, tableName, side),
+              title: tableName,
+              children: [/* @__PURE__ */ jsx("input", {
+                type: "checkbox",
+                checked: isSelectedSourceOnly,
+                onChange: (e) => {
+                  if (targetExpanded || side !== "src")
+                    return;
+                  pair.toggleSourceOnlyTable(schema, tableName, e.target.checked);
+                },
+                onClick: (e) => e.stopPropagation(),
+                className: "bm-checkbox",
+                style: {
+                  visibility: targetExpanded || side !== "src" ? "hidden" : "visible"
+                },
+                "aria-hidden": targetExpanded || side !== "src"
+              }), /* @__PURE__ */ jsx("img", {
+                src: tableIcon,
+                alt: "table",
+                className: "bm-iconTable"
+              }), /* @__PURE__ */ jsx("span", {
+                className: "bm-tableLabel",
+                children: tableName
+              })]
+            }, tableName);
+          })
+        })]
+      }, schema);
+    });
+  };
+  const renderDbTreeBox = (side) => {
+    const isSrc = side === "src";
+    const schemas = isSrc ? tree.filteredSrcSchemas : tree.filteredTarSchemas;
+    const search = isSrc ? srcSearch : tarSearch;
+    const setSearch = isSrc ? setSrcSearch : setTarSearch;
+    const dbName = isSrc ? srcInterface : tarInterface;
+    const showLocalLoading = !isSrc && targetExpanded && tree.tarSchemasLoading && (!schemas || schemas.length === 0);
+    return /* @__PURE__ */ jsxs("div", {
+      className: "bm-dbBox",
+      children: [/* @__PURE__ */ jsx("input", {
+        type: "text",
+        placeholder: "Type to filter schemas...",
+        value: search,
+        onChange: (e) => setSearch(e.target.value),
+        className: "bm-filterInput"
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "bm-dbRow",
+        children: [/* @__PURE__ */ jsx("img", {
+          src: databaseIcon,
+          alt: "db",
+          className: "bm-iconDb"
+        }), /* @__PURE__ */ jsx("span", {
+          className: "bm-dbLabel",
+          children: dbName
+        })]
+      }), showLocalLoading ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered",
+        children: "Loading schemas\u2026"
+      }) : schemas.length === 0 && search.trim() ? /* @__PURE__ */ jsxs("div", {
+        className: "bm-emptySearch",
+        children: ['No results for "', search, '"']
+      }) : /* @__PURE__ */ jsx("div", {
+        className: "bm-treeBody bm-scroll",
+        children: renderTree(schemas, side)
+      })]
+    });
+  };
+  const handlePairBucketsChange = react.exports.useCallback((pairId, value) => {
+    if (typeof pair.updatePairBuckets === "function") {
+      pair.updatePairBuckets(pairId, value);
+    }
+  }, [pair]);
+  const showFullLoading = tree.srcSchemasLoading && (!tree.srcSchemas || tree.srcSchemas.length === 0);
+  return /* @__PURE__ */ jsx("div", {
+    className: "bm-overlay",
+    children: /* @__PURE__ */ jsxs("div", {
+      className: "bm-modal",
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "bm-header",
+        children: [/* @__PURE__ */ jsx("div", {
+          className: "bm-headerLeft",
+          children: /* @__PURE__ */ jsx("h2", {
+            className: "bm-title",
+            children: "Add tables"
+          })
+        }), /* @__PURE__ */ jsxs("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginLeft: "auto",
+            marginRight: 12
+          },
+          title: "Applies to newly added pairs",
+          children: [/* @__PURE__ */ jsx("span", {
+            style: {
+              fontSize: 13,
+              whiteSpace: "nowrap"
+            },
+            children: "Default Partitions"
+          }), /* @__PURE__ */ jsx(ComboCell, {
+            settingKey: "DEFAULT_PARTITION_COUNT",
+            externalValue: defaultBuckets,
+            customSeedValue: defaultBuckets !== "Auto" ? defaultBuckets : "",
+            onChange: (_2, value) => {
+              if (value === "")
+                return;
+              setDefaultBuckets(value);
+            }
+          })]
+        }), /* @__PURE__ */ jsx("button", {
+          type: "button",
+          onClick: handleToggleAdvanced,
+          className: `bm-toggleModeBtn ${advancedOpen ? "is-selected" : ""}`,
+          "aria-pressed": advancedOpen,
+          title: advancedOpen ? "Pairing mode (Source + Target)" : "Source-only mode",
+          style: {
+            background: advancedOpen ? "#1483F3" : "#ffffff",
+            borderColor: advancedOpen ? "#1483F3" : "#000000",
+            color: advancedOpen ? "#ffffff" : "#000000"
+          },
+          children: "Advanced Settings"
+        })]
+      }), showFullLoading ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered",
+        children: "Loading schemas\u2026"
+      }) : tree.error ? /* @__PURE__ */ jsx("div", {
+        className: "bm-centered bm-error",
+        children: tree.error
+      }) : /* @__PURE__ */ jsxs("div", {
+        className: "bm-columns",
+        children: [/* @__PURE__ */ jsx("div", {
+          className: "bm-column",
+          children: renderDbTreeBox("src")
+        }), targetExpanded && /* @__PURE__ */ jsxs(Fragment, {
+          children: [/* @__PURE__ */ jsx("div", {
+            className: "bm-gap"
+          }), /* @__PURE__ */ jsx("div", {
+            className: "bm-column",
+            children: renderDbTreeBox("tar")
+          })]
+        }), /* @__PURE__ */ jsx("div", {
+          className: "bm-divider"
+        }), /* @__PURE__ */ jsx("div", {
+          className: "bm-pairsColumn",
+          children: pair.pairs.length === 0 ? /* @__PURE__ */ jsx("div", {
+            className: "bm-emptyPairs",
+            children: targetExpanded ? `Pick one source table, then one target table to add a pair (default partitions: ${defaultBuckets})` : `Select tables (or schema) to add pairs (default partitions: ${defaultBuckets})`
+          }) : /* @__PURE__ */ jsxs("div", {
+            className: "bm-pairsWrap",
+            children: [/* @__PURE__ */ jsxs("div", {
+              style: {
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 8px",
+                fontSize: 12,
+                color: "#6b7280",
+                borderBottom: "1px solid #e5e7eb",
+                marginBottom: 6
+              },
+              children: [/* @__PURE__ */ jsx("span", {
+                style: {
+                  flex: 1,
+                  minWidth: 0
+                },
+                children: "Source"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 20,
+                  textAlign: "center"
+                }
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  flex: 1,
+                  minWidth: 0
+                },
+                children: "Target"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 220,
+                  textAlign: "right"
+                },
+                children: "Partitions"
+              }), /* @__PURE__ */ jsx("span", {
+                style: {
+                  width: 34
+                }
+              })]
+            }), pair.pairs.map((p2) => {
+              var _a2;
+              const displayBuckets = !p2.Buckets || p2.Buckets === "0" ? "Auto" : p2.Buckets;
+              const showPill = p2.originalBuckets && p2.originalBuckets !== "0" && String((_a2 = p2.Buckets) != null ? _a2 : "Auto") === String(p2.originalBuckets);
+              return /* @__PURE__ */ jsxs("div", {
+                className: "bm-pairRow bm-pairRowDeletable",
+                children: [/* @__PURE__ */ jsxs("span", {
+                  className: "bm-pairSide",
+                  style: {
+                    flex: 1,
+                    minWidth: 0
+                  },
+                  children: [p2.Source_Schema, ".", p2.Source_Table]
+                }), /* @__PURE__ */ jsxs("span", {
+                  className: "bm-pairSide",
+                  style: {
+                    flex: 1,
+                    minWidth: 0
+                  },
+                  children: [p2.Target_Schema, ".", p2.Target_Table]
+                }), /* @__PURE__ */ jsxs("span", {
+                  style: {
+                    width: 220,
+                    display: "inline-flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    gap: 8
+                  },
+                  children: [showPill && /* @__PURE__ */ jsx("span", {
+                    style: {
+                      padding: "2px 8px",
+                      borderRadius: "6px",
+                      backgroundColor: "#FFF4E5",
+                      color: "#B45309",
+                      border: "1px solid #FAD9A6",
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      whiteSpace: "nowrap",
+                      lineHeight: 1.4,
+                      display: "inline-block"
+                    },
+                    children: "Auto Calculated"
+                  }), /* @__PURE__ */ jsx(ComboCell, {
+                    settingKey: p2.id,
+                    externalValue: displayBuckets,
+                    customSeedValue: p2.originalBuckets && p2.originalBuckets !== "0" ? p2.originalBuckets : defaultBuckets !== "Auto" ? defaultBuckets : "",
+                    onChange: (_2, value) => handlePairBucketsChange(p2.id, value)
+                  })]
+                }), /* @__PURE__ */ jsx("button", {
+                  type: "button",
+                  className: "bm-pairDelete",
+                  onClick: () => {
+                    pair.removePair(p2.id);
+                  },
+                  title: "Remove",
+                  style: {
+                    width: 34
+                  },
+                  children: /* @__PURE__ */ jsx("img", {
+                    src: deleteIcon,
+                    alt: "delete",
+                    className: "bm-deleteIcon"
+                  })
+                })]
+              }, p2.id);
+            })]
+          })
+        })]
+      }), /* @__PURE__ */ jsxs("div", {
+        className: "bm-footer",
+        children: [/* @__PURE__ */ jsxs("button", {
+          className: `btn btnPrimary${!pair.canConfirm ? " disabled" : ""}`,
+          onClick: handleConfirm,
+          disabled: !pair.canConfirm,
+          children: ["Confirm (", pair.pairs.length, " ", pair.pairs.length === 1 ? "pair" : "pairs", ")"]
+        }), /* @__PURE__ */ jsx("button", {
+          className: "btn btnCancel",
+          onClick: onClose,
+          children: "Cancel"
+        })]
+      })]
+    })
+  });
+}
+function TableMappingMultiSelect({
+  params,
+  mtableData,
+  mtableLoading,
+  mtableError,
+  handleInputChange,
+  className = "group2",
+  title = "Tables"
+}) {
+  const srcIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_SRC) || "").trim();
+  const tarIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_TAR) || "").trim();
+  const srcEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_SRC) || "").trim();
+  const tarEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_TAR) || "").trim();
+  const currentList = react.exports.useMemo(() => {
+    const raw = Array.isArray(params == null ? void 0 : params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST : [];
+    return raw.filter((p2) => (p2 == null ? void 0 : p2.src) && (p2 == null ? void 0 : p2.tar)).map((p2) => {
+      var _a2;
+      return {
+        src: p2.src,
+        tar: p2.tar,
+        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString()
+      };
+    });
+  }, [params == null ? void 0 : params.K2VERIFY_TABLE_LIST]);
+  const haveFilters = !!(srcIF && tarIF);
+  const canBuildMap = !!(srcIF && tarIF && srcEnv && tarEnv);
+  const mrows = Array.isArray(mtableData) ? mtableData : [];
+  const [buildMapOpen, setBuildMapOpen] = react.exports.useState(false);
+  const [extraRows, setExtraRows] = react.exports.useState([]);
+  const mkKey = (s2, t3) => `${s2}__\u2192__${t3}`;
+  const listHas = react.exports.useCallback((list, pair) => list.some((p2) => p2.src === pair.src && p2.tar === pair.tar), []);
+  const updateList = react.exports.useCallback((nextList) => {
+    handleInputChange({
+      target: {
+        name: "K2VERIFY_TABLE_LIST",
+        value: nextList
+      }
+    });
+  }, [handleInputChange]);
+  const tablePairs = react.exports.useMemo(() => {
+    if (!haveFilters)
+      return [];
+    const fromMtable = mrows.filter((r2) => r2.Source_Interface === srcIF && r2.Target_Interface === tarIF).map((r2) => {
+      var _a2;
+      const src = `${r2.Source_Schema}.${r2.Source_Table_Name}`;
+      const tar = `${r2.Target_Schema}.${r2.Target_Table_Name}`;
+      return {
+        src,
+        tar,
+        buckets: ((_a2 = r2.Buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(src, tar)
+      };
+    });
+    const fromExtra = extraRows.map((r2) => {
+      var _a2;
+      return {
+        src: r2.src,
+        tar: r2.tar,
+        buckets: ((_a2 = r2.buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(r2.src, r2.tar)
+      };
+    });
+    const fromCurrent = currentList.map((p2) => {
+      var _a2;
+      return {
+        src: p2.src,
+        tar: p2.tar,
+        buckets: ((_a2 = p2.buckets) != null ? _a2 : "10").toString(),
+        key: mkKey(p2.src, p2.tar)
+      };
+    });
+    const byKey = /* @__PURE__ */ new Map();
+    fromMtable.forEach((p2) => byKey.set(p2.key, p2));
+    fromExtra.forEach((p2) => byKey.set(p2.key, p2));
+    fromCurrent.forEach((p2) => byKey.set(p2.key, p2));
+    return Array.from(byKey.values());
+  }, [mrows, srcIF, tarIF, haveFilters, extraRows, currentList]);
+  const [showSelectedOnly, setShowSelectedOnly] = react.exports.useState(false);
+  const [filterOpen, setFilterOpen] = react.exports.useState({
+    src: false,
+    tar: false
+  });
+  const [filters, setFilters] = react.exports.useState({
+    src: "",
+    tar: ""
+  });
+  const toggleFilter = react.exports.useCallback((col) => setFilterOpen((p2) => ({
+    ...p2,
+    [col]: !p2[col]
+  })), []);
+  const setFilterValue = react.exports.useCallback((col, val) => setFilters((p2) => ({
+    ...p2,
+    [col]: val
+  })), []);
+  const getBuckets = react.exports.useCallback((pair, fallback = "10") => {
+    var _a2, _b2;
+    const found = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    return ((_b2 = (_a2 = found == null ? void 0 : found.buckets) != null ? _a2 : fallback) != null ? _b2 : "10").toString();
+  }, [currentList]);
+  const updateBucketsIfSelected = react.exports.useCallback((pair, val) => {
+    if (val === "")
+      return;
+    const nextBuckets = val === "Auto" ? "0" : (val != null ? val : "").toString().replace(/[^\d]/g, "");
+    if (!nextBuckets && val !== "Auto")
+      return;
+    const idx = currentList.findIndex((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    if (idx < 0)
+      return;
+    const next = [...currentList];
+    next[idx] = {
+      ...next[idx],
+      buckets: nextBuckets
+    };
+    updateList(next);
+  }, [currentList, updateList]);
+  const handlePartitionChange = react.exports.useCallback((pair, value) => {
+    updateBucketsIfSelected(pair, value);
+  }, [updateBucketsIfSelected]);
+  const handleBuildMapConfirm = react.exports.useCallback((tableList) => {
+    const newExtras = [];
+    const merged = [...currentList];
+    const upsertPair = (list, pairWithBuckets) => {
+      const idx = list.findIndex((p2) => p2.src === pairWithBuckets.src && p2.tar === pairWithBuckets.tar);
+      if (idx >= 0) {
+        list[idx] = pairWithBuckets;
+      } else {
+        list.push(pairWithBuckets);
+      }
+    };
+    tableList.forEach((r2) => {
+      var _a2;
+      const raw = ((_a2 = r2.Buckets) != null ? _a2 : "10").toString();
+      const bucketsFromModal = raw === "Auto" ? "0" : raw;
+      const src = `${r2.Source_Schema}.${r2.Source_Table}`;
+      if (r2.Target_Interface && r2.Target_Schema && r2.Target_Table) {
+        const tar = `${r2.Target_Schema}.${r2.Target_Table}`;
+        const pairWithBuckets = {
+          src,
+          tar,
+          buckets: bucketsFromModal
+        };
+        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, tar));
+        if (!alreadyInTable)
+          newExtras.push(pairWithBuckets);
+        upsertPair(merged, pairWithBuckets);
+      } else {
+        const pairWithBuckets = {
+          src,
+          tar: src,
+          buckets: bucketsFromModal
+        };
+        const alreadyInTable = tablePairs.some((p2) => p2.key === mkKey(src, src));
+        if (!alreadyInTable)
+          newExtras.push(pairWithBuckets);
+        upsertPair(merged, pairWithBuckets);
+      }
+    });
+    if (newExtras.length)
+      setExtraRows((prev) => [...prev, ...newExtras]);
+    updateList(merged);
+    setBuildMapOpen(false);
+  }, [currentList, tablePairs, updateList]);
+  const togglePair = react.exports.useCallback((pair) => {
+    const exists = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
+    if (exists) {
+      updateList(currentList.filter((p2) => !(p2.src === pair.src && p2.tar === pair.tar)));
+    } else {
+      updateList([...currentList, {
+        src: pair.src,
+        tar: pair.tar,
+        buckets: getBuckets(pair, pair.buckets)
+      }]);
+    }
+  }, [currentList, updateList, getBuckets]);
+  const selectAll = react.exports.useCallback(() => {
+    updateList(tablePairs.map((p2) => ({
+      src: p2.src,
+      tar: p2.tar,
+      buckets: getBuckets(p2, p2.buckets)
+    })));
+  }, [tablePairs, updateList, getBuckets]);
+  const clearAll = react.exports.useCallback(() => updateList([]), [updateList]);
+  const filteredPairs = react.exports.useMemo(() => {
+    const srcNeedle = filters.src.trim().toLowerCase();
+    const tarNeedle = filters.tar.trim().toLowerCase();
+    return tablePairs.filter((p2) => {
+      var _a2, _b2;
+      const srcOk = srcNeedle ? (_a2 = p2.src) == null ? void 0 : _a2.toLowerCase().includes(srcNeedle) : true;
+      const tarOk = tarNeedle ? (_b2 = p2.tar) == null ? void 0 : _b2.toLowerCase().includes(tarNeedle) : true;
+      return srcOk && tarOk;
+    });
+  }, [tablePairs, filters.src, filters.tar]);
+  const visiblePairs = react.exports.useMemo(() => {
+    if (!showSelectedOnly)
+      return filteredPairs;
+    const selectedKeys = new Set(currentList.map((p2) => mkKey(p2.src, p2.tar)));
+    return filteredPairs.filter((p2) => selectedKeys.has(p2.key));
+  }, [showSelectedOnly, filteredPairs, currentList]);
+  const checkedCount = currentList.length;
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [buildMapOpen && /* @__PURE__ */ jsx(BuildMapModal, {
+      srcInterface: srcIF,
+      srcEnv,
+      tarInterface: tarIF,
+      tarEnv,
+      onConfirm: handleBuildMapConfirm,
+      onClose: () => setBuildMapOpen(false)
+    }), /* @__PURE__ */ jsxs("div", {
+      className,
+      children: [/* @__PURE__ */ jsxs("div", {
+        className: "label",
+        style: {
+          display: "flex",
+          alignItems: "center"
+        },
+        children: [/* @__PURE__ */ jsxs("span", {
+          children: [title, /* @__PURE__ */ jsx("span", {
+            className: "required",
+            children: "*"
+          })]
+        }), /* @__PURE__ */ jsx("button", {
+          type: "button",
+          disabled: !canBuildMap,
+          onClick: () => setBuildMapOpen(true),
+          title: !canBuildMap ? "Select source & target interfaces and environments first" : "",
+          style: {
+            background: "none",
+            border: "none",
+            padding: 0,
+            color: canBuildMap ? "#1a56db" : "#aaa",
+            cursor: canBuildMap ? "pointer" : "not-allowed",
+            fontSize: "inherit",
+            textDecoration: canBuildMap ? "underline" : "none",
+            marginLeft: "auto"
+          },
+          children: "+ Add tables"
+        })]
+      }), !haveFilters ? /* @__PURE__ */ jsx("div", {
+        className: "miniTableBox",
+        children: /* @__PURE__ */ jsx("div", {
+          className: "miniTableWrap miniTableWrapPlaceholder",
+          children: /* @__PURE__ */ jsx("div", {
+            style: {
+              padding: "10px 8px",
+              color: "#6b7280",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              textAlign: "center"
+            },
+            children: "Select Source & Target interfaces to load table pairs."
+          })
+        })
+      }) : mtableLoading ? /* @__PURE__ */ jsx("div", {
+        className: "note",
+        children: "Loading table mappings\u2026"
+      }) : mtableError ? /* @__PURE__ */ jsx("div", {
+        className: "error",
+        children: "Error loading table mappings"
+      }) : tablePairs.length === 0 ? /* @__PURE__ */ jsx("div", {
+        className: "miniTableBox",
+        children: /* @__PURE__ */ jsx("div", {
+          style: {
+            padding: "10px 8px",
+            color: "#6b7280"
+          },
+          children: "No table pairs found for the selected interfaces."
+        })
+      }) : /* @__PURE__ */ jsxs("div", {
+        className: "miniTableBox",
+        children: [/* @__PURE__ */ jsxs("div", {
+          className: "miniTableActions",
+          children: [/* @__PURE__ */ jsx("button", {
+            type: "button",
+            className: "btn btnAll",
+            onClick: selectAll,
+            children: "Select all"
+          }), /* @__PURE__ */ jsx("button", {
+            type: "button",
+            className: "btn btnClearAll",
+            onClick: clearAll,
+            children: "Clear all"
+          }), /* @__PURE__ */ jsxs("label", {
+            style: {
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              marginLeft: 8,
+              cursor: "pointer",
+              userSelect: "none",
+              fontSize: "0.9rem",
+              color: "#374151",
+              whiteSpace: "nowrap"
+            },
+            title: "Show only selected table pairs",
+            children: [/* @__PURE__ */ jsx("input", {
+              type: "checkbox",
+              checked: showSelectedOnly,
+              onChange: () => setShowSelectedOnly((v2) => !v2)
+            }), "Show selected only"]
+          }), /* @__PURE__ */ jsxs("span", {
+            style: {
+              marginLeft: "auto",
+              fontSize: "0.9rem"
+            },
+            children: ["Selected: ", /* @__PURE__ */ jsx("strong", {
+              children: checkedCount
+            }), " / ", tablePairs.length]
+          })]
+        }), /* @__PURE__ */ jsx("div", {
+          className: "miniTableWrap",
+          children: /* @__PURE__ */ jsxs("table", {
+            className: "miniTable",
+            children: [/* @__PURE__ */ jsx("thead", {
+              children: /* @__PURE__ */ jsxs("tr", {
+                children: [/* @__PURE__ */ jsx("th", {
+                  style: {
+                    width: 36
+                  }
+                }), /* @__PURE__ */ jsxs("th", {
+                  children: [/* @__PURE__ */ jsxs("div", {
+                    style: {
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 6
+                    },
+                    children: [/* @__PURE__ */ jsx("span", {
+                      style: {
+                        whiteSpace: "nowrap"
+                      },
+                      children: "Source table"
+                    }), /* @__PURE__ */ jsx("img", {
+                      src: filterOpen.src ? filterOn : filterOff,
+                      alt: filterOpen.src ? "Filter On" : "Filter Off",
+                      title: "Filter Source",
+                      className: "icons",
+                      style: {
+                        cursor: "pointer",
+                        width: 16,
+                        height: 16
+                      },
+                      onClick: () => toggleFilter("src")
+                    })]
+                  }), filterOpen.src && /* @__PURE__ */ jsx("div", {
+                    style: {
+                      marginTop: 6
+                    },
+                    children: /* @__PURE__ */ jsx("input", {
+                      className: "k2-table-input",
+                      placeholder: "Search source\u2026",
+                      value: filters.src,
+                      onChange: (e) => setFilterValue("src", e.target.value),
+                      autoFocus: true
+                    })
+                  })]
+                }), /* @__PURE__ */ jsxs("th", {
+                  children: [/* @__PURE__ */ jsxs("div", {
+                    style: {
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 6
+                    },
+                    children: [/* @__PURE__ */ jsx("span", {
+                      style: {
+                        whiteSpace: "nowrap"
+                      },
+                      children: "Target table"
+                    }), /* @__PURE__ */ jsx("img", {
+                      src: filterOpen.tar ? filterOn : filterOff,
+                      alt: filterOpen.tar ? "Filter On" : "Filter Off",
+                      title: "Filter Target",
+                      className: "icons",
+                      style: {
+                        cursor: "pointer",
+                        width: 16,
+                        height: 16
+                      },
+                      onClick: () => toggleFilter("tar")
+                    })]
+                  }), filterOpen.tar && /* @__PURE__ */ jsx("div", {
+                    style: {
+                      marginTop: 6
+                    },
+                    children: /* @__PURE__ */ jsx("input", {
+                      className: "k2-table-input",
+                      placeholder: "Search target\u2026",
+                      value: filters.tar,
+                      onChange: (e) => setFilterValue("tar", e.target.value)
+                    })
+                  })]
+                }), /* @__PURE__ */ jsx("th", {
+                  style: {
+                    whiteSpace: "nowrap"
+                  },
+                  children: "Partitions"
+                })]
+              })
+            }), /* @__PURE__ */ jsxs("tbody", {
+              children: [visiblePairs.map((p2) => {
+                const checked = listHas(currentList, p2);
+                const bucketsVal = getBuckets(p2, p2.buckets);
+                return /* @__PURE__ */ jsxs("tr", {
+                  children: [/* @__PURE__ */ jsx("td", {
+                    children: /* @__PURE__ */ jsx("input", {
+                      type: "checkbox",
+                      checked,
+                      onChange: () => togglePair(p2)
+                    })
+                  }), /* @__PURE__ */ jsx("td", {
+                    children: p2.src
+                  }), /* @__PURE__ */ jsx("td", {
+                    children: p2.tar
+                  }), /* @__PURE__ */ jsx("td", {
+                    title: checked ? "Edit partitions" : "Select the row to edit partitions",
+                    children: checked ? /* @__PURE__ */ jsx(ComboCell, {
+                      settingKey: p2.key,
+                      externalValue: bucketsVal === "0" ? "Auto" : bucketsVal,
+                      customSeedValue: p2.buckets && p2.buckets !== "0" ? p2.buckets : "",
+                      onChange: (_2, value) => handlePartitionChange(p2, value)
+                    }) : /* @__PURE__ */ jsx("span", {
+                      children: bucketsVal === "0" ? "Auto" : bucketsVal
+                    })
+                  })]
+                }, p2.key);
+              }), visiblePairs.length === 0 && /* @__PURE__ */ jsx("tr", {
+                children: /* @__PURE__ */ jsx("td", {
+                  colSpan: 4,
+                  style: {
+                    padding: 12,
+                    color: "#6b7280"
+                  },
+                  children: showSelectedOnly ? "No selected pairs to display." : "No pairs match your filter(s)."
+                })
+              })]
+            })]
+          })
+        })]
+      })]
+    })]
+  });
+}
 function K2VerifyGeneralTab({
   params,
   mtableData,
@@ -21063,6 +21269,7 @@ function K2VerifyGeneralTab({
   handleInputChange,
   tablesRequiredRef,
   tablesChosenCount,
+  tablePickerVisible,
   selectedSrc,
   selectedTar,
   selectedEnvSrc,
@@ -21255,21 +21462,6 @@ function K2VerifyGeneralTab({
             }, `tar-${iface}`))]
           })]
         })]
-      }), /* @__PURE__ */ jsx("input", {
-        ref: tablesRequiredRef,
-        name: "__required_table_selection",
-        value: tablesChosenCount > 0 ? "has-tables" : "",
-        onChange: () => {
-        },
-        style: {
-          position: "absolute",
-          opacity: 0,
-          width: 0,
-          height: 0,
-          pointerEvents: "none"
-        },
-        "aria-hidden": "true",
-        tabIndex: -1
       }), /* @__PURE__ */ jsxs("div", {
         className: "grid2",
         style: {
@@ -21388,15 +21580,30 @@ function K2VerifyGeneralTab({
           })]
         })]
       })]
-    }), /* @__PURE__ */ jsx("section", {
+    }), /* @__PURE__ */ jsxs("section", {
       className: "splitRight",
-      children: /* @__PURE__ */ jsx(TableMappingMultiSelect, {
+      children: [/* @__PURE__ */ jsx(TableMappingMultiSelect, {
         params,
         mtableData,
         mtableLoading,
         mtableError,
         handleInputChange
-      })
+      }), /* @__PURE__ */ jsx("input", {
+        ref: tablesRequiredRef,
+        name: "__required_table_selection",
+        value: tablesChosenCount > 0 ? "has-tables" : "",
+        onChange: () => {
+        },
+        style: {
+          position: "absolute",
+          opacity: 0,
+          width: 0,
+          height: 0,
+          pointerEvents: "none"
+        },
+        "aria-hidden": "true",
+        tabIndex: -1
+      })]
     })]
   });
 }
@@ -21467,11 +21674,6 @@ function K2VerifyTaskOptions({
       form.reportValidity();
       return;
     }
-    const paramsWithProcesses = {
-      ...params,
-      K2VERIFY_PRE_EXECUTION_PROCESSES: preProcesses,
-      K2VERIFY_POST_EXECUTION_PROCESSES: postProcesses
-    };
     handleExecution();
   };
   const handleRunProcess = () => {
@@ -21506,6 +21708,14 @@ function K2VerifyTaskOptions({
       return typeof row === "string" ? row : (_a2 = row == null ? void 0 : row.Environments) != null ? _a2 : "";
     }).filter((v2) => v2 && v2.trim()))).sort();
   }, [envData]);
+  const tabStyle = (tab) => ({
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    color: activeTab === tab ? "#1976d2" : "#6b6b6b",
+    fontWeight: 400,
+    cursor: "pointer"
+  });
   return /* @__PURE__ */ jsxs("form", {
     ref: formRef,
     className: "card",
@@ -21528,38 +21738,17 @@ function K2VerifyTaskOptions({
       children: [/* @__PURE__ */ jsx("button", {
         type: "button",
         onClick: () => setActiveTab("general"),
-        style: {
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          color: activeTab === "general" ? "#1976d2" : "#6b6b6b",
-          fontWeight: activeTab === "general" ? 400 : 400,
-          cursor: "pointer"
-        },
+        style: tabStyle("general"),
         children: "General"
       }), /* @__PURE__ */ jsx("button", {
         type: "button",
         onClick: () => setActiveTab("pre"),
-        style: {
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          color: activeTab === "pre" ? "#1976d2" : "#6b6b6b",
-          fontWeight: activeTab === "pre" ? 400 : 400,
-          cursor: "pointer"
-        },
+        style: tabStyle("pre"),
         children: "Pre Processes"
       }), /* @__PURE__ */ jsx("button", {
         type: "button",
         onClick: () => setActiveTab("post"),
-        style: {
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          color: activeTab === "post" ? "#1976d2" : "#6b6b6b",
-          fontWeight: activeTab === "post" ? 400 : 400,
-          cursor: "pointer"
-        },
+        style: tabStyle("post"),
         children: "Post Processes"
       })]
     }), /* @__PURE__ */ jsx("hr", {
@@ -22225,24 +22414,33 @@ function K2VerifyExecution() {
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Batch ID",
+    header: "Details",
     accessorKey: "batch_id",
     size: 300,
     enableSorting: true,
     enableColumnFilter: true,
     cell: ({
       value
-    }) => value ? /* @__PURE__ */ jsx("a", {
-      href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      style: {
-        color: "#2563eb",
-        textDecoration: "underline",
-        fontWeight: 500
-      },
-      children: value
-    }) : "-"
+    }) => {
+      if (!value)
+        return "-";
+      const normalized = String(value).trim().toLowerCase();
+      const isSpecialCase = normalized === "post-execution process" || normalized === "pre-execution process";
+      if (isSpecialCase) {
+        return value;
+      }
+      return /* @__PURE__ */ jsx("a", {
+        href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          color: "#2563eb",
+          textDecoration: "underline",
+          fontWeight: 500
+        },
+        children: value
+      });
+    }
   }, {
     header: "Status",
     accessorKey: "status",
@@ -22544,6 +22742,152 @@ function K2VerifyExecution() {
     }) : null]
   });
 }
+function ErrorTooltip({
+  value
+}) {
+  const [pos, setPos] = React.useState(null);
+  const [copied, setCopied] = React.useState(false);
+  const hideTimer = React.useRef(null);
+  const show = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPos({
+      top: rect.top + window.scrollY,
+      left: rect.left + window.scrollX
+    });
+  };
+  const cancelHide = () => clearTimeout(hideTimer.current);
+  const scheduleHide = () => {
+    hideTimer.current = setTimeout(() => setPos(null), 120);
+  };
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2e3);
+    });
+  };
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsx("span", {
+      onMouseEnter: show,
+      onMouseLeave: scheduleHide,
+      style: {
+        display: "block",
+        maxWidth: 260,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        cursor: "default",
+        color: "#B42323"
+      },
+      children: value
+    }), pos && ReactDOM.createPortal(/* @__PURE__ */ jsxs("div", {
+      onMouseEnter: cancelHide,
+      onMouseLeave: scheduleHide,
+      style: {
+        position: "absolute",
+        top: pos.top,
+        left: pos.left,
+        transform: "translateY(calc(-100% - 6px))",
+        zIndex: 99999,
+        backgroundColor: "#ffffff",
+        color: "#1a1a1a",
+        borderRadius: 6,
+        fontSize: "0.78rem",
+        lineHeight: 1.6,
+        maxWidth: 420,
+        minWidth: 220,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+        border: "1px solid #e0e0e0",
+        pointerEvents: "auto",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden"
+      },
+      children: [/* @__PURE__ */ jsx("div", {
+        style: {
+          padding: "10px 14px",
+          maxHeight: 160,
+          overflowY: "auto",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          userSelect: "text",
+          cursor: "text"
+        },
+        children: value
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          borderTop: "1px solid #e0e0e0",
+          padding: "6px 10px",
+          display: "flex",
+          justifyContent: "flex-end",
+          backgroundColor: "#fafafa"
+        },
+        children: /* @__PURE__ */ jsx("button", {
+          onClick: handleCopy,
+          title: copied ? "Copied!" : "Copy to clipboard",
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            padding: "3px 10px",
+            fontSize: "0.72rem",
+            fontWeight: 500,
+            color: copied ? "#1F7A3E" : "#555",
+            backgroundColor: copied ? "#E8F7EE" : "#f4f4f4",
+            border: `1px solid ${copied ? "#BFE6CE" : "#ddd"}`,
+            borderRadius: 4,
+            cursor: "pointer",
+            userSelect: "none",
+            transition: "all 0.2s ease"
+          },
+          children: copied ? /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsx("svg", {
+              width: "11",
+              height: "11",
+              viewBox: "0 0 12 12",
+              fill: "none",
+              children: /* @__PURE__ */ jsx("path", {
+                d: "M2 6l3 3 5-5",
+                stroke: "#1F7A3E",
+                strokeWidth: "1.8",
+                strokeLinecap: "round",
+                strokeLinejoin: "round"
+              })
+            }), "Copied"]
+          }) : /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsxs("svg", {
+              width: "11",
+              height: "11",
+              viewBox: "0 0 12 12",
+              fill: "none",
+              children: [/* @__PURE__ */ jsx("rect", {
+                x: "3",
+                y: "1",
+                width: "6",
+                height: "1.5",
+                rx: "0.75",
+                fill: "#555"
+              }), /* @__PURE__ */ jsx("rect", {
+                x: "1.5",
+                y: "2",
+                width: "9",
+                height: "9",
+                rx: "1.2",
+                stroke: "#555",
+                strokeWidth: "1.2",
+                fill: "none"
+              }), /* @__PURE__ */ jsx("path", {
+                d: "M3.5 5.5h5M3.5 7.5h3.5",
+                stroke: "#555",
+                strokeWidth: "1",
+                strokeLinecap: "round"
+              })]
+            }), "Copy"]
+          })
+        })
+      })]
+    }), document.body)]
+  });
+}
 function K2VerifyTaskHistoryDetailed() {
   var _a2, _b2, _c, _d, _e2, _f, _g;
   const apiBasePath2 = window.__API_BASE_PATH__ || "";
@@ -22651,24 +22995,33 @@ function K2VerifyTaskHistoryDetailed() {
     enableSorting: true,
     enableColumnFilter: true
   }, {
-    header: "Batch ID",
+    header: "Details",
     accessorKey: "batch_id",
     size: 300,
     enableSorting: true,
     enableColumnFilter: true,
     cell: ({
       value
-    }) => value ? /* @__PURE__ */ jsx("a", {
-      href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      style: {
-        color: "#2563eb",
-        textDecoration: "underline",
-        fontWeight: 500
-      },
-      children: value
-    }) : "-"
+    }) => {
+      if (!value)
+        return "-";
+      const normalized = String(value).trim().toLowerCase();
+      const isSpecialCase = normalized === "post-execution process" || normalized === "pre-execution process";
+      if (isSpecialCase) {
+        return value;
+      }
+      return /* @__PURE__ */ jsx("a", {
+        href: `${apiBasePath2}/app/admin/batches/batch-monitor/${value}`,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          color: "#2563eb",
+          textDecoration: "underline",
+          fontWeight: 500
+        },
+        children: value
+      });
+    }
   }, {
     header: "Status",
     accessorKey: "status",
@@ -22753,7 +23106,17 @@ function K2VerifyTaskHistoryDetailed() {
     header: "Error Info",
     accessorKey: "error_info",
     enableSorting: true,
-    enableColumnFilter: true
+    enableColumnFilter: true,
+    cell: ({
+      value
+    }) => value ? /* @__PURE__ */ jsx(ErrorTooltip, {
+      value
+    }) : /* @__PURE__ */ jsx("span", {
+      style: {
+        color: "#aaa"
+      },
+      children: "\u2014"
+    })
   }], []);
   const [taskHistoryData, setTaskHistoryData] = react.exports.useState([]);
   const [tableName, setTableName] = react.exports.useState("");
@@ -39144,7 +39507,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.f1f93468.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.b61c26b1.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;
@@ -43518,13 +43881,6 @@ const SETTINGS_META = [{
   min: 0,
   max: 100,
   descriptionKey: "k2verifyAdvancedSettings.parameters.maxRecordMismatchPct.description"
-}, {
-  key: "MAX_SLIDING_WINDOW_FAILURE_PCT",
-  label: "MAX_SLIDING_WINDOW_FAILURE_PCT",
-  section: "Error Handling",
-  min: 0,
-  max: 100,
-  descriptionKey: "k2verifyAdvancedSettings.parameters.maxSlidingWindowFailurePct.description"
 }, {
   key: "PARTITION_SIZE",
   label: "PARTITION_SIZE",

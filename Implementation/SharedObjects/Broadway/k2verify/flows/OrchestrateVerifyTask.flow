@@ -1,0 +1,48 @@
+tags: k2verify
+stages:
+  Validate Veriry:
+    actors:
+      K2Verify Validate MTable:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwK2VerifyValidateMTable
+          task_id:
+            external: task_id
+            schema: any
+            mandatory: false
+            createdBy: flowName
+  Handle Verify Task:
+    actors:
+      Handle Verify Task Execution:
+        parent: BroadwayJob
+        in:
+          flowName:
+            const: bwHandleTaskExecution
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+  Taxk Exec ID:
+    actors:
+      Return Task Execution ID:
+        parent: DbFetchField
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+          sql:
+            const: |-
+              select *
+              from k2verify.task_execution
+              where task_id=${task_id} and (lower(execution_status) <> 'failed' AND lower(execution_status)
+                            <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status)
+                            <> 'killed')
+          task_id:
+            external: task_id
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            external: result

@@ -54,6 +54,15 @@ stages:
         out:
           list:
             schema: '#ref'
+      Pre-execution Process1:
+        parent: Const
+        in:
+          value:
+            const: Pre-execution Process
+            schema: string
+        out:
+          value:
+            schema: string
     split: '--------------------'
   Stage 3:
     dependsOn: sort according to execution order
@@ -77,6 +86,15 @@ stages:
         out:
           list:
             schema: '#ref'
+      Post-execution Process:
+        parent: Const
+        in:
+          value:
+            const: Post-execution Process
+            schema: string
+        out:
+          value:
+            schema: string
   execute pre/post pocesses:
     actors:
       Mapper1:
@@ -124,6 +142,7 @@ stages:
             - bucket_count
             - status
             - start_time
+            - batch_id
           keys:
             const:
             - task_id
@@ -164,7 +183,9 @@ stages:
             mandatory: false
             createdBy: fields
           batch_id:
-            const: ''
+            link:
+            - Pre-execution Process1/value
+            - Post-execution Process/value
             schema: string
             mandatory: false
             createdBy: table

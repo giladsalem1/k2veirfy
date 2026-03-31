@@ -150,11 +150,6 @@ stages:
             schema: string
           columns:
             schema: '#ref'
-      ToNumber1:
-        parent: ToNumber
-        in:
-          value:
-            link: IID/value
       ToNumber2:
         parent: ToNumber
         in:
@@ -171,8 +166,6 @@ stages:
             link: SEPERATOR/variableValue
           input:
             link: bwGetColsForSelectStmt1/columns
-      Now1:
-        parent: Now
   Stage 5:
     transactional: false
     actors:
@@ -199,7 +192,7 @@ stages:
             schema: string
             mandatory: false
           bucketID:
-            link: ToNumber1/number
+            link: IID/value
             schema: string
             mandatory: false
           customizedKey:
@@ -225,18 +218,6 @@ stages:
         out:
           bucketRows:
             schema: '#ref'
-      Now2:
-        parent: Now
-      DateDuration1:
-        parent: DateDuration
-        in:
-          from:
-            link: Now1/date
-          to:
-            link: Now2/date
-        out:
-          millis:
-            external: srcBucketRowsDuration
       TAR BuketRows:
         parent: InnerFlow
         in:
@@ -260,7 +241,7 @@ stages:
             schema: string
             mandatory: false
           bucketID:
-            link: ToNumber1/number
+            link: IID/value
             schema: string
             mandatory: false
           customizedKey:
@@ -289,18 +270,6 @@ stages:
   Stage 7:
     transactional: false
     actors:
-      Now3:
-        parent: Now
-      DateDuration2:
-        parent: DateDuration
-        in:
-          from:
-            link: Now2/date
-          to:
-            link: Now3/date
-        out:
-          millis:
-            external: tarBucketRowsDuration
       LuFunction1:
         parent: LuFunction
         in:
@@ -320,30 +289,15 @@ stages:
           result:
             external: keys_list
             schema: '#ref'
-      Now4:
-        parent: Now
   Deep Copy Keys:
     actors:
       DeepCopyKeysRS:
         parent: DeepCopy
         disabled: true
-        in:
-          value:
-            link: LuFunction1/result
         out:
           value:
             external: keys_list
             schema: '#ref'
-      DateDuration3:
-        parent: DateDuration
-        in:
-          from:
-            link: Now3/date
-          to:
-            link: Now4/date
-        out:
-          millis:
-            external: luFunctionDuration
 schemas:
   bwGetColsForSelectStmt1.in.select_columns:
     type: array

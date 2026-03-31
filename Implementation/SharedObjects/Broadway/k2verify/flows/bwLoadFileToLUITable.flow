@@ -37,23 +37,48 @@ stages:
             const: .csv
           string:
             external: fileName
-  Stage 13:
+  Stage 8:
     actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: CsvParser1/object
+              iterate: Iterate
+      LoopIndex1:
+        parent: LoopIndex
+  Stage 10:
+    dependsOn: Stage 8
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 0
+            schema: integer
+          a:
+            link: LoopIndex1/value
       JavaScript1:
         parent: JavaScript
         in:
           script:
             const: row.keySet();
           row:
-            link:
-              path: CsvParser1/object
-              iterate: First
+            link: Const2/value
             schema: '#ref'
             mandatory: false
         out:
           result:
             schema: '#ref'
+    split: '--------------------'
+  Stage 11:
+    else: true
+    dependsOn: Stage 8
   Stage 5:
+    dependsOn: Stage 10
     actors:
       StringFormat2:
         parent: StringFormat
@@ -100,8 +125,12 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+    split: '--------------------'
+  Stage 14:
+    dependsOn: Stage 11
   Stage 9:
     last: 1
+    dependsOn: Stage 5
     actors:
       StringBuild1:
         parent: StringBuild
@@ -141,7 +170,12 @@ stages:
             link:
               path: StringFormat3/string
               pos: 0
+    split: '--------------------'
+  Stage 16:
+    last: 1
+    dependsOn: Stage 14
   Stage 6:
+    dependsOn: Stage 9
     actors:
       StringFormat1:
         parent: StringFormat
@@ -170,8 +204,12 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+    split: '--------------------'
+  Stage 17:
+    dependsOn: Stage 16
   Stage 12:
     transactional: false
+    dependsOn: Stage 6
     actors:
       StringFormat4:
         parent: StringFormat
@@ -209,8 +247,12 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+    split: '--------------------'
+  Stage 18:
+    dependsOn: Stage 17
   Stage 7:
     transactional: false
+    dependsOn: Stage 12
     actors:
       DbCommand1:
         parent: DbCommand
@@ -235,18 +277,12 @@ stages:
             schema: string
             mandatory: false
             createdBy: format
+    split: '--------------------'
+  Stage 19:
+    dependsOn: Stage 18
   Stage 15:
     transactional: false
     actors:
-      Const4:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: CsvParser1/object
-        out:
-          value:
-            schema: '#ref'
       Split1:
         parent: Split
         in:
@@ -258,22 +294,6 @@ stages:
   Stage 3:
     transactional: false
     actors:
-      LoopIndex1:
-        parent: LoopIndex
-        out:
-          value:
-            schema: integer
-  Stage 2:
-    transactional: false
-    actors:
-      GreaterThan1:
-        parent: GreaterThan
-        condition: result
-        in:
-          b:
-            const: 0
-          a:
-            link: LoopIndex1/value
       DbLoad1:
         parent: DbLoad
         in:
@@ -295,9 +315,7 @@ stages:
           dialect:
             const: sqlite
           params:
-            link:
-              path: Const4/value
-              iterate: Iterate
+            link: Const2/value
 schemas:
   CsvParser1.out.object:
     type: array
@@ -328,10 +346,6 @@ schemas:
     items:
       type: string
   ArrayBuilder1.out.array:
-    type: array
-    items:
-      type: string
-  Const4.out.value:
     type: array
     items:
       type: string

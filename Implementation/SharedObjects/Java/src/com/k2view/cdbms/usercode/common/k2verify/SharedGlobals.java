@@ -45,6 +45,14 @@ public class SharedGlobals {
 	@category("K2VERIFY")  
 	public static String DEFAULT_PARTITION_COUNT = "10";
 
+	public static String TDM_K2VERIFY_LOGPASS = "false";
+    public static String TDM_K2VERIFY_PII_ONLY_COMPARISON = "false";
+    public static String TDM_K2VERIFY_MAXWORKERSPERNODE = "5";
+    public static String TDM_K2VERIFY_NUM_OF_BUCKETS = "5";
+
+    public static String EXECUTE_VERIFY_TASK_ID = "";
+
+
 
 
 }

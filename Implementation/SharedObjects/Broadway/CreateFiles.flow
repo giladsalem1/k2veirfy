@@ -1,0 +1,427 @@
+stages:
+  Stage 1:
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+          sql:
+            const: select * from public.customer_test_1m_trg_pii_70pass where customer_id<=300000
+        out:
+          result:
+            schema: '#ref'
+  Stage 2:
+    actors:
+      CsvBuilder1:
+        parent: CsvBuilder
+        in:
+          stream:
+            const: true
+          maps:
+            link: DbCommand1/result
+  Stage 3:
+    actors:
+      FileWrite1:
+        parent: FileWrite
+        in:
+          interface:
+            const: file:///opt/apps/fabric/workspace/project/project-resources
+          path:
+            const: tar_customer_1.csv
+          stream:
+            link: CsvBuilder1/csv
+  Stage 4:
+    actors:
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+          sql:
+            const: select * from public.customer_test_1m_trg_pii_70pass where customer_id
+              >300000 AND customer_id <=600000
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      CsvBuilder2:
+        parent: CsvBuilder
+        in:
+          stream:
+            const: true
+          maps:
+            link: DbCommand2/result
+  Stage 6:
+    actors:
+      FileWrite2:
+        parent: FileWrite
+        in:
+          interface:
+            const: file:///opt/apps/fabric/workspace/project/project-resources
+          path:
+            const: tar_customer_2.csv
+          stream:
+            link: CsvBuilder2/csv
+  Stage 7:
+    actors:
+      DbCommand3:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+          sql:
+            const: select * from public.customer_test_1m_trg_pii_70pass where customer_id
+              >600000
+        out:
+          result:
+            schema: '#ref'
+  Stage 8:
+    actors:
+      CsvBuilder3:
+        parent: CsvBuilder
+        in:
+          stream:
+            const: true
+          maps:
+            link: DbCommand3/result
+  Stage 9:
+    actors:
+      FileWrite3:
+        parent: FileWrite
+        in:
+          interface:
+            const: file:///opt/apps/fabric/workspace/project/project-resources
+          path:
+            const: tar_customer_3.csv
+          stream:
+            link: CsvBuilder3/csv
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        created_at:
+          type: date
+        children_count:
+          type: integer
+        loyalty_points:
+          type: integer
+        signup_date:
+          type: date
+        preferred_language:
+          type: string
+        country:
+          type: string
+        comm_channel:
+          type: string
+        favorite_number:
+          type: integer
+        last_login_tz:
+          type: date
+        updated_at:
+          type: date
+        timezone:
+          type: string
+        home_lat:
+          type: integer
+        is_vip:
+          type: string
+        balance:
+          type: integer
+        credit_limit:
+          type: integer
+        small_flag:
+          type: integer
+        last_name:
+          type: string
+        risk_score:
+          type: integer
+        row_version:
+          type: integer
+        first_name:
+          type: string
+        marketing_opt_in:
+          type: string
+        valid_to:
+          type: date
+        notes:
+          type: string
+        preferences_json:
+          type: string
+        float_score:
+          type: number
+        avatar_raw:
+          type: array
+          items: {
+            }
+        valid_from:
+          type: date
+        date_of_birth:
+          type: date
+        profile_blob:
+          type: array
+          items: {
+            }
+        height_cm:
+          type: integer
+        last_login_ts:
+          type: date
+        weight_kg:
+          type: integer
+        ssn:
+          type: string
+        home_lon:
+          type: integer
+        double_score:
+          type: number
+        middle_name:
+          type: string
+        email:
+          type: string
+        alt_email:
+          type: string
+        phone:
+          type: string
+        alt_phone:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state_province:
+          type: string
+        postal_code:
+          type: string
+        gender:
+          type: string
+        marital_status:
+          type: string
+        national_id:
+          type: string
+        passport_no:
+          type: string
+  DbCommand2.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        created_at:
+          type: date
+        children_count:
+          type: integer
+        loyalty_points:
+          type: integer
+        signup_date:
+          type: date
+        preferred_language:
+          type: string
+        country:
+          type: string
+        comm_channel:
+          type: string
+        favorite_number:
+          type: integer
+        last_login_tz:
+          type: date
+        updated_at:
+          type: date
+        timezone:
+          type: string
+        home_lat:
+          type: integer
+        is_vip:
+          type: string
+        balance:
+          type: integer
+        credit_limit:
+          type: integer
+        small_flag:
+          type: integer
+        last_name:
+          type: string
+        risk_score:
+          type: integer
+        row_version:
+          type: integer
+        first_name:
+          type: string
+        marketing_opt_in:
+          type: string
+        valid_to:
+          type: date
+        notes:
+          type: string
+        preferences_json:
+          type: string
+        float_score:
+          type: number
+        avatar_raw:
+          type: array
+          items: {
+            }
+        valid_from:
+          type: date
+        date_of_birth:
+          type: date
+        profile_blob:
+          type: array
+          items: {
+            }
+        height_cm:
+          type: integer
+        last_login_ts:
+          type: date
+        weight_kg:
+          type: integer
+        ssn:
+          type: string
+        home_lon:
+          type: integer
+        double_score:
+          type: number
+        middle_name:
+          type: string
+        email:
+          type: string
+        alt_email:
+          type: string
+        phone:
+          type: string
+        alt_phone:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state_province:
+          type: string
+        postal_code:
+          type: string
+        gender:
+          type: string
+        marital_status:
+          type: string
+        national_id:
+          type: string
+        passport_no:
+          type: string
+  DbCommand3.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        created_at:
+          type: date
+        children_count:
+          type: integer
+        loyalty_points:
+          type: integer
+        signup_date:
+          type: date
+        preferred_language:
+          type: string
+        country:
+          type: string
+        comm_channel:
+          type: string
+        favorite_number:
+          type: integer
+        last_login_tz:
+          type: date
+        updated_at:
+          type: date
+        timezone:
+          type: string
+        home_lat:
+          type: integer
+        is_vip:
+          type: string
+        balance:
+          type: integer
+        credit_limit:
+          type: integer
+        small_flag:
+          type: integer
+        last_name:
+          type: string
+        risk_score:
+          type: integer
+        row_version:
+          type: integer
+        first_name:
+          type: string
+        marketing_opt_in:
+          type: string
+        valid_to:
+          type: date
+        notes:
+          type: string
+        preferences_json:
+          type: string
+        float_score:
+          type: number
+        avatar_raw:
+          type: array
+          items: {
+            }
+        valid_from:
+          type: date
+        date_of_birth:
+          type: date
+        profile_blob:
+          type: array
+          items: {
+            }
+        height_cm:
+          type: integer
+        last_login_ts:
+          type: date
+        weight_kg:
+          type: integer
+        ssn:
+          type: string
+        home_lon:
+          type: integer
+        double_score:
+          type: number
+        middle_name:
+          type: string
+        email:
+          type: string
+        alt_email:
+          type: string
+        phone:
+          type: string
+        alt_phone:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state_province:
+          type: string
+        postal_code:
+          type: string
+        gender:
+          type: string
+        marital_status:
+          type: string
+        national_id:
+          type: string
+        passport_no:
+          type: string

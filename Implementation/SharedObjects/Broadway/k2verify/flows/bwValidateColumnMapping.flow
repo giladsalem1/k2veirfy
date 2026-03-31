@@ -277,6 +277,18 @@
                                         },
                                         "createdBy": "flowName",
                                         "mandatory": false
+                                    },
+                                    {
+                                        "name": "src_env",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_env",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []
@@ -370,6 +382,18 @@
                                         "schema": {
                                             "type": "string"
                                         },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "src_env",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "tar_env",
+                                        "schema": {},
                                         "createdBy": "flowName",
                                         "mandatory": false
                                     }
@@ -537,6 +561,26 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
+                "name": "src_env"
+            },
+            "rightPort": {
+                "actor": "ValidateColExistsInSrc",
+                "name": "src_env"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "tar_env"
+            },
+            "rightPort": {
+                "actor": "ValidateColExistsInSrc",
+                "name": "tar_env"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
                 "name": "src_interface"
             },
             "rightPort": {
@@ -592,6 +636,26 @@
             "rightPort": {
                 "actor": "ValidateColExistsInTar",
                 "name": "tar_table"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "src_env"
+            },
+            "rightPort": {
+                "actor": "ValidateColExistsInTar",
+                "name": "src_env"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "tar_env"
+            },
+            "rightPort": {
+                "actor": "ValidateColExistsInTar",
+                "name": "tar_env"
             }
         }
     ]

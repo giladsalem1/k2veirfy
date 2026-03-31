@@ -132,7 +132,6 @@ stages:
     actors:
       bwValidateMtableParams1:
         parent: InnerFlow
-        disabled: true
         in:
           flowName:
             const: bwValidateMtableParams

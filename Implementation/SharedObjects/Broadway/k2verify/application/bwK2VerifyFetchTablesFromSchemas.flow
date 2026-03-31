@@ -2,6 +2,76 @@ tags: k2verify
 stages:
   'Stage 1 : Fetching the tables based on environment, interface and schema':
     actors:
+      K2VERIFY_OPERATIONAL_INTERFACE:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+      K2VERIFY_OPERATIONAL_SCHEMA:
+        parent: FabricSetRead
+        in:
+          key:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+  'Stage 2: Building the map for tables':
+    actors:
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: |-
+              select
+                lower(source_interface) || '.' || lower(source_schema) || '.' || lower(source_table) as full_name,
+                bucket_count
+              from ${@schema}.k2verify_table_count;
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      check db type:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckDBType
+          envName:
+            external: envName
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: interfaceName
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          type:
+            schema: string
+  'Stage 3: Building the final map for schema and tables':
+    last: 1
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            link:
+              path: DbCommand1/result/full_name
+              iterate: Iterate
+          value:
+            link:
+              path: DbCommand1/result/bucket_count
+              iterate: Iterate
+        out:
+          map:
+            schema: '#ref'
+  Stage 1:
+    actors:
       Fetch tables from schemas:
         parent: LuFunction
         in:
@@ -22,6 +92,10 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
+          dbType:
+            link: check db type/type
+            schema: any
+            mandatory: false
         out:
           result:
             schema: '#ref'
@@ -36,22 +110,75 @@ stages:
         out:
           map:
             schema: '#ref'
-  'Stage 2: Building the map for tables':
+  Stage 2:
     actors:
-      Map build for Tables:
-        parent: MapBuild
+      JavaScript1:
+        parent: JavaScript
         in:
-          key:
-            const: tables
+          script:
+            const:
+              userCode: |-
+                var key = interfaceName.toLowerCase() + '.' +
+                          schemaName.toLowerCase() + '.' +
+                          tableName.toLowerCase();
+
+                ({
+                  table: tableName,
+                  bucket: (map != null && !map.isEmpty() && map.containsKey(key))
+                            ? map.get(key)
+                            : "Auto"
+                });
+              script: |-
+                var key = interfaceName.toLowerCase() + '.' + schemaName.toLowerCase() + '.' + tableName.toLowerCase();
+                ({
+                  table: tableName,
+                  bucket: map != null && !map.isEmpty() && map.containsKey(key) ? map.get(key) : "Auto"
+                });
+          map:
+            link: MapBuild1/map
+            schema: '#ref'
+            mandatory: false
+          tableName:
+            link:
+              path: Fetch tables from schemas/result
+              iterate: Iterate
             schema: string
-          duplicateKeys:
-            const: all
-          value:
-            link: Fetch tables from schemas/result
+            mandatory: false
+          schemaName:
+            external: schemaName
+            schema: string
+            mandatory: false
+          interfaceName:
+            external: interfaceName
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+  Stage 5:
+    last: 1
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link: JavaScript1/result
+        out:
+          array:
+            schema: '#ref'
+  Stage 3:
+    actors:
+      MapCreate1:
+        parent: MapCreate
+        in:
+          tables:
+            link: ArrayBuilder1/array
+            schema: '#ref'
+            mandatory: false
         out:
           map:
             schema: '#ref'
-  'Stage 3: Building the final map for schema and tables':
+  Stage 4:
     actors:
       'Final Schema and Tables Map ':
         parent: MapMerge
@@ -60,13 +187,27 @@ stages:
             link:
             - path: Map build for Schema/map
               pos: 0
-            - path: Map build for Tables/map
+            - path: MapCreate1/map
               pos: 1
         out:
           map:
             external: map
             schema: '#ref'
 schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        full_name:
+          type: string
+        bucket_count:
+          type: integer
+  MapBuild1.out.map:
+    type: object
+    properties:
+      oracle_prod.customer.device_inventory:
+        type: integer
   Fetch tables from schemas.out.result:
     type: array
     items:
@@ -76,11 +217,48 @@ schemas:
     properties:
       schema:
         type: string
-  Map build for Tables.out.map:
+  JavaScript1.in.map:
+    type: object
+    properties:
+      oracle_prod.customer.device_inventory:
+        type: integer
+  JavaScript1.out.result:
+    type: object
+    properties:
+      table:
+        type: string
+      bucket:
+        type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        table:
+          type: string
+        bucket:
+          type: string
+  MapCreate1.in.tables:
+    type: array
+    items:
+      type: object
+      properties:
+        table:
+          type: string
+        bucket:
+          type: string
+  MapCreate1.out.map:
     type: object
     properties:
       tables:
-        type: string
+        type: array
+        items:
+          type: object
+          properties:
+            table:
+              type: string
+            bucket:
+              type: string
   Final Schema and Tables Map .out.map:
     type: object
     properties:

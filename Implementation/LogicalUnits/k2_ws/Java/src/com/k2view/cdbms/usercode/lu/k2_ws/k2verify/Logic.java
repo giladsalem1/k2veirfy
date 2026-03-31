@@ -9,7 +9,11 @@ import com.k2view.fabric.api.endpoint.Endpoint.param;
 import com.k2view.cdbms.shared.utils.UserCodeDescribe.desc;
 import com.k2view.cdbms.shared.utils.UserCodeDescribe.*;
 
+import java.util.HashMap;
 
+import com.k2view.cdbms.shared.Db;
+import com.k2view.cdbms.shared.user.UserCode;
+import com.k2view.cdbms.shared.utils.UserCodeDescribe.desc;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -47,7 +51,7 @@ public class Logic extends WebServiceUserCode {
     ) throws Exception {
 
         if (nodeId == null || nodeId.trim().isEmpty())
-            throw new Exception("Invalid/Null value in mandatory nodeId");
+            //throw new Exception("Invalid/Null value in mandatory nodeId");
         
             if (exectuionId == null || exectuionId.trim().isEmpty())
             throw new Exception("Invalid/Null value in mandatory exectuionId");
@@ -86,6 +90,42 @@ public class Logic extends WebServiceUserCode {
             }
         }
     }
+
+        /**
+     * Start Verify Task Execution
+    */
+    public static HashMap<String,Object> wsK2VerifyStartTask(@param(description = "taskId") String taskId) throws Exception {
+        String taskExeId = (String) fabric().fetch("broadway verify.OrchestrateVerifyTask task_id=?",taskId).firstValue();
+        String message = null;
+        String errorCode = "";
+        HashMap<String, Object> response = new HashMap<>();
+        
+
+        errorCode = "SUCCESS";
+        response.put("result", taskExeId);
+
+        return response;
+    }
+
+        /**
+     * Get Task Execution status from Postgres table "k2verify.task_execution"
+    */
+        public static HashMap<String,Object> wsK2VerifyMonitorTask(@param(description = "exectuionId") String exectuionId) throws Exception {
+            String sql = "select execution_status from k2verify.task_execution where execution_id = ?";
+            Db.Row k2verifyTaskStatus = db("K2VERIFY_OPERATIONAL_DB").fetch(sql, exectuionId).firstRow();
+    
+            String message = null;
+            String errorCode = "";
+            HashMap<String, Object> response = new HashMap<>();
+            
+            
+            String verifyTaskStatus = "" + k2verifyTaskStatus.get("execution_status");
+    
+            errorCode = "SUCCESS";
+            response.put("result", verifyTaskStatus);
+    
+            return response;
+        }
 
     /**
      * Route the request to correct destination/target node to fetch the data.

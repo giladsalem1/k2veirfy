@@ -1,0 +1,37 @@
+tags: k2verify
+stages:
+  Init:
+    actors:
+      Get EXECUTE_VERIFY_TASK_ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM.EXECUTE_VERIFY_TASK_ID
+            default: false
+      Get TDM_TASK_EXE_ID:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TDM_TASK_EXE_ID
+            default: false
+  execute verify task:
+    actors:
+      ToNumber task id:
+        parent: ToNumber
+        condition: number
+        in:
+          value:
+            link: Get EXECUTE_VERIFY_TASK_ID/result
+      OrchestrateVerifyTask1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: OrchestrateVerifyTask
+          task_id:
+            link: Get EXECUTE_VERIFY_TASK_ID/result
+            schema: any
+            mandatory: false
+            createdBy: flowName
+        out:
+          result:
+            schema: any

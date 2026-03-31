@@ -541,7 +541,7 @@ public class SharedLogic {
     public static List<String> getTableNamesByInterfaceAndSchema(
             String interfaceName,
             String schemaName,
-            String envName) throws Exception {
+            String envName,String dbType) throws Exception {
 
         String env = normalizeOrDefault(envName, "_dev");
         String schemaFilter = normalizeRequired(schemaName, "schemaName");
@@ -568,7 +568,7 @@ public class SharedLogic {
 
         // 2) Fallback to JDBC if DATABASE
         if ("DATABASE".equalsIgnoreCase(interfaceType)) {
-            return getTableNamesFromJDBC(ifaceName, schemaFilter);
+            return getTableNamesFromJDBC(ifaceName, schemaFilter, dbType);
         }
 
         return Collections.emptyList();
@@ -610,27 +610,46 @@ public class SharedLogic {
     // -------------------------------
     // JDBC path: DatabaseMetaData.getTables
     // -------------------------------
-    private static List<String> getTableNamesFromJDBC(String interfaceName, String schemaFilter) throws Exception {
+    private static List<String> getTableNamesFromJDBC(String interfaceName, String schemaFilter,String dbType) throws Exception {
 
         Set<String> tables = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 
         try (Connection conn = com.k2view.cdbms.shared.user.UserCode.getConnection(interfaceName)) {
             DatabaseMetaData md = conn.getMetaData();
 
-            try (ResultSet rs = md.getTables(null, schemaFilter, "%", new String[] { "TABLE" })) {
-                while (rs.next()) {
-                    String schema = rs.getString("TABLE_SCHEM");
-                    String table = rs.getString("TABLE_NAME");
+            if (dbType != null && dbType.equalsIgnoreCase("mysql (db)")) {
+                try (ResultSet rs = md.getTables(schemaFilter, schemaFilter, "%", new String[] { "TABLE" })) {
+                    while (rs.next()) {
+                        String schema = rs.getString("TABLE_SCHEM");
+                        String table = rs.getString("TABLE_NAME");
 
-                    if (table == null || table.isBlank())
-                        continue;
+                        if (table == null || table.isBlank())
+                            continue;
 
-                    // Defensive filtering for drivers that ignore schema param
-                    if (schemaFilter != null && schema != null && !schema.equalsIgnoreCase(schemaFilter)) {
-                        continue;
+                        // Defensive filtering for drivers that ignore schema param
+                        if (schemaFilter != null && schema != null && !schema.equalsIgnoreCase(schemaFilter)) {
+                            continue;
+                        }
+
+                        tables.add(table);
                     }
+                }
+            } else {
+                try (ResultSet rs = md.getTables(null, schemaFilter, "%", new String[] { "TABLE" })) {
+                    while (rs.next()) {
+                        String schema = rs.getString("TABLE_SCHEM");
+                        String table = rs.getString("TABLE_NAME");
 
-                    tables.add(table);
+                        if (table == null || table.isBlank())
+                            continue;
+
+                        // Defensive filtering for drivers that ignore schema param
+                        if (schemaFilter != null && schema != null && !schema.equalsIgnoreCase(schemaFilter)) {
+                            continue;
+                        }
+
+                        tables.add(table);
+                    }
                 }
             }
         }

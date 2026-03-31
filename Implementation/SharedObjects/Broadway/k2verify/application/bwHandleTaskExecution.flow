@@ -602,7 +602,7 @@
                                     },
                                     {
                                         "name": "sql",
-                                        "const": " select table_properties from ${@schema}.task_table_properties where task_id=${task_id}"
+                                        "const": " select table_properties  from ${@schema}.task_table_properties where task_id=${task_id}"
                                     },
                                     {
                                         "name": "schema",
@@ -767,7 +767,13 @@
                                             "items": {
                                                 "type": "object",
                                                 "properties": {
-                                                    "table_properties": {
+                                                    "src": {
+                                                        "type": "string"
+                                                    },
+                                                    "tar": {
+                                                        "type": "string"
+                                                    },
+                                                    "buckets": {
                                                         "type": "string"
                                                     }
                                                 }
@@ -1666,7 +1672,7 @@
         {
             "stages": [
                 {
-                    "name": "Check table status",
+                    "name": "Stage 1",
                     "dependsOnList": [
                         "tables details"
                     ],
@@ -1723,22 +1729,46 @@
                     ]
                 },
                 {
-                    "name": "Load files to LUI tables",
+                    "name": "Stage 2",
                     "dependsOnList": [
                         "Stage 14"
                     ],
                     "actors": [
                         {
-                            "name": "bwLoadFilesToTables1",
+                            "name": "VerifyCsvExecution",
                             "actorType": {
-                                "parentType": "InnerFlow",
+                                "parentType": "BroadwayJob",
                                 "inputs": [
                                     {
                                         "name": "flowName",
-                                        "const": "bwLoadFilesToTables"
+                                        "const": "bwExecuteCsvDataVerify"
                                     },
                                     {
-                                        "name": "srcInterface",
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "execution_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Interface",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1757,7 +1787,29 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "pattern",
+                                        "name": "Target_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Interface",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "editor": {
+                                            "id": "com.k2view.mTableKey"
+                                        },
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "log_pass",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1765,7 +1817,7 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "srcSchema",
+                                        "name": "compare_only_pii",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1773,7 +1825,13 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "tarInterface",
+                                        "name": "maxWorkers",
+                                        "schema": {},
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1781,7 +1839,39 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "tarSchema",
+                                        "name": "target_environment",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "source_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "target_environment_is_pii",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Source_Schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Schema",
                                         "schema": {
                                             "type": "string"
                                         },
@@ -1799,9 +1889,9 @@
         {
             "stages": [
                 {
-                    "name": "Execute tables verify",
+                    "name": "Check table status",
                     "dependsOnList": [
-                        "Check table status"
+                        "Stage 1"
                     ],
                     "isLast": 1,
                     "remark": "Execute verify on the the if the execution is in retry mode and the tables status is Failed. Or the execution is regular mode (not retry)",
@@ -1880,7 +1970,14 @@
                                         },
                                         "createdBy": "flowName",
                                         "editor": {
-                                            "id": "com.k2view.mTableKey"
+                                            "interfaceType": [
+                                                "database",
+                                                "CassandraLoader"
+                                            ],
+                                            "interfaces": [
+                                                "fabric"
+                                            ],
+                                            "id": "com.k2view.interface"
                                         },
                                         "mandatory": false
                                     },
@@ -2015,154 +2112,21 @@
                     ]
                 },
                 {
-                    "name": "Stage 30",
+                    "name": "Stage 4",
                     "dependsOnList": [
-                        "Check table status"
+                        "Stage 1"
                     ],
                     "isLast": 1,
                     "hasElse": true,
                     "actors": []
                 },
                 {
-                    "name": "Execute csv verify",
+                    "name": "Stage 3",
                     "dependsOnList": [
-                        "Load files to LUI tables"
+                        "Stage 2"
                     ],
                     "isLast": 1,
-                    "actors": [
-                        {
-                            "name": "VerifyCsvExecution",
-                            "actorType": {
-                                "parentType": "BroadwayJob",
-                                "inputs": [
-                                    {
-                                        "name": "flowName",
-                                        "const": "bwExecuteCsvDataVerify"
-                                    },
-                                    {
-                                        "name": "task_id",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "execution_id",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Table_Name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Source_Interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "interfaceType": [
-                                                "LOCAL",
-                                                "SFTP",
-                                                "filesystem"
-                                            ],
-                                            "interfaces": [
-                                                "file:///"
-                                            ],
-                                            "id": "com.k2view.interface"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Target_Table_Name",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "Target_Interface",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "editor": {
-                                            "id": "com.k2view.mTableKey"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "log_pass",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "compare_only_pii",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "maxWorkers",
-                                        "schema": {},
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "source_environment",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "target_environment",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "source_environment_is_pii",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "target_environment_is_pii",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
+                    "actors": []
                 }
             ]
         },
@@ -2490,15 +2454,6 @@
                             }
                         },
                         {
-                            "name": "ErrorFields1",
-                            "onError": "message",
-                            "actorType": {
-                                "parentType": "ErrorFields",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
                             "name": "FieldSumPK",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -2539,49 +2494,6 @@
                         "Update time before PK creation"
                     ],
                     "hasElse": true,
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 1",
-                    "dependsOnList": [
-                        "Create PK"
-                    ],
-                    "actors": [
-                        {
-                            "name": "LuFunction1",
-                            "actorType": {
-                                "parentType": "LuFunction",
-                                "inputs": [
-                                    {
-                                        "name": "functionName",
-                                        "const": "failJobWithoutRetry"
-                                    },
-                                    {
-                                        "name": "errorMessage",
-                                        "schema": {},
-                                        "createdBy": "functionName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "failureReason",
-                                        "schema": {}
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 2",
-                    "dependsOnList": [
-                        "Stage 7"
-                    ],
                     "actors": []
                 }
             ]
@@ -5708,32 +5620,6 @@
         },
         {
             "leftPort": {
-                "actor": "Task properties",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "bwLoadFilesToTables1",
-                "name": "srcInterface"
-            },
-            "path": [
-                "K2VERIFY_INTERFACE_SRC"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "Task properties",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "bwLoadFilesToTables1",
-                "name": "tarInterface"
-            },
-            "path": [
-                "K2VERIFY_INTERFACE_TAR"
-            ]
-        },
-        {
-            "leftPort": {
                 "actor": "Tables properties",
                 "name": "object"
             },
@@ -6089,8 +5975,8 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwLoadFilesToTables1",
-                "name": "srcSchema"
+                "actor": "VerifyCsvExecution",
+                "name": "Source_Schema"
             },
             "path": [
                 "src_schema"
@@ -6102,21 +5988,8 @@
                 "name": "result"
             },
             "rightPort": {
-                "actor": "bwLoadFilesToTables1",
-                "name": "pattern"
-            },
-            "path": [
-                "src_table"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "FilesMetadataMap",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "bwLoadFilesToTables1",
-                "name": "tarSchema"
+                "actor": "VerifyCsvExecution",
+                "name": "Target_Schema"
             },
             "path": [
                 "tar_schema"
@@ -6175,16 +6048,6 @@
             "rightPort": {
                 "actor": "UpTimeBeforePKCreation",
                 "name": "time_until_pk"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ErrorFields1",
-                "name": "error"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "errorMessage"
             }
         },
         {
@@ -6627,6 +6490,16 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "VerifyCsvExecution",
+                "name": "task_id"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
                 "name": "IsRetryMode"
             },
             "rightPort": {
@@ -6652,16 +6525,6 @@
             "rightPort": {
                 "actor": "VerifyTableExecution",
                 "name": "IsRetryMode"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "task_id"
-            },
-            "rightPort": {
-                "actor": "VerifyCsvExecution",
-                "name": "task_id"
             }
         },
         {

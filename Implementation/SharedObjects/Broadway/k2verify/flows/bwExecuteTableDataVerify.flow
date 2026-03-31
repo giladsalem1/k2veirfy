@@ -255,19 +255,21 @@
                                         "mandatory": false
                                     },
                                     {
-                                        "name": "buckets_config",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "flowName",
-                                        "mandatory": false
-                                    },
-                                    {
                                         "name": "Source_Interface",
                                         "schema": {
                                             "type": "string"
                                         },
                                         "createdBy": "flowName",
+                                        "editor": {
+                                            "interfaceType": [
+                                                "database",
+                                                "CassandraLoader"
+                                            ],
+                                            "interfaces": [
+                                                "fabric"
+                                            ],
+                                            "id": "com.k2view.interface"
+                                        },
                                         "mandatory": false
                                     },
                                     {
@@ -292,6 +294,37 @@
                                             "type": "string"
                                         },
                                         "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "bucket_count",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "task_id",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Table_Name",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "createdBy": "flowName",
+                                        "mandatory": false
+                                    },
+                                    {
+                                        "name": "Target_Schema",
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "mandatory": false
                                     }
                                 ],
@@ -556,7 +589,9 @@
                                     },
                                     {
                                         "name": "interfaceType",
-                                        "schema": {},
+                                        "schema": {
+                                            "type": "string"
+                                        },
                                         "createdBy": "sql",
                                         "mandatory": false
                                     }
@@ -2270,6 +2305,32 @@
         },
         {
             "leftPort": {
+                "actor": "GetTableConfig",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "ResolveDefBucketCount",
+                "name": "Target_Table_Name"
+            },
+            "path": [
+                "Target_Table_Name"
+            ]
+        },
+        {
+            "leftPort": {
+                "actor": "GetTableConfig",
+                "name": "tableParams"
+            },
+            "rightPort": {
+                "actor": "ResolveDefBucketCount",
+                "name": "Target_Schema"
+            },
+            "path": [
+                "Target_Schema"
+            ]
+        },
+        {
+            "leftPort": {
                 "actor": "ResolveDefBucketCount",
                 "name": "bucket_count"
             },
@@ -2690,16 +2751,6 @@
         {
             "leftPort": {
                 "actor": "flowArgs",
-                "name": "Buckets"
-            },
-            "rightPort": {
-                "actor": "ResolveDefBucketCount",
-                "name": "buckets_config"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
                 "name": "Source_Interface"
             },
             "rightPort": {
@@ -2735,6 +2786,26 @@
             "rightPort": {
                 "actor": "ResolveDefBucketCount",
                 "name": "db_type"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "Buckets"
+            },
+            "rightPort": {
+                "actor": "ResolveDefBucketCount",
+                "name": "bucket_count"
+            }
+        },
+        {
+            "leftPort": {
+                "actor": "flowArgs",
+                "name": "task_id"
+            },
+            "rightPort": {
+                "actor": "ResolveDefBucketCount",
+                "name": "task_id"
             }
         },
         {

@@ -100,59 +100,64 @@ stages:
         out:
           result:
             schema: string
+  Stage 2:
+    actors:
+      SRC Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: TaskProperties/value/K2VERIFY_INTERFACE_SRC
+        out:
+          value:
+            schema: string
+      SRC Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Source Schema/result
+        out:
+          value:
+            schema: string
+      SRC Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Source Table/result
+        out:
+          value:
+            schema: string
+      TAR Interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: TaskProperties/value/K2VERIFY_INTERFACE_TAR
+        out:
+          value:
+            schema: string
+      TAR Schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Target Schema/result
+        out:
+          value:
+            schema: string
+      TAR Table:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Target Table/result
+        out:
+          value:
+            schema: string
   Mtable params:
     actors:
-      MTableLookup1:
-        parent: MTableLookup
-        disabled: true
-        in:
-          mtable:
-            const: k2verify_config
-          Source_Table_Name:
-            link: Source Table/result
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-          Source_Interface:
-            link: TaskProperties/value/K2VERIFY_INTERFACE_SRC
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-          Source_Schema:
-            link: Source Schema/result
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-          Target_Table_Name:
-            link: Target Table/result
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-          Target_Interface:
-            link: TaskProperties/value/K2VERIFY_INTERFACE_TAR
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-          Target_Schema:
-            link: Target Schema/result
-            schema: string
-            editor:
-              id: com.k2view.mTableKey
-            mandatory: false
-            createdBy: mtable
-        out:
-          result:
-            schema: '#ref'
       DbFetchFirstRow1:
         parent: DbFetchFirstRow
         in:
@@ -222,69 +227,6 @@ stages:
             schema: '#ref'
   Validation params:
     actors:
-      SRC Interface:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Source_Interface
-        out:
-          value:
-            schema: string
-      SRC Schema:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Source_Schema
-        out:
-          value:
-            schema: string
-      SRC Table:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Source_Table_Name
-        out:
-          value:
-            schema: string
-      TAR Interface:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Target_Interface
-        out:
-          value:
-            schema: string
-      TAR Schema:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Target_Schema
-        out:
-          value:
-            schema: string
-      TAR Table:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Target_Table_Name
-        out:
-          value:
-            schema: string
-      Buckets Count:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: DbFetchFirstRow1/result/Buckets
-        out:
-          value:
-            schema: string
       Buckets Method:
         parent: Const
         in:
@@ -296,12 +238,6 @@ stages:
             schema: string
   Validate interfaces:
     actors:
-      NotNull1:
-        parent: NotNull
-        condition: result
-        in:
-          value:
-            link: SRC Interface/value
       Validate SRC Interface:
         parent: InnerFlow
         in:
@@ -358,8 +294,17 @@ stages:
             const: Please provice a valid target DB interface name
           actual:
             link: Validate TAR Interface/type
-  Validation queries: {
-    }
+  Validation queries:
+    actors:
+      NotEquals1:
+        parent: NotEquals
+        condition: result
+        in:
+          b:
+            const: LocalFileSystem
+            schema: string
+          a:
+            link: Validate SRC Interface/type
   Validate schemas:
     actors:
       Validate Source Schema:
@@ -519,20 +464,6 @@ stages:
                 flowName: ''
                 number_of_retries: ''
                 retry_interval: ''
-      Buckets > 0:
-        parent: GreaterThan
-        in:
-          b:
-            const: 0
-          a:
-            link: Buckets Count/value
-      assertBucketsCnt:
-        parent: assertTrue
-        in:
-          message:
-            const: Buckets count must be greater than 0
-          condition:
-            link: Buckets > 0/result
       BucketsMethodExists:
         parent: DbCommand
         in:
@@ -558,8 +489,102 @@ stages:
             const: Buckets method flow does not exist
           actual:
             link: ErrorHandler1/result
+      bwGetPiiColumns1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPiiColumns
+          customized_pii:
+            link: DbFetchFirstRow1/result/Pii_Columns
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            link: DbFetchFirstRow1/result/Source_Interface
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: DbFetchFirstRow1/result/Source_Schema
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: DbFetchFirstRow1/result/Source_Table_Name
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+        out:
+          pii_columns:
+            schema: string
+      ToBool1:
+        parent: ToBool
+        in:
+          value:
+            link: TaskProperties/value/K2VERIFY_PII_ONLY_COMPARISON
+  Pk/ Pii columns:
+    actors:
+      bwGetPKColumns1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwGetPKColumns
+          customized_key:
+            link: DbFetchFirstRow1/result/Customized_Key_Comparison
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            link: TaskProperties/value/K2VERIFY_INTERFACE_SRC
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          schema:
+            link: SRC Schema/value
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+          table:
+            link: SRC Table/value
+            schema: string
+            editor:
+              id: com.k2view.mTableKey
+            mandatory: false
+            createdBy: flowName
+        out:
+          pk_columns:
+            schema: string
+      IsPiiMandatory:
+        parent: JavaScript
+        in:
+          script:
+            const:
+              userCode: compareOnlyPII == false || (compareOnlyPII == true && piiCols!="")
+              script: compareOnlyPII == false || compareOnlyPII == true && piiCols
+                != "";
+          compareOnlyPII:
+            link: ToBool1/bool
+            schema: boolean
+            mandatory: false
+          piiCols:
+            link: bwGetPiiColumns1/pii_columns
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
   Validate column mapping:
-    dependsOn: Validate buckets
+    dependsOn: Pk/ Pii columns
     actors:
       bwValidateColumnMapping1:
         parent: InnerFlow
@@ -601,20 +626,34 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
     split: '--------------------'
   Validate keys:
-    dependsOn: Validate buckets
+    dependsOn: Pk/ Pii columns
     actors:
+      assertNotEquals1:
+        parent: assertNotEquals
+        in:
+          unexpected:
+            schema: string
+          message:
+            const: No primary key found. Please define a primary key.
+          actual:
+            link: bwGetPKColumns1/pk_columns
       bwValidateColumnsNames1:
         parent: InnerFlow
         in:
           flowName:
             const: bwValidateColumnsNames
-          case_sensitive:
-            const: 'true'
-            schema: string
-            mandatory: false
-            createdBy: flowName
           src_interface:
             link: SRC Interface/value
             schema: string
@@ -626,7 +665,7 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: DbFetchFirstRow1/result/Customized_Key_Comparison
+            link: bwGetPKColumns1/pk_columns
             schema: string
             mandatory: false
             createdBy: flowName
@@ -660,10 +699,27 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
     split: '--------------------'
   Validate pii cols:
-    dependsOn: Validate buckets
+    dependsOn: Pk/ Pii columns
     actors:
+      assertTrue1:
+        parent: assertTrue
+        in:
+          message:
+            const: No PII columns found. Please define PII columns.
+          condition:
+            link: IsPiiMandatory/result
       bwValidateColumnsNames112:
         parent: InnerFlow
         in:
@@ -685,7 +741,7 @@ stages:
             mandatory: false
             createdBy: flowName
           columns:
-            link: DbFetchFirstRow1/result/Pii_Columns
+            link: bwGetPiiColumns1/pii_columns
             schema: string
             mandatory: false
             createdBy: flowName
@@ -719,9 +775,19 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
     split: '--------------------'
   Validate excluded cols:
-    dependsOn: Validate buckets
+    dependsOn: Pk/ Pii columns
     actors:
       bwValidateColumnsNames11:
         parent: InnerFlow
@@ -778,9 +844,19 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
     split: '--------------------'
   Validate ignore null cols:
-    dependsOn: Validate buckets
+    dependsOn: Pk/ Pii columns
     actors:
       bwValidateColumnsNames111:
         parent: InnerFlow
@@ -837,6 +913,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
       bwValidateColumnsNames1111:
         parent: InnerFlow
         in:
@@ -889,6 +975,16 @@ stages:
             createdBy: flowName
           validation_env:
             const: TAR
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          src_env:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tar_env:
+            link: TaskProperties/value/K2VERIFY_ENV_TAR
             schema: string
             mandatory: false
             createdBy: flowName
@@ -961,12 +1057,22 @@ schemas:
         type: boolean
       K2VERIFY_PRE_EXECUTION_PROCESSES:
         type: array
-        items: {
-          }
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
       K2VERIFY_POST_EXECUTION_PROCESSES:
         type: array
-        items: {
-          }
+        items:
+          type: object
+          properties:
+            process_name:
+              type: string
+            execution_order:
+              type: integer
       K2VERIFY_MAXWORKERSPERNODE: {
         }
       K2VERIFY_LOGPASS:
@@ -984,49 +1090,6 @@ schemas:
               type: string
             buckets:
               type: string
-  MTableLookup1.out.result:
-    type: array
-    items:
-      type: object
-      properties:
-        Source_Table_Name:
-          type: string
-        Source_Interface:
-          type: string
-        Source_Schema:
-          type: string
-        Source_Transformation_Function_Name: {
-          }
-        source_columns_to_Ignore_null: {
-          }
-        Target_Table_Name:
-          type: string
-        Target_Interface:
-          type: string
-        Target_Schema:
-          type: string
-        Target_Transformation_Function_Name: {
-          }
-        target_columns_to_Ignore_null: {
-          }
-        Customized_Key_Comparison:
-          type: string
-        Pii_Columns: {
-          }
-        Excluded_Columns_Names:
-          type: string
-        Active:
-          type: string
-        Mode: {
-          }
-        Excluded_Rows_Sql: {
-          }
-        Column_Mapping: {
-          }
-        Buckets:
-          type: string
-        Buckets_Method:
-          type: string
   DbFetchFirstRow1.out.result:
     type: object
     properties:
