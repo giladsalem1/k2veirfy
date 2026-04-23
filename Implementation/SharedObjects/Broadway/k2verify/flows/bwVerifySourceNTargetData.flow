@@ -1,4 +1,4 @@
-tags: d2d,d2dv2,D2D,k2verify
+tags: k2verify
 stages:
   Execution params:
     remark: This flow performs data verification between two record sets — one from
@@ -37,11 +37,18 @@ stages:
         in:
           key:
             const: K2VERIFY_LOG_PASS
+      tsBwVerifySnTData:
+        parent: Now
       K2VERIFY_SOURCE_ENV:
         parent: FabricSetRead
         in:
           key:
             const: K2VERIFY_SOURCE_ENV
+      ToString1:
+        parent: ToString
+        in:
+          value:
+            link: tsBwVerifySnTData/date
       K2VERIFY_TARGET_ENV:
         parent: FabricSetRead
         in:
@@ -97,11 +104,6 @@ stages:
         out:
           value:
             schema: string
-      FabricSetRead1:
-        parent: FabricSetRead
-        in:
-          key:
-            const: verify.K2VERIFY_RESULT_FILES_PATH
       Split1:
         parent: Split
         in:
@@ -109,6 +111,11 @@ stages:
             const: _@_
           string:
             link: IID/value
+      FabricSetRead1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: verify.K2VERIFY_RESULT_FILES_PATH
       JavaScript1:
         parent: JavaScript
         in:
@@ -190,6 +197,8 @@ stages:
             link: SEPERATOR/variableValue
           string:
             link: CustomizedKey/value
+      Now2:
+        parent: Now
   Prep Data Queries:
     actors:
       SourceEnvQuery:
@@ -247,13 +256,13 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          interfaceType:
-            external: interfaceType
+          environment:
+            link: K2VERIFY_SOURCE_ENV/result
             schema: string
             mandatory: false
             createdBy: flowName
-          environment:
-            link: K2VERIFY_SOURCE_ENV/result
+          interfaceType:
+            external: interfaceType
             schema: string
             mandatory: false
             createdBy: flowName
@@ -262,6 +271,15 @@ stages:
             schema: string
           columns:
             schema: '#ref'
+      Now3:
+        parent: Now
+      DateDuration1:
+        parent: DateDuration
+        in:
+          from:
+            link: Now2/date
+          to:
+            link: Now3/date
       TargetEnvQuery:
         parent: InnerFlow
         in:
@@ -317,13 +335,13 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          interfaceType:
-            external: interfaceType
+          environment:
+            link: K2VERIFY_TARGET_ENV/result
             schema: string
             mandatory: false
             createdBy: flowName
-          environment:
-            link: K2VERIFY_TARGET_ENV/result
+          interfaceType:
+            external: interfaceType
             schema: string
             mandatory: false
             createdBy: flowName
@@ -335,6 +353,15 @@ stages:
   Exctract comparison keys:
     transactional: false
     actors:
+      Now4:
+        parent: Now
+      DateDuration2:
+        parent: DateDuration
+        in:
+          from:
+            link: Now3/date
+          to:
+            link: Now4/date
       GetBucketKeysList:
         parent: InnerFlow
         in:
@@ -413,6 +440,24 @@ stages:
         out:
           keys_list:
             schema: '#ref'
+          srcBucketRowsDuration:
+            schema: integer
+          tarBucketRowsDuration:
+            schema: integer
+          luFunctionDuration:
+            schema: integer
+  After keys extract:
+    transactional: false
+    actors:
+      tsBeforePrepareKeysGroup:
+        parent: Now
+      DateDuration3:
+        parent: DateDuration
+        in:
+          from:
+            link: Now4/date
+          to:
+            link: tsBeforePrepareKeysGroup/date
   Num of records to compare:
     transactional: false
     actors:
@@ -450,6 +495,15 @@ stages:
             link: '# Records/result'
           b:
             link: '# Fields/result'
+      SetTotalRecCount:
+        parent: FabricSet
+        in:
+          key:
+            const: TOTAL_RECORD_COUNT
+          value:
+            const: null
+            link: '# Records/result'
+            default: false
   Stage 10:
     transactional: false
     actors:
@@ -478,6 +532,25 @@ stages:
             link:
               path: DUMMY GET1/result/value
               iterate: First
+      RetryQuery1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       FetchTableName:
         parent: DbFetchField
         in:
@@ -537,6 +610,25 @@ stages:
   'Update # records for report':
     transactional: false
     actors:
+      RetryQuery11:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       UpdateTotalRecords:
         parent: DbCommand
         height: 509
@@ -599,6 +691,44 @@ stages:
         out:
           result:
             schema: '#ref'
+      'tsAfterPrepareKeysGroup : ':
+        parent: Now
+      PrepareKeysGroupDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsBeforePrepareKeysGroup/date
+          to:
+            link: 'tsAfterPrepareKeysGroup : /date'
+      tsBeforKeysGroupLoop:
+        parent: ToString
+        in:
+          value:
+            link: 'tsAfterPrepareKeysGroup : /date'
+      ResetMismatchRecCount:
+        parent: FabricSet
+        in:
+          key:
+            const: MISMATCHED_RECORD_COUNT
+          value:
+            const: '0'
+            default: false
+      ResetProcessedRecCount:
+        parent: FabricSet
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
+          value:
+            const: '0'
+            default: false
+      ResetFailRecCount:
+        parent: FabricSet
+        in:
+          key:
+            const: FAILED_RECORD_COUNT
+          value:
+            const: '0'
+            default: false
   For each group of keys:
     transactional: true
     actors:
@@ -650,9 +780,33 @@ stages:
             schema: '#ref'
           TarKeysCombinations:
             schema: '#ref'
+  Stage 12:
+    transactional: true
+    actors:
+      tsBeforeSelectFromSource:
+        parent: Now
   Execute Query - Source:
     transactional: true
     actors:
+      RetryQuery12:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       SetSourceEnv:
         parent: FabricSet
         in:
@@ -684,6 +838,22 @@ stages:
         out:
           result:
             schema: '#ref'
+      tsAfterSelectFromSource:
+        parent: Now
+      selectFromSourceDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsBeforeSelectFromSource/date
+          to:
+            link: tsAfterSelectFromSource/date
+      selectAllRecordsFromSourceDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: selectFromSourceDuration/millis
+              pos: 0
   Stage 6:
     transactional: true
     dependsOn: Execute Query - Source
@@ -693,12 +863,15 @@ stages:
         condition: result
         in:
           script:
-            const: source_transformation_function !== null && source_transformation_function
-              !== undefined && source_transformation_function !== ''
+            const: source_transformation_function != null && source_transformation_function
+              != undefined && source_transformation_function != ''
           source_transformation_function:
             external: source_transformation_function
-            schema: any
+            schema: string
             mandatory: false
+        out:
+          result:
+            schema: boolean
       ApplySrcTransformation:
         parent: InnerFlow
         in:
@@ -716,7 +889,7 @@ stages:
             createdBy: flowName
           transformationFunction:
             external: source_transformation_function
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delim:
@@ -742,9 +915,47 @@ stages:
         out:
           value:
             schema: '#ref'
+  Stage 13:
+    transactional: true
+    actors:
+      tsAfterSrcTransformation:
+        parent: Now
+      srcTransformationDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterSelectFromSource/date
+          to:
+            link: tsAfterSrcTransformation/date
+      allSRCTransformationDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: srcTransformationDuration/millis
+              pos: 0
   Execute Query - Target:
     transactional: true
     actors:
+      RetryQuery13:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       SetTargetEnv:
         parent: FabricSet
         in:
@@ -776,6 +987,22 @@ stages:
         out:
           result:
             schema: '#ref'
+      tsAfterSelectFromTarget:
+        parent: Now
+      selectFromTargertDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterSrcTransformation/date
+          to:
+            link: tsAfterSelectFromTarget/date
+      selectAllRecordsFromTartgetDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: selectFromTargertDuration/millis
+              pos: 0
   Stage 5:
     transactional: true
     dependsOn: Execute Query - Target
@@ -785,12 +1012,15 @@ stages:
         condition: result
         in:
           script:
-            const: target_transformation_function !== null && target_transformation_function
-              !== undefined && target_transformation_function !== ''
+            const: target_transformation_function != null && target_transformation_function
+              != undefined && target_transformation_function != ''
           target_transformation_function:
             external: target_transformation_function
-            schema: any
+            schema: string
             mandatory: false
+        out:
+          result:
+            schema: boolean
       ApplyTarTransformation:
         parent: InnerFlow
         in:
@@ -808,7 +1038,7 @@ stages:
             createdBy: flowName
           transformationFunction:
             external: target_transformation_function
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           delim:
@@ -834,7 +1064,26 @@ stages:
         out:
           value:
             schema: '#ref'
-  Extract Row:
+  Stage 14:
+    transactional: true
+    actors:
+      tsAfterTARTransformation:
+        parent: Now
+      tarTransformationDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterSelectFromTarget/date
+          to:
+            link: tsAfterTARTransformation/date
+      allTARTransformationDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: tarTransformationDuration/millis
+              pos: 0
+  Extract Row Src:
     transactional: true
     actors:
       SrcRecordsMap:
@@ -867,6 +1116,25 @@ stages:
         out:
           result:
             schema: '#ref'
+      tsAfterSrcRecordsMap:
+        parent: Now
+      srcRecordsMapDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterTARTransformation/date
+          to:
+            link: tsAfterSrcRecordsMap/date
+      allSrcRecordsMapDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: srcRecordsMapDuration/millis
+              pos: 0
+  Extract Row Trg:
+    transactional: true
+    actors:
       TarRecordsMap:
         parent: LuFunction
         in:
@@ -897,6 +1165,22 @@ stages:
         out:
           result:
             schema: '#ref'
+      tsAfterTarRecordsMap:
+        parent: Now
+      tarRecordsMapDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterSrcRecordsMap/date
+          to:
+            link: tsAfterTarRecordsMap/date
+      allTarRecordsMapDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: tarRecordsMapDuration/millis
+              pos: 0
   Keys arrays and maps:
     transactional: true
     actors:
@@ -1018,6 +1302,98 @@ stages:
         out:
           result:
             schema: '#ref'
+      tsBeforeVerifyKeysExists:
+        parent: Now
+  skip if record failed transformation:
+    transactional: true
+    dependsOn: Deep copy record
+    actors:
+      JavaScript4:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const:
+              userCode: |-
+                (input_src != null && input_src.containsKey("FAILED_RECORD_IND")) ||
+                (input_trg != null && input_trg.containsKey("FAILED_RECORD_IND"))
+              script: input_src != null && input_src.containsKey("FAILED_RECORD_IND")
+                || input_trg != null && input_trg.containsKey("FAILED_RECORD_IND");
+          input_src:
+            link: FilterSrcRow/result
+            schema: '#ref'
+            mandatory: false
+          input_trg:
+            link: FilterTarRow/result
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      ProcessedRecordCount1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
+      MathAdd2:
+        parent: MathAdd
+        in:
+          b:
+            const: 1
+          a:
+            link: ProcessedRecordCount1/result
+      '# ProcessedRecords1':
+        parent: FabricSet
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
+          value:
+            const: null
+            link: MathAdd2/result
+            default: false
+      InnerFlow1:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckErrorThresholds
+          error:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          operational_interface:
+            link: RESULT_INTERFACE/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          table_name:
+            link:
+            - FetchTableName/result
+            - SRC table name/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+      LoopSkip2:
+        parent: LoopSkip
+    split: '--------------------'
+  Stage 15:
+    else: true
+    transactional: true
+    dependsOn: Deep copy record
   Stage 2:
     transactional: true
     actors:
@@ -1031,7 +1407,7 @@ stages:
         in:
           value:
             link: FilterTarRow/result
-  Stage 3:
+  Verify record exists:
     transactional: true
     dependsOn: Stage 2
     actors:
@@ -1093,6 +1469,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucket_id:
+            link: IID/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
         out:
           keyNotFound:
             schema: boolean
@@ -1101,11 +1487,45 @@ stages:
     else: true
     transactional: true
     dependsOn: Stage 2
-  Verify record exists:
+  read processed records:
     transactional: true
+    actors:
+      ProcessedRecordCount:
+        parent: FabricSetRead
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
+      MathAdd1:
+        parent: MathAdd
+        in:
+          b:
+            const: 1
+          a:
+            link: ProcessedRecordCount/result
+  Timestamps:
+    transactional: true
+    actors:
+      tsAfterVerifyKeysExists:
+        parent: Now
+      verifyKeysExistsDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsBeforeVerifyKeysExists/date
+          to:
+            link: tsAfterVerifyKeysExists/date
+      verifyAllKeysExistsDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: verifyKeysExistsDuration/millis
+              pos: 0
+      tsBeforeVerifyRecordData:
+        parent: Now
   Record exists->verify data:
     transactional: true
-    dependsOn: Verify record exists
+    dependsOn: Timestamps
     actors:
       RecordExists:
         parent: Equals
@@ -1123,12 +1543,12 @@ stages:
             const: bwVerifyRecordData
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
             external: target_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           task_id:
@@ -1170,13 +1590,6 @@ stages:
             - FetchTableName/result
             - TAR table name/value
             schema: string
-            mandatory: false
-            createdBy: flowName
-          operational_schema:
-            link: LOAD_SCHEMA/variableValue
-            schema: string
-            editor:
-              id: com.k2view.dbtable
             mandatory: false
             createdBy: flowName
           log_pass:
@@ -1233,15 +1646,19 @@ stages:
   Stage 1:
     else: true
     transactional: true
-    dependsOn: Verify record exists
+    dependsOn: Timestamps
   '# processed records':
     transactional: true
     actors:
       '# ProcessedRecords':
-        parent: Count
-        out:
+        parent: FabricSet
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
           value:
-            schema: integer
+            const: null
+            link: MathAdd1/result
+            default: false
       MathDivMod:
         parent: MathDivMod
         in:
@@ -1249,7 +1666,28 @@ stages:
             const: 1000
             schema: integer
           a:
-            link: '# ProcessedRecords/value'
+            link: MathAdd1/result
+      FailedRecordCount1:
+        parent: FabricSetRead
+        in:
+          key:
+            const: FAILED_RECORD_COUNT
+      tsAfterVerifyRecordData:
+        parent: Now
+      verifyRecordDataDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsBeforeVerifyRecordData/date
+          to:
+            link: tsAfterVerifyRecordData/date
+      verifyAllRecordsDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: verifyRecordDataDuration/millis
+              pos: 0
   Write each 1000:
     transactional: false
     dependsOn: '# processed records'
@@ -1263,6 +1701,25 @@ stages:
             schema: integer
           a:
             link: MathDivMod/mod
+      RetryQuery14:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       'Update #Processed':
         parent: DbCommand
         in:
@@ -1271,8 +1728,8 @@ stages:
             link: RESULT_INTERFACE/variableValue
           sql:
             const: update ${@schema}.task_execution_buckets set processed_records
-              = ${processed_records} where task_id=${task_id} and execution_id=${execution_id}
-              and table_name=${table_name} and bucket_id=${bucket_id}
+              = ${processed_records}, failed_records = ${failed_records}  where task_id=${task_id}
+              and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -1301,10 +1758,31 @@ stages:
             mandatory: false
             createdBy: sql
           processed_records:
-            link: '# ProcessedRecords/value'
+            link: MathAdd1/result
             schema: integer
             mandatory: false
             createdBy: sql
+          failed_records:
+            link: FailedRecordCount1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+      tsAfterUpdate1000ProcessedRecords:
+        parent: Now
+      update1000RecordsDuration:
+        parent: DateDuration
+        in:
+          from:
+            link: tsAfterVerifyRecordData/date
+          to:
+            link: tsAfterUpdate1000ProcessedRecords/date
+      updateNx1000RecordsDuration:
+        parent: Aggregate
+        in:
+          input:
+            link:
+              path: update1000RecordsDuration/millis
+              pos: 0
     split: '--------------------'
   Stage 39:
     else: true
@@ -1316,19 +1794,70 @@ stages:
   Close loop:
     last: 1
     transactional: true
+    actors:
+      Now11:
+        parent: Now
+  Bucket verify end_time:
+    transactional: false
+    actors:
+      Now1:
+        parent: Now
+      END_TIME:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+      tsEndOfProcess:
+        parent: Now
+      DateDuration6:
+        parent: DateDuration
+        in:
+          from:
+            link: Now11/date
+          to:
+            link: tsEndOfProcess/date
+      ToString2:
+        parent: ToString
+        in:
+          value:
+            link: tsEndOfProcess/date
   Bucket Verify Completed:
     transactional: false
     actors:
-      UpdateBucketVerifyCompleted:
+      RetryQuery15:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
+      UpdateBucketVerifyCompleted1:
         parent: DbCommand
         in:
           interface:
             const: null
             link: RESULT_INTERFACE/variableValue
           sql:
-            const: update ${@schema}.task_execution_buckets set processed_records
-              = ${processed_records} where task_id=${task_id} and execution_id=${execution_id}
-              and table_name=${table_name} and bucket_id=${bucket_id}
+            const: |-
+              update ${@schema}.task_execution_buckets set processed_records = ${processed_records}, end_time=${end_time},
+              status='Completed' , prepare_keys_group_duration=${prepare_keys_group_duration} , verify_all_keys_exists_duration=${verify_all_keys_exists_duration} ,
+              verify_all_records_duration=${verify_all_records_duration}, update_nx1000_records_duration=${update_nx1000_records_duration},duration_6=${duration_6}, select_all_records_from_source_duration=${select_all_records_from_source_duration},
+              all_src_transformation_duration=${all_src_transformation_duration},select_all_records_from_tartget_duration=${select_all_records_from_tartget_duration}, all_tar_transformation_duration=${all_tar_transformation_duration},all_src_records_map_duration=${all_src_records_map_duration},all_tar_records_map_duration=${all_tar_records_map_duration},
+              verify_source_target_data_start=${verify_source_target_data_start},keys_group_loop_start=${keys_group_loop_start},end_of_process=${end_of_process},create_src_statement_duration=${create_src_statement_duration},create_tar_statement_duration=${create_tar_statement_duration},get_bucket_key_list_duration=${get_bucket_key_list_duration},
+              src_bucket_rows_duration=${src_bucket_rows_duration},tar_bucket_rows_duration=${tar_bucket_rows_duration},lu_function_duration=${lu_function_duration}
+              where task_id=${task_id} and execution_id=${execution_id} and table_name=${table_name} and bucket_id=${bucket_id}
           schema:
             link: LOAD_SCHEMA/variableValue
             schema: string
@@ -1358,6 +1887,111 @@ stages:
             createdBy: sql
           processed_records:
             link: '# Records/result'
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          end_time:
+            link: END_TIME/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          duration_6:
+            link: DateDuration6/millis
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          prepare_keys_group_duration:
+            link: PrepareKeysGroupDuration/millis
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          verify_all_records_duration:
+            link: verifyAllRecordsDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          verify_all_keys_exists_duration:
+            link: verifyAllKeysExistsDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          update_nx1000_records_duration:
+            link: updateNx1000RecordsDuration/sum
+            schema: any
+            mandatory: false
+            createdBy: sql
+          select_all_records_from_source_duration:
+            link: selectAllRecordsFromSourceDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          all_src_transformation_duration:
+            link: allSRCTransformationDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          select_all_records_from_tartget_duration:
+            link: selectAllRecordsFromTartgetDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          all_tar_transformation_duration:
+            link: allTARTransformationDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          all_src_records_map_duration:
+            link: allSrcRecordsMapDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          all_tar_records_map_duration:
+            link: allTarRecordsMapDuration/sum
+            schema: number
+            mandatory: false
+            createdBy: sql
+          verify_source_target_data_start:
+            link: ToString1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          keys_group_loop_start:
+            link: tsBeforKeysGroupLoop/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          end_of_process:
+            link: ToString2/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+          create_src_statement_duration:
+            link: DateDuration1/millis
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          create_tar_statement_duration:
+            link: DateDuration2/millis
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          get_bucket_key_list_duration:
+            link: DateDuration3/millis
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          tar_bucket_rows_duration:
+            link: GetBucketKeysList/tarBucketRowsDuration
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          src_bucket_rows_duration:
+            link: GetBucketKeysList/srcBucketRowsDuration
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          lu_function_duration:
+            link: GetBucketKeysList/luFunctionDuration
             schema: integer
             mandatory: false
             createdBy: sql
@@ -1528,12 +2162,22 @@ schemas:
           type: date
         SRC_NOTES:
           type: string
+        SRC_PREFERENCES_JSON:
+          type: string
         SRC_FLOAT_SCORE:
           type: number
+        SRC_AVATAR_RAW:
+          type: array
+          items: {
+            }
         SRC_VALID_FROM:
           type: date
         SRC_DATE_OF_BIRTH:
           type: date
+        SRC_PROFILE_BLOB:
+          type: array
+          items: {
+            }
         SRC_HEIGHT_CM:
           type: integer
         SRC_LAST_LOGIN_TS:
@@ -1664,12 +2308,22 @@ schemas:
           type: date
         TAR_NOTES:
           type: string
+        TAR_PREFERENCES_JSON:
+          type: string
         TAR_FLOAT_SCORE:
           type: number
+        TAR_AVATAR_RAW:
+          type: array
+          items: {
+            }
         TAR_VALID_FROM:
           type: date
         TAR_DATE_OF_BIRTH:
           type: date
+        TAR_PROFILE_BLOB:
+          type: array
+          items: {
+            }
         TAR_HEIGHT_CM:
           type: integer
         TAR_LAST_LOGIN_TS:
@@ -2273,6 +2927,216 @@ schemas:
       SRC_FIRST_NAME:
         type: string
       SRC_LAST_NAME:
+        type: string
+  JavaScript4.in.input_src:
+    type: object
+    properties:
+      TAR_CUSTOMER_ID:
+        type: integer
+      TAR_CREATED_AT:
+        type: date
+      TAR_CHILDREN_COUNT: {
+        }
+      TAR_LOYALTY_POINTS:
+        type: integer
+      TAR_SIGNUP_DATE:
+        type: date
+      TAR_PREFERRED_LANGUAGE:
+        type: string
+      TAR_COUNTRY:
+        type: string
+      TAR_COMM_CHANNEL: {
+        }
+      TAR_FAVORITE_NUMBER: {
+        }
+      TAR_LAST_LOGIN_TZ: {
+        }
+      TAR_UPDATED_AT: {
+        }
+      TAR_TIMEZONE:
+        type: string
+      TAR_HOME_LAT: {
+        }
+      TAR_IS_VIP:
+        type: string
+      TAR_BALANCE:
+        type: integer
+      TAR_CREDIT_LIMIT:
+        type: integer
+      TAR_SMALL_FLAG: {
+        }
+      TAR_LAST_NAME:
+        type: string
+      TAR_RISK_SCORE:
+        type: integer
+      TAR_ROW_VERSION: {
+        }
+      TAR_FIRST_NAME:
+        type: string
+      TAR_MARKETING_OPT_IN: {
+        }
+      TAR_VALID_TO: {
+        }
+      TAR_NOTES: {
+        }
+      TAR_PREFERENCES_JSON: {
+        }
+      TAR_FLOAT_SCORE: {
+        }
+      TAR_AVATAR_RAW: {
+        }
+      TAR_VALID_FROM: {
+        }
+      TAR_DATE_OF_BIRTH:
+        type: date
+      TAR_PROFILE_BLOB: {
+        }
+      TAR_HEIGHT_CM: {
+        }
+      TAR_LAST_LOGIN_TS: {
+        }
+      TAR_WEIGHT_KG: {
+        }
+      TAR_SSN:
+        type: string
+      TAR_HOME_LON: {
+        }
+      TAR_DOUBLE_SCORE: {
+        }
+      TAR_MIDDLE_NAME:
+        type: string
+      TAR_EMAIL:
+        type: string
+      TAR_ALT_EMAIL:
+        type: string
+      TAR_PHONE:
+        type: string
+      TAR_ALT_PHONE:
+        type: string
+      TAR_ADDRESS_LINE1:
+        type: string
+      TAR_ADDRESS_LINE2:
+        type: string
+      TAR_CITY:
+        type: string
+      TAR_STATE_PROVINCE:
+        type: string
+      TAR_POSTAL_CODE:
+        type: string
+      TAR_GENDER:
+        type: string
+      TAR_MARITAL_STATUS:
+        type: string
+      TAR_NATIONAL_ID: {
+        }
+      TAR_PASSPORT_NO: {
+        }
+  JavaScript4.in.input_trg:
+    type: object
+    properties:
+      TAR_SSN_ORIG:
+        type: string
+      TAR_CUSTOMER_ID:
+        type: integer
+      TAR_CREATED_AT:
+        type: date
+      TAR_CHILDREN_COUNT: {
+        }
+      TAR_LOYALTY_POINTS:
+        type: integer
+      TAR_SIGNUP_DATE:
+        type: date
+      TAR_PREFERRED_LANGUAGE:
+        type: string
+      TAR_COUNTRY:
+        type: string
+      TAR_COMM_CHANNEL: {
+        }
+      TAR_FAVORITE_NUMBER: {
+        }
+      TAR_LAST_LOGIN_TZ: {
+        }
+      TAR_UPDATED_AT: {
+        }
+      TAR_TIMEZONE:
+        type: string
+      TAR_HOME_LAT: {
+        }
+      TAR_IS_VIP:
+        type: string
+      TAR_BALANCE:
+        type: integer
+      TAR_CREDIT_LIMIT:
+        type: integer
+      TAR_SMALL_FLAG: {
+        }
+      TAR_LAST_NAME:
+        type: string
+      TAR_RISK_SCORE:
+        type: integer
+      TAR_ROW_VERSION: {
+        }
+      TAR_FIRST_NAME:
+        type: string
+      TAR_MARKETING_OPT_IN: {
+        }
+      TAR_VALID_TO: {
+        }
+      TAR_NOTES: {
+        }
+      TAR_PREFERENCES_JSON: {
+        }
+      TAR_FLOAT_SCORE: {
+        }
+      TAR_AVATAR_RAW: {
+        }
+      TAR_VALID_FROM: {
+        }
+      TAR_DATE_OF_BIRTH:
+        type: date
+      TAR_PROFILE_BLOB: {
+        }
+      TAR_HEIGHT_CM: {
+        }
+      TAR_LAST_LOGIN_TS: {
+        }
+      TAR_WEIGHT_KG: {
+        }
+      TAR_SSN: {
+        }
+      TAR_HOME_LON: {
+        }
+      TAR_DOUBLE_SCORE: {
+        }
+      TAR_MIDDLE_NAME:
+        type: string
+      TAR_EMAIL:
+        type: string
+      TAR_ALT_EMAIL:
+        type: string
+      TAR_PHONE:
+        type: string
+      TAR_ALT_PHONE:
+        type: string
+      TAR_ADDRESS_LINE1:
+        type: string
+      TAR_ADDRESS_LINE2:
+        type: string
+      TAR_CITY:
+        type: string
+      TAR_STATE_PROVINCE:
+        type: string
+      TAR_POSTAL_CODE:
+        type: string
+      TAR_GENDER:
+        type: string
+      TAR_MARITAL_STATUS:
+        type: string
+      TAR_NATIONAL_ID: {
+        }
+      TAR_PASSPORT_NO: {
+        }
+      FAILED_RECORD_IND:
         type: string
   VerifyKeysExists.in.src_row:
     type: array

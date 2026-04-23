@@ -154,6 +154,42 @@
                             }
                         },
                         {
+                            "name": "RetryQuery1",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "LoadNewExecution",
                             "actorType": {
                                 "parentType": "DbLoad",
@@ -260,6 +296,42 @@
                         "Generate new execution"
                     ],
                     "actors": [
+                        {
+                            "name": "RetryQuery11",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
                         {
                             "name": "FetchExecutionID",
                             "actorType": {
@@ -483,6 +555,42 @@
                     ],
                     "actors": [
                         {
+                            "name": "RetryQuery12",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "CreateFieldSummary",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -551,6 +659,42 @@
                     "name": "Task tables properties",
                     "dependsOnList": [],
                     "actors": [
+                        {
+                            "name": "RetryQuery13",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
                         {
                             "name": "FetchTaskProps",
                             "actorType": {
@@ -1058,6 +1202,42 @@
                             "actorType": {
                                 "parentType": "NotNull",
                                 "inputs": [],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "RetryQuery14",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
                                 "outputs": []
                             }
                         },
@@ -2355,6 +2535,42 @@
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "RetryQuery15",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "UpTimeBeforePKCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -2454,6 +2670,42 @@
                             }
                         },
                         {
+                            "name": "RetryQuery16",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "FieldSumPK",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -2530,6 +2782,42 @@
                     "name": "Update time after PK creation",
                     "dependsOnList": [],
                     "actors": [
+                        {
+                            "name": "RetryQuery17",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
                         {
                             "name": "UpTimeAfterPKCreation",
                             "actorType": {
@@ -2631,6 +2919,42 @@
                     "dependsOnList": [],
                     "actors": [
                         {
+                            "name": "RetryQuery18",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "UpTimeBeforeIDXCreation",
                             "actorType": {
                                 "parentType": "DbCommand",
@@ -2724,6 +3048,42 @@
                                             "type": "string"
                                         },
                                         "const": "true"
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
+                            "name": "RetryQuery19",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": true,
+                                                    "log": true,
+                                                    "flowName": "bwPhysicalError",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "const": "DATABASE_OPERATION_FAILED",
+                                        "name": "physical_error_type",
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "mandatory": false
                                     }
                                 ],
                                 "outputs": []

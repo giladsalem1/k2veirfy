@@ -32,12 +32,19 @@ public class SharedGlobals {
 	public static String K2VERIFY_RESULT_FILES_PATH = "/opt/apps/fabric/workspace/verify";
 	@category("K2VERIFY")		
 	public static String K2VERIFY_MAX_EXECUTIONS_TO_KEEP = "1";
-	 @category("K2VERIFY")  
- 	public static String MIN_PROCESSED_THRESHOLD_PCT = "10";
+
+	@desc("Minimum percentage of records that must be processed before evaluating other thresholds.")
 	@category("K2VERIFY")  
-	public static String MAX_COMPARISON_FAILURE_PCT = "10";
+ 	public static String MIN_PROCESSED_THRESHOLD_PCT = "1";
+
+	@desc("Maximum allowed percentage of records where the comparison between the source and target could not be completed.")
+	@category("K2VERIFY")
+	public static String MAX_COMPARISON_FAILURE_PCT = "20";
+
+	@desc("Maximum allowed percentage of records where the comparison succeeded, but field values differ between source and target.")
 	@category("K2VERIFY")  
-	public static String MAX_RECORD_MISMATCH_PCT = "10";
+	public static String MAX_RECORD_MISMATCH_PCT = "20";
+
 	@category("K2VERIFY")  
 	public static String MAX_SLIDING_WINDOW_FAILURE_PCT = "10";
 	@category("K2VERIFY")  
@@ -51,9 +58,5 @@ public class SharedGlobals {
     public static String TDM_K2VERIFY_NUM_OF_BUCKETS = "5";
 
     public static String EXECUTE_VERIFY_TASK_ID = "";
-
-
-
-
 }
 

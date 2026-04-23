@@ -115,7 +115,7 @@ var react_production_min = {};
  * LICENSE file in the root directory of this source tree.
  */
 "use strict";
-var l$2 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$3 = Symbol.for("react.fragment"), q$2 = Symbol.for("react.strict_mode"), r$1 = Symbol.for("react.profiler"), t$1 = Symbol.for("react.provider"), u$1 = Symbol.for("react.context"), v$2 = Symbol.for("react.forward_ref"), w$1 = Symbol.for("react.suspense"), x$2 = Symbol.for("react.memo"), y$1 = Symbol.for("react.lazy"), z$2 = Symbol.iterator;
+var l$2 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$3 = Symbol.for("react.fragment"), q$2 = Symbol.for("react.strict_mode"), r$1 = Symbol.for("react.profiler"), t$2 = Symbol.for("react.provider"), u$1 = Symbol.for("react.context"), v$2 = Symbol.for("react.forward_ref"), w$1 = Symbol.for("react.suspense"), x$2 = Symbol.for("react.memo"), y$1 = Symbol.for("react.lazy"), z$2 = Symbol.iterator;
 function A$2(a2) {
   if (null === a2 || "object" !== typeof a2)
     return null;
@@ -312,7 +312,7 @@ var cloneElement = react_production_min.cloneElement = function(a2, b3, e) {
 };
 var createContext = react_production_min.createContext = function(a2) {
   a2 = { $$typeof: u$1, _currentValue: a2, _currentValue2: a2, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null };
-  a2.Provider = { $$typeof: t$1, _context: a2 };
+  a2.Provider = { $$typeof: t$2, _context: a2 };
   return a2.Consumer = a2;
 };
 var createElement = react_production_min.createElement = M$2;
@@ -3538,7 +3538,7 @@ function oh(a2, b3, c2) {
     Cc(a2, c2);
   }
 }
-function ph(a2, b3) {
+function ph$1(a2, b3) {
   var c2 = a2.updateQueue, d2 = a2.alternate;
   if (null !== d2 && (d2 = d2.updateQueue, c2 === d2)) {
     var e = null, f2 = null;
@@ -6518,7 +6518,7 @@ function Mk(a2, b3) {
               b3 &= -b3;
               f2.lanes |= b3;
               var x2 = Ni(f2, k3, b3);
-              ph(f2, x2);
+              ph$1(f2, x2);
               break a;
             case 1:
               h2 = k3;
@@ -6528,7 +6528,7 @@ function Mk(a2, b3) {
                 b3 &= -b3;
                 f2.lanes |= b3;
                 var F2 = Qi(f2, h2, b3);
-                ph(f2, F2);
+                ph$1(f2, F2);
                 break a;
               }
           }
@@ -15931,6 +15931,7 @@ function ComboCell({
   });
   const wrapperRef = react.exports.useRef(null);
   const prevExternalRef = react.exports.useRef(externalValue);
+  const lastCustomRef = react.exports.useRef(externalValue === "Auto" ? "" : String(externalValue != null ? externalValue : ""));
   react.exports.useEffect(() => {
     if (prevExternalRef.current !== externalValue) {
       prevExternalRef.current = externalValue;
@@ -15940,6 +15941,7 @@ function ComboCell({
       } else {
         setMode("custom");
         setCustomNumber(String(externalValue != null ? externalValue : ""));
+        lastCustomRef.current = String(externalValue != null ? externalValue : "");
       }
     }
   }, [externalValue]);
@@ -15978,14 +15980,10 @@ function ComboCell({
       onChange(settingKey, "Auto");
     } else {
       setMode("custom");
-      if (externalValue !== "Auto" && externalValue !== void 0 && externalValue !== null) {
-        setCustomNumber(String(externalValue));
-      } else {
-        const seeded = normalizeSeed(customSeedValue);
-        setCustomNumber(seeded);
-        if (seeded !== "") {
-          onChange(settingKey, seeded);
-        }
+      const restored = lastCustomRef.current || (externalValue !== "Auto" && externalValue ? String(externalValue) : "") || normalizeSeed(customSeedValue);
+      setCustomNumber(restored);
+      if (restored !== "") {
+        onChange(settingKey, restored);
       }
     }
     setDropdownOpen(false);
@@ -15999,6 +15997,7 @@ function ComboCell({
     const num = Number(val);
     if (num >= 1 && num <= 1e6) {
       setCustomNumber(val);
+      lastCustomRef.current = val;
       onChange(settingKey, val);
     }
   };
@@ -16140,37 +16139,24 @@ function ComboCell({
 }
 const DEFAULT_ENV = "_dev";
 const DEFAULT_PARTITION_METHOD = "bwGetBucketRows";
-const LOCAL_FILE_SYSTEM_TYPE = "LocalFileSystem";
+const FILE_SYSTEM_TYPES$1 = /* @__PURE__ */ new Set(["LocalFileSystem", "SFTP", "S3FileSystem", "AzureBlobFileSystem", "GCSFileSystem"]);
+function isFileSystemType$1(type) {
+  return FILE_SYSTEM_TYPES$1.has(String(type || "").trim());
+}
 const REQUIRED_FIELDS = ["source_environment", "source_interface", "source_schema", "source_table_name", "target_environment", "target_interface", "target_schema", "target_table_name"];
-const overrides = {
-  source_environment: "Source Environment",
-  source_interface: "Source Interface",
-  source_schema: "Source Schema",
-  source_table_name: "Source Table Name",
-  source_file_filter: "File Filter",
-  source_transformation_flow: "Source Transformation Flow",
-  source_ignore_null_columns: "Source Ignore-Null Columns",
-  target_environment: "Target Environment",
-  target_interface: "Target Interface",
-  target_schema: "Target Schema",
-  target_table_name: "Target Table Name",
-  target_transformation_flow: "Target Transformation Flow",
-  target_ignore_null_columns: "Target Ignore-Null Columns",
-  comparison_keys: "Comparison Keys",
-  pii_column_names: "PII Column Names",
-  excluded_columns_names: "Excluded Column Names",
-  rows_filter_condition: "Rows Filter Condition",
-  column_name_mapping: "Column Name Mapping",
-  partitions_count: "Partition Count",
-  partitions_assignment_method: "Partitions Assignment Method",
-  active: "Active"
-};
+window.k2api = window.k2api || window.parent.k2api;
+const t$1 = window.k2api.i18n.translate;
+const OVERRIDE_KEYS = ["source_environment", "source_interface", "source_schema", "source_table_name", "source_file_filter", "source_transformation_flow", "source_ignore_null_columns", "target_environment", "target_interface", "target_schema", "target_table_name", "target_transformation_flow", "target_ignore_null_columns", "comparison_keys", "pii_column_names", "excluded_columns_names", "rows_filter_condition", "column_name_mapping", "partitions_count", "partitions_assignment_method", "active"];
+const overrides = Object.fromEntries(OVERRIDE_KEYS.map((key) => [key, t$1(`k2verifyExpandedRowEditor.overrides.${key}`)]));
 function formatLabel(field) {
   if (!field)
     return "";
   if (overrides[field])
     return overrides[field];
   return String(field).replace(/_/g, " ").replace(/\b\w/g, (c2) => c2.toUpperCase());
+}
+function ph(field) {
+  return t$1(`k2verifyExpandedRowEditor.placeholders.${field}`);
 }
 function extractSchemas(raw) {
   var _a2, _b2, _c;
@@ -16214,7 +16200,8 @@ function Field({
   min,
   required = false,
   error = false,
-  placeholder
+  placeholder,
+  disabled = false
 }) {
   const borderColor = error ? "#ef4444" : "#d9d9d9";
   if (multiline) {
@@ -16233,6 +16220,7 @@ function Field({
       }), /* @__PURE__ */ jsx("textarea", {
         value: value != null ? value : "",
         required,
+        disabled,
         placeholder,
         onChange: (e) => onChange(e.target.value),
         style: {
@@ -16241,7 +16229,7 @@ function Field({
           border: `1px solid ${borderColor}`,
           borderRadius: 4,
           resize: "vertical",
-          background: "white",
+          background: disabled ? "#f3f3f3" : "white",
           outline: "none"
         }
       })]
@@ -16264,6 +16252,7 @@ function Field({
       value: value != null ? value : "",
       min,
       required,
+      disabled,
       placeholder,
       onChange: (e) => onChange(e.target.value),
       style: {
@@ -16271,7 +16260,7 @@ function Field({
         padding: "6px 10px",
         border: `1px solid ${borderColor}`,
         borderRadius: 4,
-        background: "white",
+        background: disabled ? "#f3f3f3" : "white",
         outline: "none"
       }
     })]
@@ -16462,7 +16451,7 @@ function buildPayload(draft) {
     active: !!draft.active
   };
 }
-function getIfaceType(ifaceByEnv, env, ifaceName) {
+function getIfaceType$1(ifaceByEnv, env, ifaceName) {
   var _a2, _b2;
   const list = ifaceByEnv[env];
   if (!Array.isArray(list))
@@ -16683,28 +16672,26 @@ function ExpandedRowEditor({
     }));
   }, []);
   const handleSourceIfaceChange = react.exports.useCallback((ifaceName) => {
-    const type = getIfaceType(ifaceByEnv, draft.source_environment, ifaceName);
-    const isFS = type === LOCAL_FILE_SYSTEM_TYPE;
+    const type = getIfaceType$1(ifaceByEnv, draft.source_environment, ifaceName);
+    const isFS = isFileSystemType$1(type);
     setDraft((prev) => ({
       ...prev,
       source_interface: ifaceName,
       source_schema: isFS ? "main" : "",
       source_table_name: "",
-      ...isFS && {
-        target_interface: "",
-        target_schema: "",
-        target_table_name: ""
-      }
+      target_interface: "",
+      target_schema: "",
+      target_table_name: ""
     }));
   }, [ifaceByEnv, draft.source_environment]);
   const handleTargetIfaceChange = react.exports.useCallback((ifaceName) => {
-    const type = getIfaceType(ifaceByEnv, draft.target_environment, ifaceName);
-    const isFS = type === LOCAL_FILE_SYSTEM_TYPE;
+    const type = getIfaceType$1(ifaceByEnv, draft.target_environment, ifaceName);
+    const isFS = isFileSystemType$1(type);
     setDraft((prev) => ({
       ...prev,
       target_interface: ifaceName,
       target_schema: isFS ? "main" : "",
-      target_table_name: ""
+      target_table_name: isFS ? prev.source_table_name : ""
     }));
   }, [ifaceByEnv, draft.target_environment]);
   const srcEnv = String(draft.source_environment || DEFAULT_ENV).trim();
@@ -16713,10 +16700,11 @@ function ExpandedRowEditor({
   const tarIface = String(draft.target_interface || "").trim();
   const srcSchema = String(draft.source_schema || "").trim();
   const tarSchema = String(draft.target_schema || "").trim();
-  const srcIfaceType = getIfaceType(ifaceByEnv, srcEnv, srcIface);
-  const tarIfaceType = getIfaceType(ifaceByEnv, tarEnv, tarIface);
-  const srcIsFileSystem = srcIfaceType === LOCAL_FILE_SYSTEM_TYPE;
-  const tarIsFileSystem = tarIfaceType === LOCAL_FILE_SYSTEM_TYPE;
+  const srcIfaceType = getIfaceType$1(ifaceByEnv, srcEnv, srcIface);
+  const tarIfaceType = getIfaceType$1(ifaceByEnv, tarEnv, tarIface);
+  const srcIsFileSystem = isFileSystemType$1(srcIfaceType);
+  const tarIsFileSystem = isFileSystemType$1(tarIfaceType);
+  const canEditFileFilter = srcIsFileSystem && tarIsFileSystem;
   const srcSchemasKey = `${srcEnv}||${srcIface}`;
   const tarSchemasKey = `${tarEnv}||${tarIface}`;
   const srcTablesKey = `${srcEnv}||${srcIface}||${srcSchema}`;
@@ -16733,14 +16721,20 @@ function ExpandedRowEditor({
   const tarTablesLoading = tablesLoadingKeys.has(tarTablesKey);
   const srcIfaceItems = Array.isArray(ifaceByEnv[srcEnv]) ? ifaceByEnv[srcEnv] : [];
   const tarIfaceItems = Array.isArray(ifaceByEnv[tarEnv]) ? ifaceByEnv[tarEnv] : [];
-  const srcIfaceOptions = (srcIfaceItems.length ? srcIfaceItems : draft.source_interface ? [{
+  const srcIfaceOptions = srcIfaceItems.length ? srcIfaceItems : draft.source_interface ? [{
     name: draft.source_interface,
     type: srcIfaceType
-  }] : []).filter((x2) => !tarIsFileSystem || x2.type === LOCAL_FILE_SYSTEM_TYPE);
+  }] : [];
   const tarIfaceOptions = (tarIfaceItems.length ? tarIfaceItems : draft.target_interface ? [{
     name: draft.target_interface,
     type: tarIfaceType
-  }] : []).filter((x2) => !srcIsFileSystem || x2.type === LOCAL_FILE_SYSTEM_TYPE);
+  }] : []).filter((x2) => {
+    if (srcIsFileSystem)
+      return isFileSystemType$1(x2.type);
+    if (srcIface)
+      return !isFileSystemType$1(x2.type);
+    return true;
+  });
   const srcSchemas = Array.isArray(schemasByEnvIface[srcSchemasKey]) ? schemasByEnvIface[srcSchemasKey] : [];
   const tarSchemas = Array.isArray(schemasByEnvIface[tarSchemasKey]) ? schemasByEnvIface[tarSchemasKey] : [];
   const srcTables = Array.isArray(tablesByKey[srcTablesKey]) ? tablesByKey[srcTablesKey] : [];
@@ -16815,7 +16809,7 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: envsLoading ? "Loading..." : "e.g. _dev"
+              children: envsLoading ? t$1("k2verifyExpandedRowEditor.loading") : ph("source_environment")
             }), (allEnvironments.length ? allEnvironments : [draft.source_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
               value: e,
               style: {
@@ -16835,7 +16829,7 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: srcIfaceLoading ? "Loading..." : "e.g. Oracle_PROD"
+              children: srcIfaceLoading ? t$1("k2verifyExpandedRowEditor.loading") : ph("source_interface")
             }), srcIfaceOptions.map((x2) => /* @__PURE__ */ jsx("option", {
               value: x2.name,
               style: {
@@ -16846,18 +16840,19 @@ function ExpandedRowEditor({
           }), srcIsFileSystem ? /* @__PURE__ */ jsxs("div", {
             children: [/* @__PURE__ */ jsx(Field, {
               label: "source_file_filter",
-              value: draft.source_table_name,
+              value: canEditFileFilter ? draft.source_table_name : "",
               onChange: handleFileFilterChange,
-              placeholder: "e.g. *.csv",
-              required: true,
-              error: !!invalidFields.source_table_name
+              placeholder: canEditFileFilter ? ph("source_file_filter") : "Select both source and target file-system interfaces first",
+              required: canEditFileFilter,
+              error: canEditFileFilter && !!invalidFields.source_table_name,
+              disabled: !canEditFileFilter
             }), /* @__PURE__ */ jsx("div", {
               style: {
                 marginTop: 4,
                 fontSize: 11,
                 color: "#6b7280"
               },
-              children: "Applied to both source and target filesystem interfaces."
+              children: canEditFileFilter ? t$1("k2verifyExpandedRowEditor.filesystemHint") : "Select both source and target file-system interfaces first"
             })]
           }) : /* @__PURE__ */ jsxs(Fragment, {
             children: [/* @__PURE__ */ jsxs(SelectField, {
@@ -16872,7 +16867,7 @@ function ExpandedRowEditor({
               children: [/* @__PURE__ */ jsx("option", {
                 value: "",
                 disabled: true,
-                children: srcSchemasLoading ? "Loading..." : srcSchemasLoaded && srcSchemas.length === 0 ? "No schemas found" : "e.g. CUSTOMER"
+                children: srcSchemasLoading ? t$1("k2verifyExpandedRowEditor.loading") : srcSchemasLoaded && srcSchemas.length === 0 ? t$1("k2verifyExpandedRowEditor.noSchemasFound") : ph("source_schema")
               }), (srcSchemas.length ? srcSchemas : [draft.source_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
                 value: s2,
                 style: {
@@ -16892,14 +16887,14 @@ function ExpandedRowEditor({
               children: [/* @__PURE__ */ jsx("option", {
                 value: "",
                 disabled: true,
-                children: srcTablesLoading ? "Loading..." : srcTablesLoaded && srcTables.length === 0 ? "No tables found" : "e.g. CUSTOMER_SRC"
-              }), (srcTables.length ? srcTables : [draft.source_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
-                value: t3,
+                children: srcTablesLoading ? t$1("k2verifyExpandedRowEditor.loading") : srcTablesLoaded && srcTables.length === 0 ? t$1("k2verifyExpandedRowEditor.noTablesFound") : ph("source_table_name")
+              }), (srcTables.length ? srcTables : [draft.source_table_name].filter(Boolean)).map((t22) => /* @__PURE__ */ jsx("option", {
+                value: t22,
                 style: {
                   color: "#111"
                 },
-                children: t3
-              }, t3))]
+                children: t22
+              }, t22))]
             })]
           })]
         }), /* @__PURE__ */ jsxs("div", {
@@ -16920,7 +16915,7 @@ function ExpandedRowEditor({
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: envsLoading ? "Loading..." : "e.g. _dev"
+              children: envsLoading ? t$1("k2verifyExpandedRowEditor.loading") : ph("target_environment")
             }), (allEnvironments.length ? allEnvironments : [draft.target_environment].filter(Boolean)).map((e) => /* @__PURE__ */ jsx("option", {
               value: e,
               style: {
@@ -16934,13 +16929,13 @@ function ExpandedRowEditor({
             value: draft.target_interface || "",
             onChange: handleTargetIfaceChange,
             onOpen: () => ensureInterfacesLoaded(tarEnv),
-            disabled: !tarEnv || isEditMode,
+            disabled: !tarEnv || !srcIface || isEditMode,
             required: true,
             error: invalidFields.target_interface,
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
-              children: tarIfaceLoading ? "Loading..." : "e.g. Oracle_UAT"
+              children: tarIfaceLoading ? t$1("k2verifyExpandedRowEditor.loading") : ph("target_interface")
             }), tarIfaceOptions.map((x2) => /* @__PURE__ */ jsx("option", {
               value: x2.name,
               style: {
@@ -16961,7 +16956,7 @@ function ExpandedRowEditor({
               children: [/* @__PURE__ */ jsx("option", {
                 value: "",
                 disabled: true,
-                children: tarSchemasLoading ? "Loading..." : tarSchemasLoaded && tarSchemas.length === 0 ? "No schemas found" : "e.g. CUSTOMER"
+                children: tarSchemasLoading ? t$1("k2verifyExpandedRowEditor.loading") : tarSchemasLoaded && tarSchemas.length === 0 ? t$1("k2verifyExpandedRowEditor.noSchemasFound") : ph("target_schema")
               }), (tarSchemas.length ? tarSchemas : [draft.target_schema].filter(Boolean)).map((s2) => /* @__PURE__ */ jsx("option", {
                 value: s2,
                 style: {
@@ -16981,14 +16976,14 @@ function ExpandedRowEditor({
               children: [/* @__PURE__ */ jsx("option", {
                 value: "",
                 disabled: true,
-                children: tarTablesLoading ? "Loading..." : tarTablesLoaded && tarTables.length === 0 ? "No tables found" : "e.g. CUSTOMER_TAR"
-              }), (tarTables.length ? tarTables : [draft.target_table_name].filter(Boolean)).map((t3) => /* @__PURE__ */ jsx("option", {
-                value: t3,
+                children: tarTablesLoading ? t$1("k2verifyExpandedRowEditor.loading") : tarTablesLoaded && tarTables.length === 0 ? t$1("k2verifyExpandedRowEditor.noTablesFound") : ph("target_table_name")
+              }), (tarTables.length ? tarTables : [draft.target_table_name].filter(Boolean)).map((t22) => /* @__PURE__ */ jsx("option", {
+                value: t22,
                 style: {
                   color: "#111"
                 },
-                children: t3
-              }, t3))]
+                children: t22
+              }, t22))]
             })]
           })]
         }), /* @__PURE__ */ jsxs("div", {
@@ -17062,7 +17057,7 @@ function ExpandedRowEditor({
           color: "#ef4444",
           fontSize: 13
         },
-        children: "Please fill in all required fields."
+        children: t$1("k2verifyExpandedRowEditor.validation.requiredFields")
       }), /* @__PURE__ */ jsx("div", {
         style: {
           display: "flex",
@@ -17080,7 +17075,7 @@ function ExpandedRowEditor({
             borderRadius: 4,
             cursor: "pointer"
           },
-          children: "Advanced \u25BE"
+          children: t$1("k2verifyExpandedRowEditor.advanced")
         })
       }), /* @__PURE__ */ jsxs("div", {
         style: {
@@ -17092,7 +17087,7 @@ function ExpandedRowEditor({
         children: [/* @__PURE__ */ jsx("button", {
           type: "button",
           onClick: onClose,
-          children: "Cancel"
+          children: t$1("k2verifyExpandedRowEditor.cancel")
         }), /* @__PURE__ */ jsx("button", {
           type: "submit",
           style: {
@@ -17103,15 +17098,15 @@ function ExpandedRowEditor({
             borderRadius: 4,
             cursor: "pointer"
           },
-          children: "Save"
+          children: t$1("k2verifyExpandedRowEditor.save")
         })]
       })]
     }), advancedOpen && /* @__PURE__ */ jsx(Modal, {
-      title: "Advanced Edit",
+      title: t$1("k2verifyExpandedRowEditor.advancedEdit.title"),
       onClose: () => setAdvancedOpen(false),
       onSubmit: handleAdvancedSubmit,
-      submitLabel: "Submit",
-      cancelLabel: "Discard",
+      submitLabel: t$1("k2verifyExpandedRowEditor.advancedEdit.submit"),
+      cancelLabel: t$1("k2verifyExpandedRowEditor.advancedEdit.discard"),
       children: /* @__PURE__ */ jsxs("div", {
         style: {
           display: "flex",
@@ -17129,37 +17124,37 @@ function ExpandedRowEditor({
             label: "source_transformation_flow",
             value: draft.source_transformation_flow,
             onChange: (v2) => updateField("source_transformation_flow", v2),
-            placeholder: "e.g. myTransformFlow"
+            placeholder: ph("source_transformation_flow")
           }), /* @__PURE__ */ jsx(Field, {
             label: "target_transformation_flow",
             value: draft.target_transformation_flow,
             onChange: (v2) => updateField("target_transformation_flow", v2),
-            placeholder: "e.g. myTransformFlow"
+            placeholder: ph("target_transformation_flow")
           }), /* @__PURE__ */ jsx(Field, {
             label: "source_ignore_null_columns",
             value: draft.source_ignore_null_columns,
             onChange: (v2) => updateField("source_ignore_null_columns", v2),
-            placeholder: "e.g. COL_A|COL_B"
+            placeholder: ph("source_ignore_null_columns")
           }), /* @__PURE__ */ jsx(Field, {
             label: "target_ignore_null_columns",
             value: draft.target_ignore_null_columns,
             onChange: (v2) => updateField("target_ignore_null_columns", v2),
-            placeholder: "e.g. COL_A|COL_B"
+            placeholder: ph("target_ignore_null_columns")
           }), /* @__PURE__ */ jsx(Field, {
             label: "comparison_keys",
             value: draft.comparison_keys,
             onChange: (v2) => updateField("comparison_keys", v2),
-            placeholder: "e.g. CUSTOMER_ID|SSN"
+            placeholder: ph("comparison_keys")
           }), /* @__PURE__ */ jsx(Field, {
             label: "pii_column_names",
             value: draft.pii_column_names,
             onChange: (v2) => updateField("pii_column_names", v2),
-            placeholder: "e.g. SSN|EMAIL"
+            placeholder: ph("pii_column_names")
           }), /* @__PURE__ */ jsx(Field, {
             label: "excluded_columns_names",
             value: draft.excluded_columns_names,
             onChange: (v2) => updateField("excluded_columns_names", v2),
-            placeholder: "e.g. CREATED_AT|UPDATED_AT"
+            placeholder: ph("excluded_columns_names")
           }), /* @__PURE__ */ jsx("div", {})]
         }), /* @__PURE__ */ jsxs("div", {
           style: {
@@ -17182,7 +17177,7 @@ function ExpandedRowEditor({
               children: formatLabel("rows_filter_condition")
             }), /* @__PURE__ */ jsx("textarea", {
               value: (_a2 = draft.rows_filter_condition) != null ? _a2 : "",
-              placeholder: "e.g. STATUS = 'ACTIVE'",
+              placeholder: ph("rows_filter_condition"),
               onChange: (e) => updateField("rows_filter_condition", e.target.value),
               style: {
                 minHeight: 110,
@@ -17208,7 +17203,7 @@ function ExpandedRowEditor({
               children: formatLabel("column_name_mapping")
             }), /* @__PURE__ */ jsx("textarea", {
               value: (_b2 = draft.column_name_mapping) != null ? _b2 : "",
-              placeholder: "e.g. OLD_COL_NAME=NEW_COL_NAME",
+              placeholder: ph("column_name_mapping"),
               onChange: (e) => updateField("column_name_mapping", e.target.value),
               style: {
                 minHeight: 110,
@@ -19550,7 +19545,7 @@ function K2VerifyHomePage() {
       const argsStr = JSON.stringify({
         task_id
       });
-      const command = `startjob BROADWAY_JOB name='verify.bwHandleTaskExecution' args='${argsStr}';`;
+      const command = `startjob BROADWAY_JOB name='verify.bwExecuteK2Verify' args='${argsStr}';`;
       await runFabricCommand(command);
       navigate(`/execution/${encodeURIComponent(task_id)}`, {
         state: {
@@ -20830,6 +20825,24 @@ function TableMappingMultiSelect({
   const tarIF = ((params == null ? void 0 : params.K2VERIFY_INTERFACE_TAR) || "").trim();
   const srcEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_SRC) || "").trim();
   const tarEnv = ((params == null ? void 0 : params.K2VERIFY_ENV_TAR) || "").trim();
+  const [buildMapOpen, setBuildMapOpen] = react.exports.useState(false);
+  const [extraRows, setExtraRows] = react.exports.useState([]);
+  const extraRowsRef = react.exports.useRef([]);
+  const updateExtraRows = react.exports.useCallback((fn) => {
+    setExtraRows((prev) => {
+      const next = fn(prev);
+      extraRowsRef.current = next;
+      return next;
+    });
+  }, []);
+  const isFirstRender = react.exports.useRef(true);
+  react.exports.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    updateExtraRows(() => []);
+  }, [srcIF, tarIF]);
   const currentList = react.exports.useMemo(() => {
     const raw = Array.isArray(params == null ? void 0 : params.K2VERIFY_TABLE_LIST) ? params.K2VERIFY_TABLE_LIST : [];
     return raw.filter((p2) => (p2 == null ? void 0 : p2.src) && (p2 == null ? void 0 : p2.tar)).map((p2) => {
@@ -20844,8 +20857,6 @@ function TableMappingMultiSelect({
   const haveFilters = !!(srcIF && tarIF);
   const canBuildMap = !!(srcIF && tarIF && srcEnv && tarEnv);
   const mrows = Array.isArray(mtableData) ? mtableData : [];
-  const [buildMapOpen, setBuildMapOpen] = react.exports.useState(false);
-  const [extraRows, setExtraRows] = react.exports.useState([]);
   const mkKey = (s2, t3) => `${s2}__\u2192__${t3}`;
   const listHas = react.exports.useCallback((list, pair) => list.some((p2) => p2.src === pair.src && p2.tar === pair.tar), []);
   const updateList = react.exports.useCallback((nextList) => {
@@ -20870,7 +20881,7 @@ function TableMappingMultiSelect({
         key: mkKey(src, tar)
       };
     });
-    const fromExtra = extraRows.map((r2) => {
+    const fromExtra = extraRowsRef.current.map((r2) => {
       var _a2;
       return {
         src: r2.src,
@@ -20936,6 +20947,7 @@ function TableMappingMultiSelect({
     updateBucketsIfSelected(pair, value);
   }, [updateBucketsIfSelected]);
   const handleBuildMapConfirm = react.exports.useCallback((tableList) => {
+    console.log("handleBuildMapConfirm called, tableList:", tableList);
     const newExtras = [];
     const merged = [...currentList];
     const upsertPair = (list, pairWithBuckets) => {
@@ -20974,11 +20986,14 @@ function TableMappingMultiSelect({
         upsertPair(merged, pairWithBuckets);
       }
     });
-    if (newExtras.length)
-      setExtraRows((prev) => [...prev, ...newExtras]);
+    updateExtraRows((prev) => {
+      const next = [...prev, ...newExtras];
+      console.log("updateExtraRows called, newExtras:", newExtras, "result:", next);
+      return next;
+    });
     updateList(merged);
     setBuildMapOpen(false);
-  }, [currentList, tablePairs, updateList]);
+  }, [currentList, tablePairs, updateList, updateExtraRows]);
   const togglePair = react.exports.useCallback((pair) => {
     const exists = currentList.find((p2) => p2.src === pair.src && p2.tar === pair.tar);
     if (exists) {
@@ -21016,6 +21031,7 @@ function TableMappingMultiSelect({
     return filteredPairs.filter((p2) => selectedKeys.has(p2.key));
   }, [showSelectedOnly, filteredPairs, currentList]);
   const checkedCount = currentList.length;
+  console.log("RENDER extraRows:", extraRows, "extraRowsRef:", extraRowsRef.current);
   return /* @__PURE__ */ jsxs(Fragment, {
     children: [buildMapOpen && /* @__PURE__ */ jsx(BuildMapModal, {
       srcInterface: srcIF,
@@ -21261,6 +21277,16 @@ function TableMappingMultiSelect({
     })]
   });
 }
+const FILE_SYSTEM_TYPES = /* @__PURE__ */ new Set(["LocalFileSystem", "SFTP", "S3FileSystem", "AzureBlobFileSystem", "GCSFileSystem"]);
+function isFileSystemType(type) {
+  return FILE_SYSTEM_TYPES.has(String(type || "").trim());
+}
+function getIfaceType(list, ifaceName) {
+  var _a2, _b2;
+  if (!Array.isArray(list))
+    return "";
+  return (_b2 = (_a2 = list.find((x2) => x2.name === ifaceName)) == null ? void 0 : _a2.type) != null ? _b2 : "";
+}
 function K2VerifyGeneralTab({
   params,
   mtableData,
@@ -21287,6 +21313,15 @@ function K2VerifyGeneralTab({
   var _a2;
   window.k2api = window.k2api || window.parent.k2api;
   const t3 = window.k2api.i18n.translate;
+  const srcIfaceType = getIfaceType(activeInterfacesSrc, params.K2VERIFY_INTERFACE_SRC);
+  const srcIsFileSystem = isFileSystemType(srcIfaceType);
+  const filteredTargetInterfaces = (activeInterfacesTar || []).filter((iface) => {
+    if (srcIsFileSystem)
+      return isFileSystemType(iface.type);
+    if (params.K2VERIFY_INTERFACE_SRC)
+      return !isFileSystemType(iface.type);
+    return true;
+  });
   return /* @__PURE__ */ jsxs(Fragment, {
     children: [/* @__PURE__ */ jsxs("section", {
       className: "splitLeft",
@@ -21423,9 +21458,9 @@ function K2VerifyGeneralTab({
               value: "",
               children: t3("k2verifyTaskOptions.errors.noSourceFound")
             }) : activeInterfacesSrc.map((iface) => /* @__PURE__ */ jsx("option", {
-              value: iface,
-              children: iface
-            }, `src-${iface}`))]
+              value: iface.name,
+              children: iface.name
+            }, `src-${iface.name}`))]
           })]
         }), /* @__PURE__ */ jsxs("div", {
           className: "group",
@@ -21441,25 +21476,26 @@ function K2VerifyGeneralTab({
             onChange: handleInputChange,
             className: "select",
             required: true,
+            disabled: !params.K2VERIFY_ENV_TAR || !params.K2VERIFY_INTERFACE_SRC,
             children: [/* @__PURE__ */ jsx("option", {
               value: "",
               disabled: true,
               hidden: true,
-              children: t3("k2verifyTaskOptions.targetInterfaceSelectPlaceholder")
+              children: !params.K2VERIFY_INTERFACE_SRC ? "Select source interface first" : t3("k2verifyTaskOptions.targetInterfaceSelectPlaceholder")
             }), ifaceTarLoading ? /* @__PURE__ */ jsx("option", {
               children: t3("k2verifyTaskOptions.loading")
             }) : ifaceTarError ? /* @__PURE__ */ jsx("option", {
               disabled: true,
               value: "",
               children: t3("k2verifyTaskOptions.errors.loadingInterfaces")
-            }) : activeInterfacesTar.length === 0 ? /* @__PURE__ */ jsx("option", {
+            }) : filteredTargetInterfaces.length === 0 ? /* @__PURE__ */ jsx("option", {
               disabled: true,
               value: "",
               children: t3("k2verifyTaskOptions.errors.noTargetFound")
-            }) : activeInterfacesTar.map((iface) => /* @__PURE__ */ jsx("option", {
-              value: iface,
-              children: iface
-            }, `tar-${iface}`))]
+            }) : filteredTargetInterfaces.map((iface) => /* @__PURE__ */ jsx("option", {
+              value: iface.name,
+              children: iface.name
+            }, `tar-${iface.name}`))]
           })]
         })]
       }), /* @__PURE__ */ jsxs("div", {
@@ -21693,12 +21729,18 @@ function K2VerifyTaskOptions({
   const activeInterfacesSrc = react.exports.useMemo(() => {
     if (!Array.isArray(ifaceSrcData))
       return [];
-    return ifaceSrcData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort();
+    return ifaceSrcData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => ({
+      name: r2.INTERFACE.trim(),
+      type: String(r2.TYPE || "").trim()
+    })).sort((a2, b3) => a2.name.localeCompare(b3.name));
   }, [ifaceSrcData]);
   const activeInterfacesTar = react.exports.useMemo(() => {
     if (!Array.isArray(ifaceTarData))
       return [];
-    return ifaceTarData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => r2.INTERFACE.trim()).sort();
+    return ifaceTarData.filter((r2) => (r2 == null ? void 0 : r2.ACTIVE) === true && typeof (r2 == null ? void 0 : r2.INTERFACE) === "string" && r2.INTERFACE.trim()).map((r2) => ({
+      name: r2.INTERFACE.trim(),
+      type: String(r2.TYPE || "").trim()
+    })).sort((a2, b3) => a2.name.localeCompare(b3.name));
   }, [ifaceTarData]);
   const allEnvironments = react.exports.useMemo(() => {
     if (!Array.isArray(envData) || envData.length === 0)
@@ -22034,7 +22076,9 @@ function K2VerifyTaskCreation() {
       setParams((prev) => ({
         ...prev,
         K2VERIFY_ENV_SRC: newValue,
-        K2VERIFY_INTERFACE_SRC: ""
+        K2VERIFY_INTERFACE_SRC: "",
+        K2VERIFY_INTERFACE_TAR: "",
+        K2VERIFY_TABLE_LIST: []
       }));
       return;
     }
@@ -22043,7 +22087,25 @@ function K2VerifyTaskCreation() {
       setParams((prev) => ({
         ...prev,
         K2VERIFY_ENV_TAR: newValue,
-        K2VERIFY_INTERFACE_TAR: ""
+        K2VERIFY_INTERFACE_TAR: "",
+        K2VERIFY_TABLE_LIST: []
+      }));
+      return;
+    }
+    if (name === "K2VERIFY_INTERFACE_SRC") {
+      setParams((prev) => ({
+        ...prev,
+        K2VERIFY_INTERFACE_SRC: newValue,
+        K2VERIFY_INTERFACE_TAR: "",
+        K2VERIFY_TABLE_LIST: []
+      }));
+      return;
+    }
+    if (name === "K2VERIFY_INTERFACE_TAR") {
+      setParams((prev) => ({
+        ...prev,
+        K2VERIFY_INTERFACE_TAR: newValue,
+        K2VERIFY_TABLE_LIST: []
       }));
       return;
     }
@@ -22322,6 +22384,152 @@ function K2VerifyTaskHistory() {
     })]
   });
 }
+function ErrorTooltip$1({
+  value
+}) {
+  const [pos, setPos] = React.useState(null);
+  const [copied, setCopied] = React.useState(false);
+  const hideTimer = React.useRef(null);
+  const show = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPos({
+      top: rect.top + window.scrollY,
+      left: rect.left + window.scrollX
+    });
+  };
+  const cancelHide = () => clearTimeout(hideTimer.current);
+  const scheduleHide = () => {
+    hideTimer.current = setTimeout(() => setPos(null), 120);
+  };
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2e3);
+    });
+  };
+  return /* @__PURE__ */ jsxs(Fragment, {
+    children: [/* @__PURE__ */ jsx("span", {
+      onMouseEnter: show,
+      onMouseLeave: scheduleHide,
+      style: {
+        display: "block",
+        maxWidth: 260,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        cursor: "default",
+        color: "#B42323"
+      },
+      children: value
+    }), pos && ReactDOM.createPortal(/* @__PURE__ */ jsxs("div", {
+      onMouseEnter: cancelHide,
+      onMouseLeave: scheduleHide,
+      style: {
+        position: "absolute",
+        top: pos.top,
+        left: pos.left,
+        transform: "translateY(calc(-100% - 6px))",
+        zIndex: 99999,
+        backgroundColor: "#ffffff",
+        color: "#1a1a1a",
+        borderRadius: 6,
+        fontSize: "0.78rem",
+        lineHeight: 1.6,
+        maxWidth: 420,
+        minWidth: 220,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+        border: "1px solid #e0e0e0",
+        pointerEvents: "auto",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden"
+      },
+      children: [/* @__PURE__ */ jsx("div", {
+        style: {
+          padding: "10px 14px",
+          maxHeight: 160,
+          overflowY: "auto",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          userSelect: "text",
+          cursor: "text"
+        },
+        children: value
+      }), /* @__PURE__ */ jsx("div", {
+        style: {
+          borderTop: "1px solid #e0e0e0",
+          padding: "6px 10px",
+          display: "flex",
+          justifyContent: "flex-end",
+          backgroundColor: "#fafafa"
+        },
+        children: /* @__PURE__ */ jsx("button", {
+          onClick: handleCopy,
+          title: copied ? "Copied!" : "Copy to clipboard",
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            padding: "3px 10px",
+            fontSize: "0.72rem",
+            fontWeight: 500,
+            color: copied ? "#1F7A3E" : "#555",
+            backgroundColor: copied ? "#E8F7EE" : "#f4f4f4",
+            border: `1px solid ${copied ? "#BFE6CE" : "#ddd"}`,
+            borderRadius: 4,
+            cursor: "pointer",
+            userSelect: "none",
+            transition: "all 0.2s ease"
+          },
+          children: copied ? /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsx("svg", {
+              width: "11",
+              height: "11",
+              viewBox: "0 0 12 12",
+              fill: "none",
+              children: /* @__PURE__ */ jsx("path", {
+                d: "M2 6l3 3 5-5",
+                stroke: "#1F7A3E",
+                strokeWidth: "1.8",
+                strokeLinecap: "round",
+                strokeLinejoin: "round"
+              })
+            }), "Copied"]
+          }) : /* @__PURE__ */ jsxs(Fragment, {
+            children: [/* @__PURE__ */ jsxs("svg", {
+              width: "11",
+              height: "11",
+              viewBox: "0 0 12 12",
+              fill: "none",
+              children: [/* @__PURE__ */ jsx("rect", {
+                x: "3",
+                y: "1",
+                width: "6",
+                height: "1.5",
+                rx: "0.75",
+                fill: "#555"
+              }), /* @__PURE__ */ jsx("rect", {
+                x: "1.5",
+                y: "2",
+                width: "9",
+                height: "9",
+                rx: "1.2",
+                stroke: "#555",
+                strokeWidth: "1.2",
+                fill: "none"
+              }), /* @__PURE__ */ jsx("path", {
+                d: "M3.5 5.5h5M3.5 7.5h3.5",
+                stroke: "#555",
+                strokeWidth: "1",
+                strokeLinecap: "round"
+              })]
+            }), "Copy"]
+          })
+        })
+      })]
+    }), document.body)]
+  });
+}
 function K2VerifyExecution() {
   var _a2, _b2, _c;
   const apiBasePath2 = window.__API_BASE_PATH__ || "";
@@ -22522,17 +22730,18 @@ function K2VerifyExecution() {
     header: "Error Info",
     accessorKey: "error_info",
     enableSorting: true,
-    enableColumnFilter: true
+    enableColumnFilter: true,
+    cell: ({
+      value
+    }) => value ? /* @__PURE__ */ jsx(ErrorTooltip$1, {
+      value
+    }) : /* @__PURE__ */ jsx("span", {
+      style: {
+        color: "#aaa"
+      },
+      children: "\u2014"
+    })
   }], [statusPill]);
-  const endpoint = react.exports.useMemo(() => {
-    if (!decodedTaskId || !executionId)
-      return null;
-    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
-  }, [apiBasePath2, decodedTaskId, executionId]);
-  const {
-    fetchData: fetchTaskHistoryData,
-    error: detailError
-  } = useFetchData(endpoint || "");
   const [taskHistoryData, setTaskHistoryData] = react.exports.useState([]);
   const inFlightRef = react.exports.useRef(false);
   const intervalRef = react.exports.useRef(null);
@@ -22580,6 +22789,15 @@ function K2VerifyExecution() {
     setTableName(name);
     setInfoData([]);
   }, [t3, tableName]);
+  const endpoint = react.exports.useMemo(() => {
+    if (!decodedTaskId || !executionId)
+      return null;
+    return `${apiBasePath2}/api/fabric-command?command=${encodeURIComponent(`broadway verify.bwK2VerifyExecutionDetails task_id='${decodedTaskId}' execution_id='${executionId}' RESULT_STRUCTURE=CURSOR`)}`;
+  }, [apiBasePath2, decodedTaskId, executionId]);
+  const {
+    fetchData: fetchTaskHistoryData,
+    error: detailError
+  } = useFetchData(endpoint || "");
   react.exports.useEffect(() => {
     if (!endpoint)
       return;
@@ -22944,7 +23162,7 @@ function K2VerifyTaskHistoryDetailed() {
         retry_execution_id,
         IsRetryMode
       });
-      const command = `startjob BROADWAY_JOB name='verify.bwHandleTaskExecution' args='${argsStr}';`;
+      const command = `startjob BROADWAY_JOB name='verify.bwExecuteK2Verify' args='${argsStr}';`;
       await runFabricCommand(command);
       navigate(`/execution/${encodeURIComponent(task_id)}`, {
         state: {
@@ -39507,7 +39725,7 @@ function le(t3) {
   var h2 = l2.getContext("2d");
   h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
   var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.b61c26b1.js"), true ? [] : void 0)).catch(function(t4) {
+  return (i.canvg ? Promise.resolve(i.canvg) : __vitePreload(() => import("./index.es.1666b4df.js"), true ? [] : void 0)).catch(function(t4) {
     return Promise.reject(new Error("Could not load canvg: " + t4));
   }).then(function(t4) {
     return t4.default ? t4.default : t4;

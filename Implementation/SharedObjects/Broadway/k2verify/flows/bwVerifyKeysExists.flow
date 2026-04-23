@@ -71,6 +71,35 @@ stages:
             schema: boolean
           a:
             link: Or1/result
+      CheckMismatchThreshold:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckMismatchThresholds
+          error:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          table_name:
+            external: source_table_name
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          bucket_id:
+            external: bucket_id
+            schema: any
+            mandatory: false
+            createdBy: flowName
       Const6:
         parent: Const
         in:
@@ -178,6 +207,25 @@ stages:
   Write to file:
     transactional: true
     actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: bwPhysicalError
+                number_of_retries: ''
+                retry_interval: ''
+          physical_error_type:
+            const: STORAGE_WRITE_FAILED
+            schema: string
+            mandatory: false
       FileWrite1:
         parent: FileWrite
         in:

@@ -43,8 +43,8 @@ import org.postgresql.copy.CopyManager;
 import com.k2view.fabric.common.ParamConvertor;
 import java.io.FileReader;
 import java.io.Reader;
-import java.sql.Connection;
-import java.sql.DriverManager;
+
+import com.k2view.cdbms.jobs.JobExecutor;
 
 @SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class SharedLogic {
@@ -949,5 +949,79 @@ public class SharedLogic {
                 return 0;
             }
         }
+    }
+
+    @desc("")
+    @out(name = "", type = String.class, desc = "")
+    public static void fnEvaluateComparisonResults(long totalRecords, long processedRecords, long failedRecords, long mismatchedRecords, double minProcessedThresholdPct, 
+            double maxComparisonFailurePct,double maxRecordsMismatchPct,
+            int task_id, int execution_id, String table_name, String bucket_id) throws SQLException{
+
+        double processedPct = (processedRecords * 100.0) / totalRecords;        
+
+                log.info(
+            "### GILAD : fnEvaluateComparisonResults | " +
+            "task_id=" + task_id +
+            ", execution_id=" + execution_id +
+                ", table_name=" + table_name +
+            ", bucket_id=" + bucket_id +
+            ", totalRecords=" + totalRecords +
+            ", processedRecords=" + processedRecords +
+            ", failedRecords=" + failedRecords +
+            ", mismatchedRecords=" + mismatchedRecords +
+            ", minProcessedThresholdPct=" + minProcessedThresholdPct +
+            ", maxComparisonFailurePct=" + maxComparisonFailurePct +
+            ", maxRecordsMismatchPct=" + maxRecordsMismatchPct 
+        );
+
+        
+        log.info("### GILAD : processedPct <  minProcessedThresholdPct ?  " + processedPct +" , " +minProcessedThresholdPct);
+        if (processedPct < minProcessedThresholdPct) {
+            return; // skip evaluation until enough records are processed
+        }
+        double comparisonFailurePct = (failedRecords * 100.0) / processedRecords;
+        double recordsMismatchPct = (mismatchedRecords * 100.0) / processedRecords;
+
+        String sql = "update k2verify.task_execution_buckets"
+        + " set status=?, processed_records=?, failed_records=?, error_info=?"
+        + " where task_id=? and execution_id=? and table_name=? and bucket_id=?";
+        
+        log.info("### GILAD : comparisonFailurePct >=  maxComparisonFailurePct ?  " + comparisonFailurePct +" , " +maxComparisonFailurePct);
+        if (comparisonFailurePct >= maxComparisonFailurePct) {
+            handleFailure( "EXCESSIVE_COMPARISON_FAILURES", "failure_pct", comparisonFailurePct, processedRecords, 
+            failedRecords, processedPct, task_id, execution_id, table_name, bucket_id, sql);     
+        }      
+        log.info("### GILAD : recordsMismatchPct >=  maxRecordsMismatchPct ?  " + recordsMismatchPct +" , " +maxRecordsMismatchPct);
+        if (recordsMismatchPct >= maxRecordsMismatchPct) {          
+            handleFailure( "EXCESSIVE_RECORD_MISMATCHES", "mismatch_pct", recordsMismatchPct, processedRecords, 
+            failedRecords, processedPct, task_id, execution_id, table_name, bucket_id, sql);     
+        }
+    }
+
+    private static void handleFailure( String errorCode, String metricName, double metricValue, long processedRecords, long failedRecords, 
+        double processedPct,  int task_id, int execution_id, String table_name, String bucket_id, String sql) throws SQLException {
+
+        RuntimeException mainException =
+        new RuntimeException(
+            "VERIFY_THRESHOLD_BREACH" +
+            "|errorCode=" + errorCode +
+            "|metricName=" + metricName +
+            "|metricValue=" + String.format("%.2f", metricValue) +
+            "|taskId=" + task_id +
+            "|executionId=" + execution_id +
+            "|tableName=" + table_name +
+            "|bucketId=" + bucket_id
+        );
+        
+        fabric().execute("set ERROR_CODE="+errorCode);
+        fabric().execute("set PROCESSED_RECORD_COUNT="+processedRecords);  
+        
+        throw mainException;
+    }
+
+    @desc("")
+    @out(name = "", type = String.class, desc = "")
+    public static void fnJobNoRetry() throws Exception {             
+        JobExecutor.failJob(new Exception(), JobExecutor.FailAnd.noRetry);
     }
 }

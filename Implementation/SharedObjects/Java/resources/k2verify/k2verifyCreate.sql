@@ -266,7 +266,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_buckets
 CREATE INDEX IF NOT EXISTS task_exec_buckets_tbl_lstatus_idx
 ON ${@schema}.task_execution_buckets (task_id, execution_id, table_name, lower(status) DESC, bucket_id);
 
-CREATE TABLE ${@schema}.verify_configuration (
+CREATE TABLE IF NOT EXISTS ${@schema}.verify_configuration (
     source_environment TEXT NOT NULL,
     source_interface TEXT NOT NULL,
     source_table_name TEXT NOT NULL,
@@ -307,3 +307,22 @@ CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_count  (
   CONSTRAINT k2verify_k2verify_table_count_pkey
     PRIMARY KEY (source_interface, source_schema, source_table)
 );
+
+
+CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_error_codes  (
+  error_code  text   NOT NULL,
+  error_desc     text   NOT NULL,
+ 
+  CONSTRAINT k2verify_error_codes_pkey
+    PRIMARY KEY (error_code)
+);
+
+insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('EXCESSIVE_COMPARISON_FAILURES','Verify process was aborted because the number of record comparison failures exceeded the allowed limit, indicating repeated errors during the comparison stage');
+--"Too many record comparisons failed during processing, causing the job to stop."        "Execution stopped after exceeding the maximum allowed number of comparison failures, indicating repeated errors during source-to-target record comparison."
+
+insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('EXCESSIVE_RECORD_MISMATCHES','The process was aborted because the number of mismatched records exceeded the allowed limit, indicating significant discrepancies between source and target data');
+--"Too many records did not match between source and target."            "Execution stopped after exceeding the maximum allowed number of record mismatches during comparison.
+
+insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('DATABASE_OPERATION_FAILED','A database operation failed due to an SQL-related error, such as a missing object, timeout, permission issue, or other execution failure');
+
+insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('FILE_WRITE_FAILED','Failed to write data file to storage due to an I/O error, such as insufficient space, permission issues, or filesystem failure');

@@ -89,12 +89,22 @@ public class Logic extends UserCode {
                 }
                 fabric().execute("broadway verify.bwRemoveResultFile bucket_id=?, execution_id=?, table_name=?",
                                 eventDataContext.getInstanceId(), executionId, tableName);
+
+                Object totalObj = getGlobal("TOTAL_RECORD_COUNT", "verify");
+                Object failedObj = getGlobal("FAILED_RECORD_COUNT", "verify");
+                Object processedObj = getGlobal("PROCESSED_RECORD_COUNT", "verify");
+                Integer totalRecords = totalObj != null ? Integer.valueOf(totalObj.toString()) : 0;
+                Integer failedRecords = failedObj != null ? Integer.valueOf(failedObj.toString()) : 0;
+                Integer processedRecords = processedObj != null ? Integer.valueOf(processedObj.toString()): 0;
+                String errorCode = getGlobal("ERROR_CODE", "verify");
+                
+                
                 db(operationalInterface).execute(
                                 "update " + operationalSchema
-                                                + ".task_execution_buckets set status='Failed' , end_time=?, error_info=?, total_records=?, failed_records=? where task_id=? and execution_id=? and table_name=? and bucket_id=?",
-                                formattedDateTime, eventDataContext.getLastException().getMessage(), null, null, taskId,
+                                        + ".task_execution_buckets set status='Failed' , end_time=?, error_info=?, total_records=?, processed_records=?, failed_records=? where task_id=? and execution_id=? and table_name=? and bucket_id=?",
+                                formattedDateTime, errorCode, totalRecords, processedRecords, failedRecords, taskId,
                                 executionId, tableName,
-                                IID);
+                                IID);                                
 
         }
 

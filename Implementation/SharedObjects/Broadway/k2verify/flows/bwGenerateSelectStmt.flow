@@ -608,6 +608,34 @@
                             }
                         },
                         {
+                            "name": "ErrorHandler2",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.sql.SQLException",
+                                                "conditions": {
+                                                    "errorCode": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": false,
+                                                    "log": false,
+                                                    "flowName": "",
+                                                    "number_of_retries": "3",
+                                                    "retry_interval": "1000"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "DbFetchFirstRow1",
                             "actorType": {
                                 "parentType": "DbFetchFirstRow",

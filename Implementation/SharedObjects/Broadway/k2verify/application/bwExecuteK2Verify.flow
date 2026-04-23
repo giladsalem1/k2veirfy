@@ -1,0 +1,39 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: false
+                log: false
+                flowName: bwStopBWJob
+                number_of_retries: ''
+                retry_interval: ''
+      bwHandleTaskExecution:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwHandleTaskExecution
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          IsRetryMode:
+            external: IsRetryMode
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          retry_execution_id:
+            external: retry_execution_id
+            schema: any
+            mandatory: false
+            createdBy: flowName

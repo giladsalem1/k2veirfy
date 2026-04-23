@@ -2,6 +2,25 @@ tags: k2verify
 stages:
   Stage 6:
     actors:
+      RetryPhysicalError:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       K2VERIFY_OPERATIONAL_INTERFACE:
         parent: FabricSetRead
         in:
@@ -284,6 +303,26 @@ stages:
     split: '--------------------'
   Stage 5:
     dependsOn: Stage 3
+  Stage 7: {
+    }
+  Stage 8: {
+    }
+  Stage 9: {
+    }
+  Stage 10: {
+    }
+  Stage 11: {
+    }
+  Stage 12: {
+    }
+  Stage 13: {
+    }
+  Stage 14: {
+    }
+  Stage 15: {
+    }
+  Stage 16: {
+    }
 schemas:
   DbFetchFirstRow1.out.result:
     type: object

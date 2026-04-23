@@ -50,9 +50,17 @@ stages:
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
             default: true
           sql:
-            const: select * from ${@schema_name}.task_execution_buckets where task_id
-              = ${task_id} and execution_id =${execution_id} and table_name =${table_name}
-              order by status desc
+            const: |-
+              SELECT
+                  task_id, execution_id, table_name, bucket_id, status, total_records, total_fields, processed_records, failed_records, start_time, end_time, COALESCE(ec.error_desc, t.error_info) AS error_info,time_until_copy, time_after_copy, failed_fields, prepare_keys_group_duration, create_src_statement_duration, verify_all_keys_exists_duration, verify_all_records_duration, update_nx1000_records_duration, duration_6, verify_source_target_data_start, keys_group_loop_start, end_of_process, select_all_records_from_source_duration, all_src_transformation_duration, select_all_records_from_tartget_duration, all_tar_transformation_duration, all_src_records_map_duration, all_tar_records_map_duration, create_tar_statement_duration, get_bucket_key_list_duration, src_bucket_rows_duration, tar_bucket_rows_duration, lu_function_duration
+              FROM (
+                  SELECT *
+                  FROM ${@schema_name}.task_execution_buckets
+                  WHERE task_id = ${task_id} and execution_id =${execution_id} and table_name =${table_name}
+              ) t
+              LEFT JOIN k2verify.k2verify_error_codes ec
+                  ON t.error_info = ec.error_code
+              ORDER BY t.status DESC;
           task_id:
             link: Const1/value
             schema: string
@@ -70,7 +78,7 @@ stages:
             createdBy: sql
           schema_name:
             link: K2VERIFY_OPERATIONAL_SCHEMA/result
-            schema: string
+            schema: any
             mandatory: false
             createdBy: sql
         out:

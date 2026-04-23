@@ -93,6 +93,34 @@
                     "remark": "Tables comparison custom configurations are stored in k2verify_config mtable. This actor retrieves those configurations from the mtable.",
                     "actors": [
                         {
+                            "name": "ErrorHandler1",
+                            "onError": "result",
+                            "actorType": {
+                                "parentType": "ErrorHandler",
+                                "inputs": [
+                                    {
+                                        "name": "config",
+                                        "const": [
+                                            {
+                                                "exceptionKey": "java.lang.Exception",
+                                                "conditions": {
+                                                    "message": ""
+                                                },
+                                                "actions": {
+                                                    "suppress": false,
+                                                    "log": false,
+                                                    "flowName": "bwStopBWJob",
+                                                    "number_of_retries": "",
+                                                    "retry_interval": ""
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "outputs": []
+                            }
+                        },
+                        {
                             "name": "GetTableConfig",
                             "actorType": {
                                 "parentType": "InnerFlow",

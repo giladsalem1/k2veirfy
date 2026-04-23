@@ -1,0 +1,82 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      ErrorFields1:
+        parent: ErrorFields
+        in:
+          error:
+            external: error
+        out:
+          inputs:
+            schema: '#ref'
+          additional:
+            schema: '#ref'
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: value
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 2:
+    actors:
+      set ERROR_CODE:
+        parent: FabricSet
+        in:
+          key:
+            const: ERROR_CODE
+          value:
+            const: null
+            link: Const1/value
+            default: false
+      Logger2:
+        parent: Logger
+        in:
+          level:
+            const: info
+          message:
+            link: Const1/value
+  Stage 3:
+    actors:
+      throw PHYSICAL_ERROR:
+        parent: JavaScript
+        in:
+          script:
+            const: throw new Error("PHYSICAL_ERROR");
+schemas:
+  ErrorFields1.out.inputs:
+    type: object
+    properties:
+      sql:
+        type: string
+      batch:
+        type: boolean
+      interface:
+        type: string
+      schema:
+        type: string
+      source_interface:
+        type: string
+      source_schema:
+        type: string
+      source_table_name:
+        type: string
+      target_interface:
+        type: string
+      target_schema:
+        type: string
+      target_table_name:
+        type: string
+  ErrorFields1.out.additional:
+    type: object
+    properties:
+      rootExceptionClass:
+        type: string
+      exceptionClass:
+        type: string
+      sql:
+        type: string

@@ -36,9 +36,29 @@ stages:
               actions:
                 suppress: true
                 log: true
-                flowName: ''
+                flowName: bwCheckErrorThresholds
                 number_of_retries: ''
                 retry_interval: ''
+          operational_interface:
+            external: operational_interface
+            schema: string
+            mandatory: false
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+          table_name:
+            external: source_table_name
+            schema: string
+            mandatory: false
+          bucket_id:
+            external: bucket_id
+            schema: string
+            mandatory: false
       LuFunction2:
         parent: LuFunction
         in:
@@ -46,12 +66,12 @@ stages:
             const: fnVerifySourceNTarget
           source_columns_to_Ignore_null:
             external: source_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: functionName
           target_columns_to_Ignore_null:
             external: target_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: functionName
           pii_columns:
@@ -120,61 +140,6 @@ stages:
             schema: boolean
           a:
             link: ErrorHandler1/result
-      DbFetchField1:
-        parent: DbFetchField
-        in:
-          interface:
-            const: null
-            external: operational_interface
-          sql:
-            const: |-
-              select failed_records from ${@schema}.task_execution_buckets
-              WHERE task_id = ${task_id}
-                AND execution_id = ${execution_id}
-                AND table_name = ${table_name}
-                AND bucket_id = ${bucket_id};
-          schema:
-            external: operational_schema
-            schema: string
-            mandatory: false
-            createdBy: sql
-          task_id:
-            external: task_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-          table_name:
-            external: source_table_name
-            schema: string
-            mandatory: false
-            createdBy: sql
-          bucket_id:
-            external: bucket_id
-            schema: string
-            mandatory: false
-            createdBy: sql
-        out:
-          result:
-            schema: integer
-      ToNumber1:
-        parent: ToNumber
-        in:
-          value:
-            link: DbFetchField1/result
-      MathAdd1:
-        parent: MathAdd
-        in:
-          b:
-            const: 1
-          a:
-            link: ToNumber1/number
-      ArrayBuilder1:
-        parent: ArrayBuilder
     split: '--------------------'
   Stage 2:
     else: true
@@ -183,62 +148,72 @@ stages:
   Stage 7:
     transactional: true
     dependsOn: Stage 1
-    actors:
-      DbLoad1:
-        parent: DbLoad
-        in:
-          interface:
-            const: null
-            external: operational_interface
-          command:
-            const: update
-          schema:
-            const: null
-            external: operational_schema
-          table:
-            const: task_execution_buckets
-          fields:
-            const:
-            - task_id
-            - execution_id
-            - table_name
-            - bucket_id
-            - failed_records
-          keys:
-            const:
-            - task_id
-            - execution_id
-            - table_name
-            - bucket_id
-          dialect:
-            const: postgres
-          task_id:
-            external: task_id
-            schema: string
-            mandatory: false
-            createdBy: table
-          execution_id:
-            external: execution_id
-            schema: string
-            mandatory: false
-            createdBy: table
-          table_name:
-            external: source_table_name
-            schema: string
-            mandatory: false
-            createdBy: table
-          bucket_id:
-            external: bucket_id
-            schema: string
-            mandatory: false
-            createdBy: table
-          failed_records:
-            link: MathAdd1/result
-            schema: number
-            mandatory: false
-            createdBy: table
     split: '--------------------'
-  Stage 8:
+  If MisMatch Found:
+    transactional: true
+    dependsOn: Stage 2
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: |-
+              var hasNotPassed = false;
+
+
+                  for (var i = 0; i < input1.length; i++) {
+                      if (input1[i] === "NOT PASSED") {
+                          hasNotPassed = true;
+                          break;
+                      }
+                  }
+
+
+              hasNotPassed
+          input1:
+            link: LuFunction2/result/MATCH_RESULT
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      FabricSetRead1:
+        parent: FabricSetRead
+        disabled: true
+        in:
+          key:
+            const: MISMATCHED_RECORD_COUNT
+      MathDivMod:
+        parent: MathDivMod
+        disabled: true
+        in:
+          b:
+            const: 2000
+            schema: integer
+          a:
+            link: FabricSetRead1/result
+      MathAdd1:
+        parent: MathAdd
+        disabled: true
+        in:
+          b:
+            const: 1
+          a:
+            link: FabricSetRead1/result
+      SetMismatchRecCount:
+        parent: FabricSet
+        disabled: true
+        in:
+          key:
+            const: MISMATCHED_RECORD_COUNT
+          value:
+            const: null
+            link: MathAdd1/result
+            default: false
+    split: '--------------------'
+  No MisMatches - Do Nothing:
+    else: true
     transactional: true
     dependsOn: Stage 2
   Stage 3:
@@ -255,9 +230,58 @@ stages:
           value:
             schema: string
     split: '--------------------'
-  Stage 6:
+  Check Mismatch Threshold:
     transactional: true
-    dependsOn: Stage 8
+    dependsOn: If MisMatch Found
+    actors:
+      100 mismatched:
+        parent: Equals
+        condition: result
+        disabled: true
+        in:
+          b:
+            const: 0
+            schema: integer
+          a:
+            link: MathDivMod/mod
+      CheckMismatchThresholds:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwCheckMismatchThresholds
+          error:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          table_name:
+            external: source_table_name
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          bucket_id:
+            external: bucket_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+    split: '--------------------'
+  Stage 30:
+    else: true
+    transactional: true
+    dependsOn: If MisMatch Found
+    split: '--------------------'
+  Stage 8:
+    transactional: true
+    dependsOn: No MisMatches - Do Nothing
   Stage 17:
     transactional: true
     dependsOn: Stage 3
@@ -283,7 +307,7 @@ stages:
             mandatory: false
           CUSTOMIZED_KEY:
             external: customized_key_values
-            schema: any
+            schema: string
             mandatory: false
           SOURCE_COLUMN_ORIG_VALUE:
             schema: any
@@ -319,7 +343,14 @@ stages:
     split: '--------------------'
   Stage 18:
     transactional: true
-    dependsOn: Stage 6
+    dependsOn: Check Mismatch Threshold
+    split: '--------------------'
+  Stage 32:
+    dependsOn: Stage 30
+    split: '--------------------'
+  Stage 11:
+    transactional: true
+    dependsOn: Stage 8
   Stage 36:
     last: 1
     transactional: true
@@ -341,6 +372,15 @@ stages:
     else: false
     transactional: true
     dependsOn: Stage 18
+    split: '--------------------'
+  Stage 33:
+    last: 1
+    dependsOn: Stage 32
+    split: '--------------------'
+  Stage 12:
+    last: 1
+    transactional: true
+    dependsOn: Stage 11
   Stage 9:
     transactional: true
     dependsOn: Stage 36
@@ -358,7 +398,10 @@ stages:
     split: '--------------------'
   Stage 10:
     transactional: true
-    dependsOn: Stage 5
+    dependsOn:
+    - Stage 5
+    - Stage 12
+    - Stage 33
     actors:
       Const2:
         parent: Const
@@ -438,6 +481,25 @@ stages:
   Stage 31:
     transactional: true
     actors:
+      ErrorHandler2:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: bwPhysicalError
+                number_of_retries: ''
+                retry_interval: ''
+          physical_error_type:
+            const: STORAGE_WRITE_FAILED
+            schema: string
+            mandatory: false
       FileWrite1:
         parent: FileWrite
         in:
@@ -449,6 +511,34 @@ stages:
             link: CsvBuilder1/csv
           path:
             external: file_name
+  Stage 6:
+    transactional: true
+  Stage 13:
+    transactional: true
+  Stage 15:
+    transactional: true
+  Stage 19:
+    transactional: true
+  Stage 20:
+    transactional: true
+  Stage 21:
+    transactional: true
+  Stage 22:
+    transactional: true
+  Stage 23:
+    transactional: true
+  Stage 24:
+    transactional: true
+  Stage 25:
+    transactional: true
+  Stage 26:
+    transactional: true
+  Stage 27:
+    transactional: true
+  Stage 28:
+    transactional: true
+  Stage 29:
+    transactional: true
 schemas:
   SrcRow.out.value:
     type: object
@@ -679,37 +769,38 @@ schemas:
       TAR_PASSPORT_NO: {
         }
   LuFunction2.out.result:
-    type: object
-    properties:
-      SUCESS:
-        type: array
-        items:
-          type: object
-          properties:
-            EXECUTION_ID:
-              type: integer
-            MATCH_RESULT:
-              type: string
-            TARGET_TABLE_NAME:
-              type: string
-            SOURCE_TABLE_NAME:
-              type: string
-            TARGET_COLUMN_ORIG_VALUE: {
-              }
-            TARGET_VALUE_SECURED:
-              type: string
-            IID:
-              type: integer
-            COLUMN_NAME:
-              type: string
-            SOURCE_COLUMN_VALUE:
-              type: string
-            SOURCE_COLUMN_ORIG_VALUE: {
-              }
-            CUSTOMIZED_KEY:
-              type: string
-            TARGET_COLUMN_VALUE:
-              type: string
+    type: array
+    items:
+      type: object
+      properties:
+        EXECUTION_ID:
+          type: string
+        MATCH_RESULT:
+          type: string
+        TARGET_TABLE_NAME:
+          type: string
+        SOURCE_TABLE_NAME:
+          type: string
+        SOURCE_COLUMN_VALUE_TRANS:
+          type: string
+        TARGET_VALUE_SECURED:
+          type: string
+        IID:
+          type: integer
+        COLUMN_NAME:
+          type: string
+        SOURCE_COLUMN_VALUE:
+          type: string
+        TARGET_COLUMN_VALUE_TRANS:
+          type: string
+        CUSTOMIZED_KEY:
+          type: string
+        TARGET_COLUMN_VALUE:
+          type: string
+  JavaScript1.in.input1:
+    type: array
+    items:
+      type: string
   MapCreate1.out.map:
     type: object
     properties:

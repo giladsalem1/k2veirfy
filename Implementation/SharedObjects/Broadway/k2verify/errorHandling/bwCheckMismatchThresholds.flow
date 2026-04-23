@@ -1,0 +1,128 @@
+tags: k2verify
+stages:
+  Stage 1:
+    actors:
+      ReadMismatchCount:
+        parent: FabricSetRead
+        in:
+          key:
+            const: MISMATCHED_RECORD_COUNT
+      MinProcessedThresholdPct:
+        parent: FabricSetRead
+        in:
+          key:
+            const: MIN_PROCESSED_THRESHOLD_PCT
+      MaxComparisonFailurePct:
+        parent: FabricSetRead
+        in:
+          key:
+            const: MAX_COMPARISON_FAILURE_PCT
+      MaxRecordsMismatchPct:
+        parent: FabricSetRead
+        in:
+          key:
+            const: MAX_RECORD_MISMATCH_PCT
+      ErrorFields1:
+        parent: ErrorFields
+        in:
+          error:
+            external: error
+  Stage 2:
+    actors:
+      MathAdd1:
+        parent: MathAdd
+        disabled: true
+        in:
+          b:
+            const: 1
+          a:
+            link: ReadMismatchCount/result
+  Stage 3:
+    actors:
+      SetMismatchRecCount:
+        parent: FabricSet
+        disabled: true
+        in:
+          key:
+            const: MISMATCHED_RECORD_COUNT
+          value:
+            const: null
+            link: MathAdd1/result
+            default: false
+      TotalRecordCount:
+        parent: FabricSetRead
+        in:
+          key:
+            const: TOTAL_RECORD_COUNT
+      ProcessedRecordCount:
+        parent: FabricSetRead
+        in:
+          key:
+            const: PROCESSED_RECORD_COUNT
+  Stage 4:
+    actors:
+      EvaluateThresholds:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnEvaluateComparisonResults
+          totalRecords:
+            link: TotalRecordCount/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          processedRecords:
+            link: ProcessedRecordCount/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          failedRecords:
+            const: 0
+            schema: integer
+            default: true
+            mandatory: false
+            createdBy: functionName
+          mismatchedRecords:
+            const: 0
+            link:
+            - ReadMismatchCount/result
+            - MathAdd1/result
+            schema: integer
+            default: true
+            mandatory: false
+            createdBy: functionName
+          minProcessedThresholdPct:
+            link: MinProcessedThresholdPct/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          maxComparisonFailurePct:
+            link: MaxComparisonFailurePct/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          maxRecordsMismatchPct:
+            link: MaxRecordsMismatchPct/result
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          task_id:
+            external: task_id
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          execution_id:
+            external: execution_id
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          table_name:
+            external: table_name
+            schema: any
+            mandatory: false
+            createdBy: functionName
+          bucket_id:
+            external: bucket_id
+            schema: any
+            mandatory: false
+            createdBy: functionName

@@ -540,12 +540,12 @@ stages:
             createdBy: flowName
           source_columns_to_Ignore_null:
             link: TableInfo/value/source_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
             link: TableInfo/value/target_columns_to_Ignore_null
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           bucketMethod:
@@ -575,7 +575,7 @@ stages:
             createdBy: flowName
           target_transformation_function:
             link: TableInfo/value/Target_Transformation_Function_Name
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           interfaceType:
@@ -593,12 +593,10 @@ stages:
             mandatory: false
             createdBy: flowName
           source_env_contains_sensitive_data:
-            link: K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
             createdBy: flowName
           target_env_contains_sensitive_data:
-            link: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
             createdBy: flowName
@@ -613,6 +611,25 @@ stages:
             link: TmeBeforPGCopy/date
   Update time before PG Copy:
     actors:
+      RetryQuery13:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       UpTimeBeforePGCP:
         parent: DbCommand
         in:
@@ -655,7 +672,7 @@ stages:
             createdBy: sql
   Copy bucket data to pg:
     actors:
-      HandlePGCopyError:
+      HandlePGCopyError1:
         parent: ErrorHandler
         error: result
         in:
@@ -670,6 +687,19 @@ stages:
                 flowName: ''
                 number_of_retries: ''
                 retry_interval: ''
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: (?s)^(?!.*No such file or directory).*
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: ''
+                retry_interval: ''
+          physical_error_type:
+            const: PG_COPY_OPERATION_FAILED
+            schema: string
+            mandatory: false
       pgCopy:
         parent: pgCopy
         in:
@@ -713,6 +743,25 @@ stages:
             link: TimeAfterPGCopy/date
   Update time after PG Copy:
     actors:
+      RetryQuery131:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: false
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       UpTimeAfterPGCP:
         parent: DbCommand
         in:

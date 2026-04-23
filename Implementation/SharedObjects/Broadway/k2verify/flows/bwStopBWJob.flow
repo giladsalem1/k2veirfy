@@ -1,0 +1,23 @@
+tags: error_handling,k2verify
+stages:
+  Stage 1:
+    actors:
+      ErrorFields1:
+        parent: ErrorFields
+        in:
+          error:
+            external: error
+  Stage 2:
+    actors:
+      Logger1:
+        parent: Logger
+        in:
+          message:
+            link: ErrorFields1/message
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnJobNoRetry
+          params:
+            link: ErrorFields1/message
