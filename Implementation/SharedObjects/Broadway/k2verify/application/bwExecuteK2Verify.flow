@@ -1,6 +1,6 @@
 tags: k2verify
 stages:
-  Stage 1:
+  Stage 2:
     actors:
       ErrorHandler1:
         parent: ErrorHandler
@@ -17,6 +17,10 @@ stages:
                 flowName: bwStopBWJob
                 number_of_retries: ''
                 retry_interval: ''
+          task_id:
+            external: task_id
+            schema: any
+            mandatory: false
       bwHandleTaskExecution:
         parent: InnerFlow
         in:

@@ -228,6 +228,14 @@ stages:
             schema: string
             mandatory: false
             createdBy: table
+          failed_records:
+            const: 0
+            schema: integer
+            mandatory: false
+          processed_records:
+            const: 0
+            schema: integer
+            mandatory: false
 schemas:
   PopulationArgs.out.parent_rows:
     type: array

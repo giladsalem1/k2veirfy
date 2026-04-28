@@ -43,8 +43,8 @@ import org.postgresql.copy.CopyManager;
 import com.k2view.fabric.common.ParamConvertor;
 import java.io.FileReader;
 import java.io.Reader;
-
-import com.k2view.cdbms.jobs.JobExecutor;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 @SuppressWarnings({ "unused", "DefaultAnnotationParam" })
 public class SharedLogic {
@@ -64,7 +64,7 @@ public class SharedLogic {
             String target_table_name, String customized_key_values, String log_pass,
             String source_env_contains_sensitive_data, String target_env_contains_sensitive_data)
             throws Exception {
-
+        
         ArrayList<Map<String, Object>> compareResult = new ArrayList<>();
         Set<String> piiCols = new HashSet<>(Arrays.asList(pii_columns.split(DELIMITTER)));
 
@@ -524,7 +524,8 @@ public class SharedLogic {
     }
 
     public static List<String> getTableFieldsByJDBC(String dbInterfaceName, String schemaName,
-            String tableName) throws SQLException {
+            String tableName, String environment) throws SQLException {
+        fabric().execute("set environment='" + environment + "';");
         List<String> result = new ArrayList<>();
         DatabaseMetaData metaData = getConnection(dbInterfaceName).getMetaData();
         ResultSet primaryKeys = metaData.getPrimaryKeys(null, schemaName, tableName);
@@ -774,21 +775,23 @@ public class SharedLogic {
 
         return null; // not found
     }
-
+    
     public static List<Map<String, Integer>> fnValidateTable(String iface, String schema, String table,
-            String environment) throws Exception {
+            String environment, String dbType) throws Exception {
         fabric().execute("set environment='" + environment + "';");
-        DatabaseMetaData meta = getConnection(iface).getMetaData();
-        try (ResultSet rs = meta.getTables(null, schema, table, new String[] { "TABLE" })) {
-            if (rs.next()) {
+        try {
+            List<String> tables = getTableNamesFromJDBC(iface, schema, dbType);
+            if (tables.contains(table)) {
                 Map<String, Integer> row = new HashMap<>();
                 row.put("?column?", 1);
                 List<Map<String, Integer>> result = new ArrayList<>();
                 result.add(row);
                 return result;
-            }
+            } else
+                return null;
+        } catch (Exception e) {
+            return null; // not found
         }
-        return null; // not found
     }
 
     public static List<Map<String, Integer>> fnValidateColumn(String iface, String schema, String table, String column,
@@ -951,6 +954,42 @@ public class SharedLogic {
         }
     }
 
+    public static int hashString(Object str) {
+        return str.hashCode();
+    }
+
+    public static String extractCompositeKey(
+            Map<String, String> record,
+            String keys,
+            String delimiter) {
+
+        if (keys == null || keys.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Please provide one or more comparison key columns in the settings page");
+        }
+
+        String[] keyColumns = keys.split("\\Q" + delimiter + "\\E");
+        Map<String, String> normalizedRecord = record.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey().toLowerCase(),
+                        Map.Entry::getValue));
+
+        return Arrays.stream(keyColumns)
+                .map(String::trim)
+                .map(key -> {
+                    if (!record.containsKey(key.toLowerCase())) {
+                        throw new IllegalArgumentException(
+                                "Key column '" + key + "' not found in record");
+                    }
+
+                    String value = record.get(key.toLowerCase());
+
+                    // normalize empty → empty string (not null, to keep format clean)
+                    return (value == null || value.trim().isEmpty()) ? "" : value;
+                })
+                .collect(Collectors.joining(delimiter));
+    }
+
     @desc("")
     @out(name = "", type = String.class, desc = "")
     public static void fnEvaluateComparisonResults(long totalRecords, long processedRecords, long failedRecords, long mismatchedRecords, double minProcessedThresholdPct, 
@@ -959,23 +998,6 @@ public class SharedLogic {
 
         double processedPct = (processedRecords * 100.0) / totalRecords;        
 
-                log.info(
-            "### GILAD : fnEvaluateComparisonResults | " +
-            "task_id=" + task_id +
-            ", execution_id=" + execution_id +
-                ", table_name=" + table_name +
-            ", bucket_id=" + bucket_id +
-            ", totalRecords=" + totalRecords +
-            ", processedRecords=" + processedRecords +
-            ", failedRecords=" + failedRecords +
-            ", mismatchedRecords=" + mismatchedRecords +
-            ", minProcessedThresholdPct=" + minProcessedThresholdPct +
-            ", maxComparisonFailurePct=" + maxComparisonFailurePct +
-            ", maxRecordsMismatchPct=" + maxRecordsMismatchPct 
-        );
-
-        
-        log.info("### GILAD : processedPct <  minProcessedThresholdPct ?  " + processedPct +" , " +minProcessedThresholdPct);
         if (processedPct < minProcessedThresholdPct) {
             return; // skip evaluation until enough records are processed
         }
@@ -986,12 +1008,10 @@ public class SharedLogic {
         + " set status=?, processed_records=?, failed_records=?, error_info=?"
         + " where task_id=? and execution_id=? and table_name=? and bucket_id=?";
         
-        log.info("### GILAD : comparisonFailurePct >=  maxComparisonFailurePct ?  " + comparisonFailurePct +" , " +maxComparisonFailurePct);
         if (comparisonFailurePct >= maxComparisonFailurePct) {
             handleFailure( "EXCESSIVE_COMPARISON_FAILURES", "failure_pct", comparisonFailurePct, processedRecords, 
             failedRecords, processedPct, task_id, execution_id, table_name, bucket_id, sql);     
         }      
-        log.info("### GILAD : recordsMismatchPct >=  maxRecordsMismatchPct ?  " + recordsMismatchPct +" , " +maxRecordsMismatchPct);
         if (recordsMismatchPct >= maxRecordsMismatchPct) {          
             handleFailure( "EXCESSIVE_RECORD_MISMATCHES", "mismatch_pct", recordsMismatchPct, processedRecords, 
             failedRecords, processedPct, task_id, execution_id, table_name, bucket_id, sql);     
@@ -1004,7 +1024,7 @@ public class SharedLogic {
         RuntimeException mainException =
         new RuntimeException(
             "VERIFY_THRESHOLD_BREACH" +
-            "|errorCode=" + errorCode +
+                                "|errorCode=" + errorCode +
             "|metricName=" + metricName +
             "|metricValue=" + String.format("%.2f", metricValue) +
             "|taskId=" + task_id +
@@ -1017,11 +1037,5 @@ public class SharedLogic {
         fabric().execute("set PROCESSED_RECORD_COUNT="+processedRecords);  
         
         throw mainException;
-    }
-
-    @desc("")
-    @out(name = "", type = String.class, desc = "")
-    public static void fnJobNoRetry() throws Exception {             
-        JobExecutor.failJob(new Exception(), JobExecutor.FailAnd.noRetry);
     }
 }

@@ -21,16 +21,15 @@ stages:
             const: K2VERIFY_CONF_SEPARATOR
   Stage 2:
     actors:
-      DbCommand1:
-        parent: DbCommand
+      DbFetchField1:
+        parent: DbFetchField
         in:
           interface:
-            const: K2VERIFY_OPERATIONAL_DB
+            const: null
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
-            default: true
           sql:
-            const: select distinct source_table_name from ${@schema_name}.k2verify_field_summary_${@execution_id}
-              where execution_id = ${execution_id} order by source_table_name
+            const: select task_id from ${@schema_name}.task_execution where execution_id
+              = ${execution_id}
           schema_name:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
             schema: string
@@ -41,6 +40,58 @@ stages:
             schema: integer
             mandatory: false
             createdBy: sql
+        out:
+          result:
+            schema: integer
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: |-
+              SELECT
+                  t.source_interface,
+                  ttp.source_table_name
+              FROM ${@schema_name}.tasks AS t
+              JOIN ${@schema_name}.task_table_properties AS ttp
+                  ON t.task_id = ttp.task_id
+              WHERE t.task_id = ${task_id}
+              ORDER BY ttp.source_table_name;
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: DbFetchField1/result
+            schema: any
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 4:
+    actors:
+      JavaScript2:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              var splitTable = table_name.split(".")
+              var res ={
+                  "schema_name": splitTable[0],
+                  "table_name": splitTable[1]
+              }
+              res
+          table_name:
+            link:
+              path: DbCommand1/result/source_table_name
+              iterate: Iterate
+            schema: string
+            mandatory: false
         out:
           result:
             schema: '#ref'
@@ -59,15 +110,25 @@ stages:
               source_interface as "Source_Interface",
               source_schema as "Source_Schema",
               source_table_name as "Source_Table_Name"
-              from ${@schema}.verify_configuration where  source_table_name=${source_table_name}
+              from ${@schema}.verify_configuration where  lower(source_table_name)=lower(${source_table_name}) and lower(source_schema) = lower(${source_schema}) and lower(${source_interface})=lower(source_interface)
           schema:
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
             schema: string
             mandatory: false
             createdBy: sql
           source_table_name:
+            link: JavaScript2/result/table_name
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_schema:
+            link: JavaScript2/result/schema_name
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_interface:
             link:
-              path: DbCommand1/result/source_table_name
+              path: DbCommand1/result/source_interface
               iterate: Iterate
             schema: string
             mandatory: false
@@ -191,14 +252,17 @@ schemas:
     items:
       type: object
       properties:
+        source_interface:
+          type: string
         source_table_name:
           type: string
-        target_table_name:
-          type: string
-        column_name:
-          type: string
-        execution_id:
-          type: integer
+  JavaScript2.out.result:
+    type: object
+    properties:
+      schema_name:
+        type: string
+      table_name:
+        type: string
   DbFetchFirstRow1.out.result:
     type: object
     properties:

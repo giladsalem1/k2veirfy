@@ -1,4 +1,4 @@
-tags: D2D,k2verify,testing
+tags: k2verify,verify_partition_method
 stages:
   Inputs:
     actors:
@@ -575,7 +575,7 @@ stages:
             external: interface
           sql:
             const: SELECT ${@key} as "${@keysAlias}"  FROM ${@schema}.${@table} WHERE
-              MOD(CAST(CRC32(${@concatKey}) AS "UNSIGNED"), ${@bucketsNum}) = ${@bucketID}
+              MOD(CAST(CRC32(${@concatKey}) AS UNSIGNED), ${@bucketsNum}) = ${@bucketID}
               ${@and}
           key:
             link: Replace1/string

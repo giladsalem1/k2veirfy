@@ -1,4 +1,4 @@
-tags: d2d,d2dv2,D2D,k2verify
+tags: k2verify
 stages:
   Check record emoty:
     transactional: true

@@ -1,4 +1,4 @@
-tags: D2D,k2verify
+tags: k2verify
 stages:
   Stage 1:
     actors:
@@ -19,10 +19,10 @@ stages:
             const: null
             link: FabricSetRead1/result
           sql:
-            const: select * from ${@schema}.verify_configuration
+            const: select * from ${@schema}.verify_configuration where active='true'
           schema:
             link: FabricSetRead2/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
         out:

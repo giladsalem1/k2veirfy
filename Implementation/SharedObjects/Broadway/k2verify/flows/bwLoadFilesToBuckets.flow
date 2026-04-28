@@ -1,1313 +1,1125 @@
-{
-    "tags": [
-        "D2D",
-        "D2D\flows",
-        "k2verify"
-    ],
-    "levels": [
-        {
-            "stages": [
-                {
-                    "name": "Stage 7",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "LUName",
-                            "actorType": {
-                                "parentType": "GetLUName",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "lu_name",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "K2VERIFY_INTERFACE",
-                            "actorType": {
-                                "parentType": "GetLUVariable",
-                                "inputs": [
-                                    {
-                                        "name": "variableName",
-                                        "const": "K2VERIFY_OPERATIONAL_INTERFACE"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "K2VERIFY_SCHEMA",
-                            "actorType": {
-                                "parentType": "GetLUVariable",
-                                "inputs": [
-                                    {
-                                        "name": "variableName",
-                                        "const": "K2VERIFY_OPERATIONAL_SCHEMA"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "SEPARATOR",
-                            "actorType": {
-                                "parentType": "GetLUVariable",
-                                "inputs": [
-                                    {
-                                        "name": "luName",
-                                        "const": "k2verify"
-                                    },
-                                    {
-                                        "name": "variableName",
-                                        "const": "K2VERIFY_CONF_SEPARATOR"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "TableName",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${env}_${fileName}"
-                                    },
-                                    {
-                                        "name": "env",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "fileName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "FileName",
-                            "actorType": {
-                                "parentType": "Replace",
-                                "inputs": [
-                                    {
-                                        "name": "search",
-                                        "const": ".csv"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "CustomizedKey",
-                            "actorType": {
-                                "parentType": "Replace",
-                                "inputs": [
-                                    {
-                                        "name": "search",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "replace",
-                                        "const": ","
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 29",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "FileRead2",
-                            "actorType": {
-                                "parentType": "FileRead",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 28",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "CsvParser2",
-                            "actorType": {
-                                "parentType": "CsvParser",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "object",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "customer_id": {
-                                                        "type": "string"
-                                                    },
-                                                    "ssn": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 27",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "JavaScript3",
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "row.keySet();"
-                                    },
-                                    {
-                                        "name": "row",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "CUSTOMER_ID": {
-                                                    "type": "string"
-                                                },
-                                                "SSN": {
-                                                    "type": "string"
-                                                },
-                                                "FIRST_NAME": {
-                                                    "type": "string"
-                                                },
-                                                "LAST_NAME": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 26",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "CoumnForCreate",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${columnName} Text"
-                                    },
-                                    {
-                                        "name": "columnName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "?",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "?"
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "ColumnName",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${columnName}"
-                                    },
-                                    {
-                                        "name": "columnName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "WhereStmtCond",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${columnName} = ?"
-                                    },
-                                    {
-                                        "name": "columnName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 25",
-                    "dependsOnList": [],
-                    "isLast": 1,
-                    "actors": [
-                        {
-                            "name": "CoumnsArrForCreate",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "PreparedStmt ?",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "ColumnsNamesString",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "ColumnsNamesArr",
-                            "actorType": {
-                                "parentType": "ArrayBuilder",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "array",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "WhereStmtClause",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 2",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "ForLoop1",
-                            "actorType": {
-                                "parentType": "ForLoop",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 4",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "StringFormat3",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${fileName}_@_${count}"
-                                    },
-                                    {
-                                        "name": "fileName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "count",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 6",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "OpenFabricSession1",
-                            "actorType": {
-                                "parentType": "OpenFabricSession",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 8",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "DbCommand1",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "get verify.?"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 31",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "CreateTableStmt",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "/*sqlite*/CREATE TABLE IF NOT EXISTS verify.${env}_${fileName} (\r\n${columns},\r\nPRIMARY KEY (${pk})\r\n);"
-                                    },
-                                    {
-                                        "name": "columns",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "pk",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "env",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "fileName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 30",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "DbCommand2",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 5",
-                    "dependsOnList": [],
-                    "isLast": 1,
-                    "actors": [
-                        {
-                            "name": "StringBuild1",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 18",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "FileData",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "customer_id": {
-                                                    "type": "string"
-                                                },
-                                                "ssn": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 23",
-                    "dependsOnList": [],
-                    "isTransactional": true,
-                    "actors": [
-                        {
-                            "name": "JavaScript1",
-                            "minHeight": 186,
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "value.get(0);"
-                                    },
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "cust_id": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 3",
-                    "dependsOnList": [],
-                    "isTransactional": true,
-                    "actors": [
-                        {
-                            "name": "JavaScript17",
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": {
-                                            "userCode": "function hashString(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i); // hash * 33 + c\n  }\n  return hash >>> 0;\n}\n\nif (!isNaN(value)) {\n    value; // Return if it's a valid number\n  } else {\n     hashString(String(value));\n}",
-                                            "script": "function hashString(str) {\n  var hash = 5381;\n\n  for (var i = 0; i < str.length; i++) {\n    hash = (hash << 5) + hash + str.charCodeAt(i); // hash * 33 + c\n  }\n\n  return hash >>> 0;\n}\n\nif (!isNaN(value)) {\n  value; // Return if it's a valid number\n} else {\n  hashString(String(value));\n}"
-                                        }
-                                    },
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Flow inputs",
-                    "dependsOnList": [],
-                    "isTransactional": true,
-                    "actors": [
-                        {
-                            "name": "MathDivMod1",
-                            "actorType": {
-                                "parentType": "MathDivMod",
-                                "inputs": [
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 15",
-                    "dependsOnList": [],
-                    "isTransactional": true,
-                    "actors": [
-                        {
-                            "name": "StringFormat1",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": "${fileName}_@_${count}"
-                                    },
-                                    {
-                                        "name": "fileName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "count",
-                                        "schema": {
-                                            "type": "integer"
-                                        },
-                                        "createdBy": "format",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Opetational DB",
-                    "dependsOnList": [],
-                    "isLast": 1,
-                    "isTransactional": true,
-                    "actors": [
-                        {
-                            "name": "ErrorHandler1",
-                            "onError": "result",
-                            "actorType": {
-                                "parentType": "ErrorHandler",
-                                "inputs": [
-                                    {
-                                        "name": "config",
-                                        "const": [
-                                            {
-                                                "exceptionKey": "com.k2view.fabric.common.io.basic.exception.StandardSqlException",
-                                                "conditions": {
-                                                    "standardType": "UNIQUE_CONSTRAINT"
-                                                },
-                                                "actions": {
-                                                    "suppress": true,
-                                                    "log": false,
-                                                    "flowName": "",
-                                                    "number_of_retries": "",
-                                                    "retry_interval": ""
-                                                }
-                                            },
-                                            {
-                                                "exceptionKey": "java.lang.Exception",
-                                                "conditions": {
-                                                    "message": "duplicate key value violates unique constraint"
-                                                },
-                                                "actions": {
-                                                    "suppress": true,
-                                                    "log": false,
-                                                    "flowName": "",
-                                                    "number_of_retries": "",
-                                                    "retry_interval": ""
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "DbLoad1",
-                            "actorType": {
-                                "parentType": "DbLoad",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": "fabric",
-                                        "isDefault": true
-                                    },
-                                    {
-                                        "name": "command",
-                                        "const": "upsert"
-                                    },
-                                    {
-                                        "name": "schema",
-                                        "const": "verify"
-                                    },
-                                    {
-                                        "name": "table",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "connections": [
-        {
-            "leftPort": {
-                "actor": "LUName",
-                "name": "lu_name"
-            },
-            "rightPort": {
-                "actor": "K2VERIFY_INTERFACE",
-                "name": "luName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "LUName",
-                "name": "lu_name"
-            },
-            "rightPort": {
-                "actor": "K2VERIFY_SCHEMA",
-                "name": "luName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TableName",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "table"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FileName",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "StringFormat3",
-                "name": "fileName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FileName",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "StringFormat1",
-                "name": "fileName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "CustomizedKey",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "CreateTableStmt",
-                "name": "pk"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FileRead2",
-                "name": "stream"
-            },
-            "rightPort": {
-                "actor": "CsvParser2",
-                "name": "stream"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "CsvParser2",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "JavaScript3",
-                "name": "row"
-            },
-            "iterate": "First"
-        },
-        {
-            "leftPort": {
-                "actor": "CsvParser2",
-                "name": "object"
-            },
-            "rightPort": {
-                "actor": "FileData",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript3",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "CoumnForCreate",
-                "name": "columnName"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript3",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ColumnName",
-                "name": "columnName"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript3",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "WhereStmtCond",
-                "name": "columnName"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "CoumnForCreate",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "CoumnsArrForCreate",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "?",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "PreparedStmt ?",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnName",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "ColumnsNamesString",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnName",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "ColumnsNamesArr",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "WhereStmtCond",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "WhereStmtClause",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "CoumnsArrForCreate",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "CreateTableStmt",
-                "name": "columns"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ForLoop1",
-                "name": "i"
-            },
-            "rightPort": {
-                "actor": "StringFormat3",
-                "name": "count"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "StringFormat3",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "StringBuild1",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "StringFormat3",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "OpenFabricSession1",
-                "name": "bucket_id"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "StringFormat3",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "params"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "OpenFabricSession1",
-                "name": "sessionName"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "OpenFabricSession1",
-                "name": "sessionName"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "CreateTableStmt",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbCommand2",
-                "name": "sql"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "FileData",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "JavaScript1",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "FileData",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "params"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "JavaScript17",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript17",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "MathDivMod1",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "MathDivMod1",
-                "name": "mod"
-            },
-            "rightPort": {
-                "actor": "StringFormat1",
-                "name": "count"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "StringFormat1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "DbLoad1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "env"
-            },
-            "rightPort": {
-                "actor": "TableName",
-                "name": "env"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "fileName"
-            },
-            "rightPort": {
-                "actor": "TableName",
-                "name": "fileName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "fileName"
-            },
-            "rightPort": {
-                "actor": "FileName",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "customized_key"
-            },
-            "rightPort": {
-                "actor": "CustomizedKey",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "delim"
-            },
-            "rightPort": {
-                "actor": "CustomizedKey",
-                "name": "search"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "interface"
-            },
-            "rightPort": {
-                "actor": "FileRead2",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "fileName"
-            },
-            "rightPort": {
-                "actor": "FileRead2",
-                "name": "path"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "bucketsNum"
-            },
-            "rightPort": {
-                "actor": "ForLoop1",
-                "name": "to"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "env"
-            },
-            "rightPort": {
-                "actor": "CreateTableStmt",
-                "name": "env"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "fileName"
-            },
-            "rightPort": {
-                "actor": "CreateTableStmt",
-                "name": "fileName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "buckets_count"
-            },
-            "rightPort": {
-                "actor": "MathDivMod1",
-                "name": "b"
-            }
-        }
-    ]
-}
+tags: k2verify
+stages:
+  Flow params:
+    actors:
+      LUName:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+      PROGRESS INTERVAL:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: LOG_PROGRESS_EVERY_N_RECORDS
+          luName:
+            link: LUName/lu_name
+      ToNumber2:
+        parent: ToNumber
+        in:
+          value:
+            link: PROGRESS INTERVAL/variableValue
+      SEPARATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: k2verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+      TableName:
+        parent: StringFormat
+        in:
+          format:
+            const: ${env}_${fileName}
+          env:
+            external: env
+            schema: string
+            mandatory: false
+            createdBy: format
+          fileName:
+            external: fileName
+            schema: string
+            mandatory: false
+            createdBy: format
+      CustomizedKeyList:
+        parent: Replace
+        in:
+          search:
+            const: null
+            external: delim
+          replace:
+            const: ','
+          string:
+            external: customized_key
+      CustomizedKeyArr:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            external: delim
+          string:
+            external: customized_key
+      BucketsCount:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(buckets_count == 0) 1;
+              else buckets_count;
+          buckets_count:
+            external: buckets_count
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Set active environmet:
+    actors:
+      FabricSet:
+        parent: FabricSet
+        in:
+          key:
+            const: environment
+          value:
+            const: null
+            external: env_name
+            default: false
+  Read csv file:
+    actors:
+      FileRead:
+        parent: FileRead
+        in:
+          interface:
+            const: null
+            external: interface
+          path:
+            external: fullFileName
+  Parse to cdv:
+    actors:
+      CsvParser:
+        parent: CsvParser
+        in:
+          stream:
+            link: FileRead/stream
+        out:
+          object:
+            schema: '#ref'
+  For each record:
+    actors:
+      Record:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: CsvParser/object
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      LoopIndex1:
+        parent: LoopIndex
+        out:
+          value:
+            schema: integer
+  Is first iteration:
+    dependsOn: For each record
+    actors:
+      =0:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 0
+            schema: integer
+          a:
+            link: LoopIndex1/value
+      RecordColumns:
+        parent: JavaScript
+        in:
+          script:
+            const: row.keySet();
+          row:
+            link: Record/value
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Else:
+    else: true
+    dependsOn: For each record
+  For each column:
+    dependsOn: Is first iteration
+    actors:
+      CoumnForCreate:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName} Text
+          columnName:
+            link:
+              path: RecordColumns/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+      '?':
+        parent: Const
+        in:
+          value:
+            const: '?'
+            schema: string
+        out:
+          value:
+            schema: string
+      ColumnName:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName}
+          columnName:
+            link:
+              path: RecordColumns/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+      WhereStmtCond:
+        parent: StringFormat
+        in:
+          format:
+            const: ${columnName} = ?
+          columnName:
+            link:
+              path: RecordColumns/result
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: format
+    split: '--------------------'
+  Stage 10:
+    dependsOn: Else
+  Format columns:
+    last: 1
+    dependsOn: For each column
+    actors:
+      CoumnsArrForCreate:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: CoumnForCreate/string
+              pos: 0
+      PreparedStmt ?:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: ?/value
+              pos: 0
+      ColumnsNamesString:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: ColumnName/string
+              pos: 0
+      ColumnsNamesArr:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: ColumnName/string
+              pos: 0
+        out:
+          array:
+            schema: '#ref'
+      WhereStmtClause:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: WhereStmtCond/string
+              pos: 0
+    split: '--------------------'
+  Stage 11:
+    last: 1
+    dependsOn: Stage 10
+  Loop partitions:
+    dependsOn: Format columns
+    actors:
+      ForLoop:
+        parent: ForLoop
+        in:
+          to:
+            link: BucketsCount/result
+    split: '--------------------'
+  Stage 12:
+    dependsOn: Stage 11
+  Format partition name:
+    dependsOn: Loop partitions
+    actors:
+      FormatrPartitionName:
+        parent: StringFormat
+        in:
+          format:
+            const: ${fileName}_@_${count}
+          fileName:
+            external: fileName
+            schema: string
+            mandatory: false
+            createdBy: format
+          count:
+            link:
+              path: ForLoop/i
+              iterate: Iterate
+            schema: integer
+            mandatory: false
+            createdBy: format
+    split: '--------------------'
+  Stage 13:
+    dependsOn: Stage 12
+  Open new fabric session:
+    dependsOn: Format partition name
+    actors:
+      OpenFabricSession:
+        parent: OpenFabricSession
+        in:
+          bucket_id:
+            link: FormatrPartitionName/string
+    split: '--------------------'
+  Stage 14:
+    dependsOn: Stage 13
+  Set session globals:
+    transactional: false
+    dependsOn: Open new fabric session
+    actors:
+      TASK ID:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: set K2VERIFY_TASK_ID='${@task_id}'
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+      EXECUTION ID:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: set K2VERIFY_EXEC_ID='${@execution_id}'
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+      CSV MODE:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: set K2VERIFY_CSV_MODE='true';
+      DUMMY GET:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET='true';
+      DUMMY GET1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET='true';
+    split: '--------------------'
+  Stage 16:
+    dependsOn: Stage 14
+  Execute GET:
+    transactional: false
+    dependsOn: Set session globals
+    actors:
+      Get Partiton:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: get verify.?
+          params:
+            link:
+              path: FormatrPartitionName/string
+              pos: 0
+        out:
+          result:
+            schema: '#ref'
+      FormatEntityList:
+        parent: StringFormat
+        in:
+          format:
+            const: '''${iid}'''
+          iid:
+            link: FormatrPartitionName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+      BuildEntityList:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: FormatEntityList/string
+              pos: 0
+        out:
+          string:
+            external: iids
+    split: '--------------------'
+  Stage 17:
+    dependsOn: Stage 16
+  Format Sqlite statements:
+    transactional: false
+    dependsOn: Execute GET
+    actors:
+      FormatDropPTableStmt:
+        parent: StringFormat
+        in:
+          format:
+            const: /*sqlite*/ DROP TABLE IF EXISTS verify.${table}
+          table:
+            link: TableName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+      FormatCreateTableStmt:
+        parent: StringFormat
+        in:
+          format:
+            const: "/*sqlite*/CREATE TABLE IF NOT EXISTS verify.${table}(\r\n${columns},\r\
+              \nPRIMARY KEY (${pk})\r\n);"
+          columns:
+            link: CoumnsArrForCreate/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          pk:
+            link: CustomizedKeyList/string
+            schema: string
+            mandatory: false
+            createdBy: format
+          table:
+            link: TableName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+    split: '--------------------'
+  Stage 19:
+    dependsOn: Stage 17
+  Execute Sqlite statements:
+    last: 1
+    transactional: false
+    dependsOn: Format Sqlite statements
+    actors:
+      DropLUTable:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: null
+            link: FormatDropPTableStmt/string
+      CreateLUTable:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: OpenFabricSession/sessionName
+          sql:
+            const: null
+            link: FormatCreateTableStmt/string
+    split: '--------------------'
+  Stage 24:
+    last: 1
+    dependsOn: Stage 19
+  Record data:
+    actors:
+      RecordData:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Record/value
+        out:
+          value:
+            schema: '#ref'
+  First value:
+    transactional: false
+    dependsOn: Record data
+    actors:
+      GreaterThan1:
+        parent: GreaterThan
+        condition: result
+        in:
+          b:
+            const: 1
+          a:
+            link: BucketsCount/result
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: extractCompositeKey
+          record:
+            link: RecordData/value
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+          keys:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          delimiter:
+            link: SEPARATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: string
+    split: '--------------------'
+  Stage 4:
+    else: true
+    transactional: false
+    dependsOn: Record data
+  Hash value:
+    transactional: false
+    dependsOn: First value
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: '!isNaN(value);'
+          value:
+            link: LuFunction1/result
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: boolean
+      ToNumber1:
+        parent: ToNumber
+        in:
+          value:
+            link: LuFunction1/result
+    split: '--------------------'
+  Stage 1:
+    else: true
+    transactional: false
+    dependsOn: First value
+    actors:
+      HashValue:
+        parent: LuFunction
+        in:
+          functionName:
+            const: hashString
+          str:
+            link: LuFunction1/result
+            schema: string
+            mandatory: false
+            createdBy: functionName
+        out:
+          result:
+            schema: integer
+    split: '--------------------'
+  Stage 5:
+    dependsOn: Stage 4
+  Decide partition:
+    transactional: false
+    dependsOn:
+    - Hash value
+    - Stage 1
+    actors:
+      MathDivMod1:
+        parent: MathDivMod
+        in:
+          b:
+            link: BucketsCount/result
+            schema: integer
+          a:
+            link:
+            - ToNumber1/number
+            - HashValue/result
+    split: '--------------------'
+  Stage 7:
+    dependsOn: Stage 5
+  Stage 2:
+    transactional: false
+    dependsOn: Decide partition
+    actors:
+      SampleMathAbs1:
+        parent: SampleMathAbs
+        in:
+          input:
+            link: MathDivMod1/mod
+    split: '--------------------'
+  Stage 9:
+    dependsOn: Stage 7
+  Stage 15:
+    transactional: false
+    dependsOn: Stage 2
+    actors:
+      Bucket_ID:
+        parent: StringFormat
+        in:
+          format:
+            const: ${fileName}_@_${count}
+          fileName:
+            external: fileName
+            schema: string
+            mandatory: false
+            createdBy: format
+          count:
+            link: SampleMathAbs1/result
+            schema: integer
+            mandatory: false
+            createdBy: format
+    split: '--------------------'
+  Stage 20:
+    dependsOn: Stage 9
+    actors:
+      Bucket_ID1:
+        parent: StringFormat
+        in:
+          format:
+            const: ${fileName}_@_0
+          fileName:
+            external: fileName
+            schema: string
+            mandatory: false
+            createdBy: format
+  Opetational DB:
+    transactional: false
+    actors:
+      ErrorHandler1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: com.k2view.fabric.common.io.basic.exception.StandardSqlException
+              conditions:
+                standardType: UNIQUE_CONSTRAINT
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+            - exceptionKey: java.lang.Exception
+              conditions:
+                message: duplicate key value violates unique constraint
+              actions:
+                suppress: true
+                log: false
+                flowName: ''
+                number_of_retries: ''
+                retry_interval: ''
+      DbLoad1:
+        parent: DbLoad
+        in:
+          interface:
+            const: null
+            link:
+            - Bucket_ID/string
+            - Bucket_ID1/string
+          command:
+            const: upsert
+          schema:
+            const: verify
+          table:
+            const: null
+            link: TableName/string
+          fields:
+            const: null
+            link: ColumnsNamesArr/array
+          keys:
+            const: null
+            link: CustomizedKeyArr/strings
+          dialect:
+            const: sqlite
+          batch:
+            const: true
+          params:
+            link: RecordData/value
+      '#Processed':
+        parent: Count
+        out:
+          value:
+            schema: integer
+  Log interval:
+    transactional: false
+    actors:
+      LogInterval:
+        parent: MathDivMod
+        in:
+          b:
+            link: ToNumber2/number
+            schema: integer
+          a:
+            link: '#Processed/value'
+      Source/Target:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(env == 'src' ) 'source';
+              else 'target';
+          env:
+            external: env
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Log processed records:
+    last: 1
+    transactional: false
+    dependsOn: Log interval
+    actors:
+      ToLog:
+        parent: Equals
+        condition: result
+        in:
+          b:
+            const: 0
+            schema: integer
+          a:
+            link: LogInterval/mod
+      Logger:
+        parent: Logger
+        in:
+          message:
+            const: Loading ${env} file "${fullFileName}" to partitions - Number of
+              processed records is ${count}
+          level:
+            const: info
+          env:
+            link: Source%2FTarget/result
+            schema: string
+            mandatory: false
+            createdBy: message
+          fullFileName:
+            external: fullFileName
+            schema: string
+            mandatory: false
+            createdBy: message
+          count:
+            link: '#Processed/value'
+            schema: integer
+            mandatory: false
+            createdBy: message
+    split: '--------------------'
+  Stage 3:
+    last: 1
+    else: true
+    transactional: false
+    dependsOn: Log interval
+  Stage 21:
+    actors:
+      Logger1:
+        parent: Logger
+        in:
+          message:
+            const: Loading ${env} file "${fullFileName}" to partitions is completed
+              - Number of processed records is ${count}
+          level:
+            const: info
+          env:
+            link: Source%2FTarget/result
+            schema: string
+            mandatory: false
+            createdBy: message
+          fullFileName:
+            external: fullFileName
+            schema: string
+            mandatory: false
+            createdBy: message
+          count:
+            link: '#Processed/value'
+            schema: integer
+            mandatory: false
+            createdBy: message
+schemas:
+  CsvParser.out.object:
+    type: array
+    items:
+      type: object
+      properties:
+        customer_id:
+          type: string
+        created_at:
+          type: string
+        children_count:
+          type: string
+        loyalty_points:
+          type: string
+        signup_date:
+          type: string
+        preferred_language:
+          type: string
+        country:
+          type: string
+        comm_channel:
+          type: string
+        favorite_number:
+          type: string
+        last_login_tz:
+          type: string
+        updated_at:
+          type: string
+        timezone:
+          type: string
+        home_lat:
+          type: string
+        is_vip:
+          type: string
+        balance:
+          type: string
+        credit_limit:
+          type: string
+        small_flag:
+          type: string
+        last_name:
+          type: string
+        risk_score:
+          type: string
+        row_version:
+          type: string
+        first_name:
+          type: string
+        marketing_opt_in:
+          type: string
+        valid_to:
+          type: string
+        notes:
+          type: string
+        preferences_json:
+          type: string
+        float_score:
+          type: string
+        avatar_raw:
+          type: string
+        valid_from:
+          type: string
+        date_of_birth:
+          type: string
+        profile_blob:
+          type: string
+        height_cm:
+          type: string
+        last_login_ts:
+          type: string
+        weight_kg:
+          type: string
+        ssn:
+          type: string
+        home_lon:
+          type: string
+        double_score:
+          type: string
+        middle_name:
+          type: string
+        email:
+          type: string
+        alt_email:
+          type: string
+        phone:
+          type: string
+        alt_phone:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state_province:
+          type: string
+        postal_code:
+          type: string
+        gender:
+          type: string
+        marital_status:
+          type: string
+        national_id:
+          type: string
+        passport_no:
+          type: string
+  Record.out.value:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+      FIRST_NAME:
+        type: string
+      LAST_NAME:
+        type: string
+  RecordColumns.in.row:
+    type: object
+    properties:
+      CUSTOMER_ID:
+        type: string
+      SSN:
+        type: string
+      FIRST_NAME:
+        type: string
+      LAST_NAME:
+        type: string
+  RecordColumns.out.result:
+    type: array
+    items:
+      type: string
+  ColumnsNamesArr.out.array:
+    type: array
+    items:
+      type: string
+  Get Partiton.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        luName:
+          type: string
+        iid:
+          type: string
+        version:
+          type: integer
+        action:
+          type: string
+        notes:
+          type: string
+  RecordData.out.value:
+    type: object
+    properties:
+      customer_id:
+        type: string
+      created_at:
+        type: string
+      children_count:
+        type: string
+      loyalty_points:
+        type: string
+      signup_date:
+        type: string
+      preferred_language:
+        type: string
+      country:
+        type: string
+      comm_channel:
+        type: string
+      favorite_number:
+        type: string
+      last_login_tz:
+        type: string
+      updated_at:
+        type: string
+      timezone:
+        type: string
+      home_lat:
+        type: string
+      is_vip:
+        type: string
+      balance:
+        type: string
+      credit_limit:
+        type: string
+      small_flag:
+        type: string
+      last_name:
+        type: string
+      risk_score:
+        type: string
+      row_version:
+        type: string
+      first_name:
+        type: string
+      marketing_opt_in:
+        type: string
+      valid_to:
+        type: string
+      notes:
+        type: string
+      preferences_json:
+        type: string
+      float_score:
+        type: string
+      avatar_raw:
+        type: string
+      valid_from:
+        type: string
+      date_of_birth:
+        type: string
+      profile_blob:
+        type: string
+      height_cm:
+        type: string
+      last_login_ts:
+        type: string
+      weight_kg:
+        type: string
+      ssn:
+        type: string
+      home_lon:
+        type: string
+      double_score:
+        type: string
+      middle_name:
+        type: string
+      email:
+        type: string
+      alt_email:
+        type: string
+      phone:
+        type: string
+      alt_phone:
+        type: string
+      address_line1:
+        type: string
+      address_line2:
+        type: string
+      city:
+        type: string
+      state_province:
+        type: string
+      postal_code:
+        type: string
+      gender:
+        type: string
+      marital_status:
+        type: string
+      national_id:
+        type: string
+      passport_no:
+        type: string
+  LuFunction1.in.record:
+    type: object
+    properties:
+      customer_id:
+        type: string
+      created_at:
+        type: string
+      children_count:
+        type: string
+      loyalty_points:
+        type: string
+      signup_date:
+        type: string
+      preferred_language:
+        type: string
+      country:
+        type: string
+      comm_channel:
+        type: string
+      favorite_number:
+        type: string
+      last_login_tz:
+        type: string
+      updated_at:
+        type: string
+      timezone:
+        type: string
+      home_lat:
+        type: string
+      is_vip:
+        type: string
+      balance:
+        type: string
+      credit_limit:
+        type: string
+      small_flag:
+        type: string
+      last_name:
+        type: string
+      risk_score:
+        type: string
+      row_version:
+        type: string
+      first_name:
+        type: string
+      marketing_opt_in:
+        type: string
+      valid_to:
+        type: string
+      notes:
+        type: string
+      preferences_json:
+        type: string
+      float_score:
+        type: string
+      avatar_raw:
+        type: string
+      valid_from:
+        type: string
+      date_of_birth:
+        type: string
+      profile_blob:
+        type: string
+      height_cm:
+        type: string
+      last_login_ts:
+        type: string
+      weight_kg:
+        type: string
+      ssn:
+        type: string
+      home_lon:
+        type: string
+      double_score:
+        type: string
+      middle_name:
+        type: string
+      email:
+        type: string
+      alt_email:
+        type: string
+      phone:
+        type: string
+      alt_phone:
+        type: string
+      address_line1:
+        type: string
+      address_line2:
+        type: string
+      city:
+        type: string
+      state_province:
+        type: string
+      postal_code:
+        type: string
+      gender:
+        type: string
+      marital_status:
+        type: string
+      national_id:
+        type: string
+      passport_no:
+        type: string

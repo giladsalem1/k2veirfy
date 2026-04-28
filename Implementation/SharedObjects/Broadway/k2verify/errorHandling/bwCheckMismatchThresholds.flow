@@ -31,7 +31,6 @@ stages:
     actors:
       MathAdd1:
         parent: MathAdd
-        disabled: true
         in:
           b:
             const: 1
@@ -41,7 +40,6 @@ stages:
     actors:
       SetMismatchRecCount:
         parent: FabricSet
-        disabled: true
         in:
           key:
             const: MISMATCHED_RECORD_COUNT
@@ -84,9 +82,7 @@ stages:
             createdBy: functionName
           mismatchedRecords:
             const: 0
-            link:
-            - ReadMismatchCount/result
-            - MathAdd1/result
+            link: MathAdd1/result
             schema: integer
             default: true
             mandatory: false

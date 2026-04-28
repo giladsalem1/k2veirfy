@@ -54,6 +54,23 @@ stages:
         in:
           key:
             const: K2VERIFY_TARGET_ENV
+      LUName:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+      PROGRESS INTERVAL:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: LOG_PROGRESS_EVERY_N_RECORDS
+          luName:
+            link: LUName/lu_name
+      ToNumber2:
+        parent: ToNumber
+        in:
+          value:
+            link: PROGRESS INTERVAL/variableValue
   Table config:
     actors:
       IID:
@@ -263,7 +280,7 @@ stages:
             createdBy: flowName
           interfaceType:
             external: interfaceType
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
         out:
@@ -342,7 +359,7 @@ stages:
             createdBy: flowName
           interfaceType:
             external: interfaceType
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
         out:
@@ -532,7 +549,7 @@ stages:
             link:
               path: DUMMY GET1/result/value
               iterate: First
-      RetryQuery1:
+      RetryPhysicalError1:
         parent: ErrorHandler
         error: result
         in:
@@ -610,7 +627,7 @@ stages:
   'Update # records for report':
     transactional: false
     actors:
-      RetryQuery11:
+      RetryPhysicalError2:
         parent: ErrorHandler
         error: result
         in:
@@ -788,7 +805,7 @@ stages:
   Execute Query - Source:
     transactional: true
     actors:
-      RetryQuery12:
+      RetrySrcQuery:
         parent: ErrorHandler
         error: result
         in:
@@ -799,7 +816,7 @@ stages:
                 errorCode: ''
               actions:
                 suppress: true
-                log: false
+                log: true
                 flowName: bwPhysicalError
                 number_of_retries: '3'
                 retry_interval: '1000'
@@ -867,11 +884,8 @@ stages:
               != undefined && source_transformation_function != ''
           source_transformation_function:
             external: source_transformation_function
-            schema: string
+            schema: any
             mandatory: false
-        out:
-          result:
-            schema: boolean
       ApplySrcTransformation:
         parent: InnerFlow
         in:
@@ -937,7 +951,7 @@ stages:
   Execute Query - Target:
     transactional: true
     actors:
-      RetryQuery13:
+      RetryTarQuery:
         parent: ErrorHandler
         error: result
         in:
@@ -1016,11 +1030,8 @@ stages:
               != undefined && target_transformation_function != ''
           target_transformation_function:
             external: target_transformation_function
-            schema: string
+            schema: any
             mandatory: false
-        out:
-          result:
-            schema: boolean
       ApplyTarTransformation:
         parent: InnerFlow
         in:
@@ -1193,24 +1204,6 @@ stages:
         out:
           value:
             schema: '#ref'
-      SrcKeysValsCombos:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: GetKeysMapsList/SrcKeysCombinations
-        out:
-          value:
-            schema: '#ref'
-      TarKeysValsCombos:
-        parent: Const
-        in:
-          value:
-            const: null
-            link: GetKeysMapsList/TarKeysCombinations
-        out:
-          value:
-            schema: '#ref'
       ResetActors1:
         parent: ResetActors
         in:
@@ -1233,28 +1226,6 @@ stages:
             const: null
             link:
               path: KeysArr/value
-              iterate: Iterate
-        out:
-          value:
-            schema: '#ref'
-      PrimaryKeySrcValue:
-        parent: Const
-        in:
-          value:
-            const: null
-            link:
-              path: SrcKeysValsCombos/value
-              iterate: Iterate
-        out:
-          value:
-            schema: '#ref'
-      PrimaryKeyTarValue:
-        parent: Const
-        in:
-          value:
-            const: null
-            link:
-              path: TarKeysValsCombos/value
               iterate: Iterate
         out:
           value:
@@ -1376,9 +1347,7 @@ stages:
             mandatory: false
             createdBy: flowName
           table_name:
-            link:
-            - FetchTableName/result
-            - SRC table name/value
+            link: SRC DB Table/value
             schema: string
             mandatory: false
             createdBy: flowName
@@ -1471,12 +1440,12 @@ stages:
             createdBy: flowName
           task_id:
             external: task_id
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
           bucket_id:
             link: IID/value
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
         out:
@@ -1487,7 +1456,7 @@ stages:
     else: true
     transactional: true
     dependsOn: Stage 2
-  read processed records:
+  Stage 3:
     transactional: true
     actors:
       ProcessedRecordCount:
@@ -1622,11 +1591,6 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
-          verify_dir:
-            link: FabricSetRead1/result
-            schema: string
-            mandatory: false
-            createdBy: flowName
           file_name:
             external: result_file_name
             schema: string
@@ -1634,12 +1598,12 @@ stages:
             createdBy: flowName
           source_env_contains_sensitive_data:
             external: source_env_contains_sensitive_data
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
           target_env_contains_sensitive_data:
             external: target_env_contains_sensitive_data
-            schema: any
+            schema: string
             mandatory: false
             createdBy: flowName
     split: '--------------------'
@@ -1650,7 +1614,7 @@ stages:
   '# processed records':
     transactional: true
     actors:
-      '# ProcessedRecords':
+      '# ProcessedRecords2':
         parent: FabricSet
         in:
           key:
@@ -1659,11 +1623,11 @@ stages:
             const: null
             link: MathAdd1/result
             default: false
-      MathDivMod:
+      MathDivMod1:
         parent: MathDivMod
         in:
           b:
-            const: 1000
+            link: ToNumber2/number
             schema: integer
           a:
             link: MathAdd1/result
@@ -1700,8 +1664,8 @@ stages:
             const: 0
             schema: integer
           a:
-            link: MathDivMod/mod
-      RetryQuery14:
+            link: MathDivMod1/mod
+      RetryPhysicalError3:
         parent: ErrorHandler
         error: result
         in:
@@ -1764,7 +1728,7 @@ stages:
             createdBy: sql
           failed_records:
             link: FailedRecordCount1/result
-            schema: string
+            schema: any
             mandatory: false
             createdBy: sql
       tsAfterUpdate1000ProcessedRecords:
@@ -1824,7 +1788,7 @@ stages:
   Bucket Verify Completed:
     transactional: false
     actors:
-      RetryQuery15:
+      RetryPhysicalError4:
         parent: ErrorHandler
         error: result
         in:
@@ -2162,22 +2126,12 @@ schemas:
           type: date
         SRC_NOTES:
           type: string
-        SRC_PREFERENCES_JSON:
-          type: string
         SRC_FLOAT_SCORE:
           type: number
-        SRC_AVATAR_RAW:
-          type: array
-          items: {
-            }
         SRC_VALID_FROM:
           type: date
         SRC_DATE_OF_BIRTH:
           type: date
-        SRC_PROFILE_BLOB:
-          type: array
-          items: {
-            }
         SRC_HEIGHT_CM:
           type: integer
         SRC_LAST_LOGIN_TS:
@@ -2308,22 +2262,12 @@ schemas:
           type: date
         TAR_NOTES:
           type: string
-        TAR_PREFERENCES_JSON:
-          type: string
         TAR_FLOAT_SCORE:
           type: number
-        TAR_AVATAR_RAW:
-          type: array
-          items: {
-            }
         TAR_VALID_FROM:
           type: date
         TAR_DATE_OF_BIRTH:
           type: date
-        TAR_PROFILE_BLOB:
-          type: array
-          items: {
-            }
         TAR_HEIGHT_CM:
           type: integer
         TAR_LAST_LOGIN_TS:
@@ -2651,29 +2595,7 @@ schemas:
           type: string
         SSN:
           type: string
-  SrcKeysValsCombos.out.value:
-    type: array
-    items:
-      type: string
-  TarKeysValsCombos.out.value:
-    type: array
-    items:
-      type: string
   PrimaryKeyMap.out.value:
-    type: object
-    properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  PrimaryKeySrcValue.out.value:
-    type: object
-    properties:
-      CUSTOMER_ID:
-        type: string
-      SSN:
-        type: string
-  PrimaryKeyTarValue.out.value:
     type: object
     properties:
       CUSTOMER_ID:

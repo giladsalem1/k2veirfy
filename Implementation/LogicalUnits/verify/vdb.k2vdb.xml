@@ -73,13 +73,11 @@
   </DatabaseRelations>
   <DiagramGraph>
     <Graph name="vdb.k2vdb.xml">
-      <Group name="D2D" pos="-188 109" expanded="true">
-        <Node name="entity_summary" pos="239 806" viewType="Table" />
-        <Node name="field_summary" pos="239 215" viewType="Table" />
-        <Node name="record_summary" pos="239 431" viewType="Table" />
-        <Node name="root" pos="-62 476" viewType="Table" />
-        <Node name="table_summary" pos="239 606" viewType="Table" />
-      </Group>
+      <Node name="entity_summary" pos="239 806" viewType="Table" />
+      <Node name="field_summary" pos="239 215" viewType="Table" />
+      <Node name="record_summary" pos="239 431" viewType="Table" />
+      <Node name="root" pos="-62 476" viewType="Table" />
+      <Node name="table_summary" pos="239 606" viewType="Table" />
     </Graph>
   </DiagramGraph>
 </VirtualDB>

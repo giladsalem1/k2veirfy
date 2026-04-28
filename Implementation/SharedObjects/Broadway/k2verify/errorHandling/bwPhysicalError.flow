@@ -17,7 +17,7 @@ stages:
         in:
           value:
             const: null
-            external: value
+            external: physical_error_type
             schema: string
         out:
           value:

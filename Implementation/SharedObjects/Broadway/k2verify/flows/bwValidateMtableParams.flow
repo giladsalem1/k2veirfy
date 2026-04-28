@@ -47,12 +47,8 @@ stages:
         parent: JavaScript
         in:
           script:
-            const: |-
-              if(dataSource.indexOf(".") > -1){
-                  dataSource.split(".")[1];
-              }else{
-                  dataSource;
-              }
+            const: 'dataSource.indexOf(".")>-1 ? dataSource.substring(dataSource.indexOf(".")
+              + 1) : dataSource;'
           dataSource:
             link:
               path: TaskProperties/value/K2VERIFY_TABLE_LIST/src
@@ -66,12 +62,8 @@ stages:
         parent: JavaScript
         in:
           script:
-            const: |-
-              if(dataSource.indexOf(".") > -1){
-                  dataSource.split(".")[1];
-              }else{
-                  dataSource;
-              }
+            const: 'dataSource.indexOf(".") >-1 ? dataSource.substring(dataSource.indexOf(".")
+              + 1) : dataSource;'
           dataSource:
             link:
               path: TaskProperties/value/K2VERIFY_TABLE_LIST/tar
@@ -256,6 +248,8 @@ stages:
         out:
           type:
             schema: string
+          error:
+            schema: string
       assertSrcInterface:
         parent: assertNotEquals
         in:
@@ -266,6 +260,16 @@ stages:
             const: Please provice a valid source DB interface name
           actual:
             link: Validate SRC Interface/type
+      assertEquals1:
+        parent: assertEquals
+        in:
+          message:
+            const: null
+            link: Validate SRC Interface/error
+          actual:
+            link: Validate SRC Interface/error
+  Stage 3:
+    actors:
       Validate TAR Interface:
         parent: InnerFlow
         in:
@@ -284,6 +288,8 @@ stages:
         out:
           type:
             schema: string
+          error:
+            schema: string
       assertTarInterface:
         parent: assertNotEquals
         in:
@@ -294,17 +300,50 @@ stages:
             const: Please provice a valid target DB interface name
           actual:
             link: Validate TAR Interface/type
+      assertEquals2:
+        parent: assertEquals
+        in:
+          message:
+            const: null
+            link: Validate TAR Interface/error
+          actual:
+            link: Validate TAR Interface/error
   Validation queries:
+    dependsOn: Stage 3
     actors:
-      NotEquals1:
-        parent: NotEquals
+      JavaScript1:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: '!(dbtype.indexOf(''FileSystem'') > -1 || dbtype ==''SFTP'')'
+          dbtype:
+            link: Validate SRC Interface/type
+            schema: any
+            mandatory: false
+    split: '--------------------'
+  Stage 4:
+    else: true
+    dependsOn: Stage 3
+    actors:
+      assertNotNull1:
+        parent: assertNotNull
+        in:
+          message:
+            const: Please provide Comparison Keys in the Settings page
+          object:
+            link: DbFetchFirstRow1/result/Customized_Key_Comparison
+  Stage 5:
+    actors:
+      Equals1:
+        parent: Equals
         condition: result
         in:
           b:
-            const: LocalFileSystem
-            schema: string
+            const: true
+            schema: boolean
           a:
-            link: Validate SRC Interface/type
+            link: JavaScript1/result
   Validate schemas:
     actors:
       Validate Source Schema:
@@ -398,6 +437,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
+          dbType:
+            link: Validate SRC Interface/type
+            schema: any
+            mandatory: false
+            createdBy: functionName
         out:
           result:
             schema: '#ref'
@@ -433,6 +477,11 @@ stages:
           environment:
             link: TaskProperties/value/K2VERIFY_ENV_TAR
             schema: string
+            mandatory: false
+            createdBy: functionName
+          dbType:
+            link: Validate TAR Interface/type
+            schema: any
             mandatory: false
             createdBy: functionName
         out:
@@ -561,6 +610,10 @@ stages:
               id: com.k2view.mTableKey
             mandatory: false
             createdBy: flowName
+          environment:
+            link: TaskProperties/value/K2VERIFY_ENV_SRC
+            schema: any
+            mandatory: false
         out:
           pk_columns:
             schema: string

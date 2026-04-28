@@ -4,7 +4,7 @@ description: |-
   Inputs
   luName: lu name
   variableName: global key
-tags: d2d,k2verify
+tags: k2verify
 stages:
   Input:
     actors:

@@ -28,6 +28,7 @@ stages:
                       t.task_title,
                       t.source_interface,
                       t.target_interface,
+                      t.selection_method,
                       te.execution_id,
                       te.execution_status,
                       te.start_time,
@@ -85,6 +86,7 @@ stages:
               SELECT
                   ti.task_id,
                   ti.task_title AS task_name,
+                  ti.selection_method,
                   ti.execution_id,
                   ti.execution_status AS execution_status,
                   ti.start_time,

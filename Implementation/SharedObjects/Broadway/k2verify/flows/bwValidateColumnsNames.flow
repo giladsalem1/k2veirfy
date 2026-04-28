@@ -226,6 +226,22 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          dbtype:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          interface:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          table:
+            schema: any
+            mandatory: false
+            createdBy: flowName
+          schema:
+            schema: any
+            mandatory: false
+            createdBy: flowName
         out:
           columns_for_select:
             schema: string
@@ -324,9 +340,7 @@ stages:
             mandatory: false
             createdBy: message
           actual:
-            link:
-              path: DeepCopy1/value
-              iterate: First
+            link: DeepCopy1/value
     split: '--------------------'
   Assert column found in tar:
     last: 1
@@ -350,9 +364,7 @@ stages:
             mandatory: false
             createdBy: message
           actual:
-            link:
-              path: DeepCopy2/value
-              iterate: First
+            link: DeepCopy2/value
     split: '--------------------'
   Stage 11:
     last: 1

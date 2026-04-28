@@ -1,4 +1,4 @@
-tags: D2D,k2verify
+tags: k2verify
 stages:
   Stage 1: {
     }
@@ -52,6 +52,16 @@ stages:
         out:
           value:
             external: type
+            schema: string
+      Error:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Test Connection/result/error_message
+        out:
+          value:
+            external: error
             schema: string
 schemas:
   Test Connection.out.result:

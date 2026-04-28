@@ -1,23 +1,126 @@
-tags: error_handling,k2verify
+tags: k2verify
 stages:
-  Stage 1:
+  Flow Params:
     actors:
-      ErrorFields1:
+      GetLUName:
+        parent: GetLUName
+        out:
+          lu_name:
+            schema: string
+      K2VERIFY_INTERFACE:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_INTERFACE
+          luName:
+            link: GetLUName/lu_name
+      K2VERIFY_SCHEMA:
+        parent: GetLUVariable
+        in:
+          variableName:
+            const: K2VERIFY_OPERATIONAL_SCHEMA
+          luName:
+            link: GetLUName/lu_name
+  Flow error:
+    actors:
+      ErrorFields:
         parent: ErrorFields
         in:
           error:
             external: error
-  Stage 2:
+  Stage 9:
     actors:
-      Logger1:
+      LogError:
         parent: Logger
         in:
           message:
-            link: ErrorFields1/message
+            link: ErrorFields/message
+      FetchExecutionID:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_INTERFACE/variableValue
+          sql:
+            const: select execution_id from ${@schema}.task_execution where task_id=${task_id}
+              and execution_status='In_Progress'
+          schema:
+            link: K2VERIFY_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: integer
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: integer
+      Now1:
+        parent: Now
+      TaskEndTime:
+        parent: ToString
+        in:
+          value:
+            link: Now1/date
+  Stage 2:
+    actors:
+      UpTaskEndTimeDueFail:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_INTERFACE/variableValue
+          sql:
+            const: update ${@schema}.task_execution set execution_status='Stopped',
+              end_time='${@end_time}' where task_id=${@task_id} and execution_id=${@execution_id}
+              and lower(execution_status) <> 'failed' AND lower(execution_status)
+              <> 'completed'  AND lower(execution_status) <> 'stopped' AND lower(execution_status)
+              <> 'killed'
+          schema:
+            link: K2VERIFY_SCHEMA/variableValue
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: sql
+          execution_id:
+            link: FetchExecutionID/result
+            schema: integer
+            mandatory: false
+            createdBy: sql
+          end_time:
+            link: TaskEndTime/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 4:
+    actors:
       LuFunction1:
         parent: LuFunction
         in:
           functionName:
-            const: fnJobNoRetry
-          params:
-            link: ErrorFields1/message
+            const: failJobWithoutRetry
+          errorMessage:
+            link: ErrorFields/message
+            schema: any
+            mandatory: false
+            createdBy: functionName
+        out:
+          failureReason:
+            schema: any
+schemas:
+  UpTaskEndTimeDueFail.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        batch_id:
+          type: string

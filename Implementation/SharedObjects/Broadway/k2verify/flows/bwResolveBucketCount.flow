@@ -497,10 +497,12 @@ stages:
             schema: string
             mandatory: false
           buckets:
-            link:
-            - CalcBucketCount/result
-            - CalcBucketCount1/result
+            const: '0'
             schema: string
+            mandatory: false
+          autoCalculated:
+            const: true
+            schema: boolean
             mandatory: false
         out:
           map:

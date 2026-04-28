@@ -63,6 +63,10 @@ stages:
             const:
             - source_table_name
             - target_table_name
+            - source_interface
+            - target_interface
+            - source_schema
+            - target_schema
           dialect:
             const: postgres
           source_environment:

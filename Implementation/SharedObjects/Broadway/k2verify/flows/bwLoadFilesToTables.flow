@@ -1,8 +1,35 @@
 tags: k2verify
 stages:
-  Stage 17:
+  Set source environment:
     actors:
-      ls1:
+      SetSourceEnv:
+        parent: FabricSet
+        in:
+          key:
+            const: environment
+          value:
+            const: null
+            external: source_env
+            default: false
+  Stage 8:
+    actors:
+      BucketsCount:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              if(buckets_count == 0) 1;
+              else buckets_count;
+          buckets_count:
+            external: buckets_count
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  ls files:
+    actors:
+      ls:
         parent: ls
         in:
           interface:
@@ -11,238 +38,255 @@ stages:
           pattern:
             const: null
             external: pattern
-          directories:
-            const: true
         out:
           result:
             schema: '#ref'
-      SEPERATOR:
-        parent: GetLUVariable
-        in:
-          luName:
-            const: verify
-          variableName:
-            const: K2VERIFY_CONF_SEPARATOR
-  Stage 18:
+  Stage 6:
     actors:
-      File:
+      Const1:
         parent: Const
         in:
           value:
             const: null
-            link:
-              path: ls1/result/name
-              iterate: Iterate
+            link: ls/result/name
         out:
           value:
-            schema: string
-      Count1:
-        parent: Count
-        out:
-          value:
-            external: numOfBuckets
-            schema: integer
-  Stage 19:
+            schema: '#ref'
+  Stage 1:
+    transactional: true
     actors:
+      InnerFlowAsync2:
+        parent: InnerFlowAsync
+        in:
+          flowName:
+            const: bwLoadFilesToBucketsWrapper
+          value:
+            link:
+              path: Const1/value
+              iterate: Iterate
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          source_env:
+            external: source_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          srcInterface:
+            external: srcInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            link: BucketsCount/result
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_env:
+            external: target_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tarInterface:
+            external: tarInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+        out:
+          results:
+            schema: '#ref'
+  Stage 4:
+    last: 1
+    transactional: true
+    actors:
+      LoadFilesToBucketsMapper1:
+        parent: Mapper
+        disabled: true
+        in:
+          flowName:
+            const: bwLoadFilesToBucketsWrapper
+          threadCount:
+            const: 3
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          source_env:
+            external: source_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          srcInterface:
+            external: srcInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            external: buckets_count
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          target_env:
+            external: target_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          tarInterface:
+            external: tarInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+        out:
+          values:
+            schema: '#ref'
+      InnerFlowJoin1:
+        parent: InnerFlowJoin
+        in:
+          remaining:
+            link: InnerFlowAsync2/remaining
+  Stage 7:
+    transactional: false
+    actors:
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: Const1/value
+        out:
+          value:
+            schema: '#ref'
+  Stage 3:
+    transactional: false
+    actors:
+      ForLoop:
+        parent: ForLoop
+        in:
+          to:
+            link: BucketsCount/result
       FileName:
         parent: Replace
         in:
           search:
             const: .csv
           string:
-            link: File/value
-  Stage 4:
+            link:
+              path: Const2/value
+              iterate: Iterate
+  Stage 2:
+    last: 1
+    transactional: false
     actors:
-      StringFormat3:
+      FormatrPartitionName:
         parent: StringFormat
         in:
           format:
-            const: ${fileName}
+            const: ${fileName}_@_${count}
           fileName:
             link: FileName/string
             schema: string
             mandatory: false
             createdBy: format
-      StringFormat1:
-        parent: StringFormat
-        in:
-          format:
-            const: '''${fileName}'''
-          fileName:
-            link: FileName/string
-            schema: string
-            mandatory: false
-            createdBy: format
-      bwGetTableParams1:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwGetTableParams
-          Source_Interface:
-            external: srcInterface
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Source_Schema:
-            external: srcSchema
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Source_Table_Name:
-            external: pattern
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Target_Interface:
-            external: tarInterface
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Target_Schema:
-            external: tarSchema
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Target_Table_Name:
-            external: pattern
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          Buckets:
+          count:
+            link:
+              path: ForLoop/i
+              iterate: Iterate
             schema: integer
             mandatory: false
-            createdBy: flowName
-        out:
-          tableParams:
-            schema: '#ref'
-  Stage 2:
-    transactional: true
-    actors:
-      DUMMY GET:
-        parent: DbCommand
+            createdBy: format
+      FormatEntityList:
+        parent: StringFormat
         in:
-          interface:
-            const: fabric
-          sql:
-            const: set K2VERIFY_CSV_MODE_DUMMY_GET='true';
-      StringBuild1:
+          format:
+            const: '''${iid}'''
+          iid:
+            link: FormatrPartitionName/string
+            schema: string
+            mandatory: false
+            createdBy: format
+      BuildEntityList:
         parent: StringBuild
         in:
           input:
             link:
-              path: StringFormat1/string
+              path: FormatEntityList/string
               pos: 0
         out:
           string:
-            external: bucketIDs
-  Stage 3:
-    transactional: true
-    actors:
-      FabricGet1:
-        parent: FabricGet
+            external: entityList
+      ArrayBuilder1:
+        parent: ArrayBuilder
         in:
-          luType:
-            const: verify
-          iid:
-            const: null
+          input:
             link:
-              path: StringFormat3/string
+              path: FormatrPartitionName/string
               pos: 0
-            default: false
-          syncMode:
-            const: 'ON'
-  Stage 16:
-    last: 1
-    transactional: true
-    actors:
-      bwLoadSrcFilesToTable:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwLoadFileToLUITable
-          interface:
-            external: srcInterface
-            schema: string
-            editor:
-              interfaceType:
-              - LOCAL
-              - SFTP
-              - filesystem
-              interfaces:
-              - file://
-              id: com.k2view.interface
-            mandatory: false
-            createdBy: flowName
-          delim:
-            link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          env:
-            const: src
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          customized_key:
-            link: bwGetTableParams1/tableParams/Customized_Key_Comparison
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          fileName:
-            link: File/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
-      bwLoadTarFilesToTable1:
-        parent: InnerFlow
-        in:
-          flowName:
-            const: bwLoadFileToLUITable
-          delim:
-            link: SEPERATOR/variableValue
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          env:
-            const: tar
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          customized_key:
-            link: bwGetTableParams1/tableParams/Customized_Key_Comparison
-            schema: string
-            mandatory: false
-            createdBy: flowName
-          interface:
-            external: tarInterface
-            schema: string
-            editor:
-              interfaceType:
-              - LOCAL
-              - SFTP
-              - filesystem
-              interfaces:
-              - file://
-              id: com.k2view.interface
-            mandatory: false
-            createdBy: flowName
-          fileName:
-            link: File/value
-            schema: string
-            mandatory: false
-            createdBy: flowName
+        out:
+          array:
+            external: entities
   Stage 5:
-    transactional: true
-    actors:
-      SRC Table111:
-        parent: DbCommand
-        in:
-          interface:
-            const: fabric
-          sql:
-            const: set K2VERIFY_CSV_MODE_DUMMY_GET='false';
+    last: 1
+    transactional: false
 schemas:
-  ls1.out.result:
+  ls.out.result:
     type: array
     items:
       type: object
@@ -261,42 +305,22 @@ schemas:
           type: boolean
         fullPath:
           type: string
-  bwGetTableParams1.out.tableParams:
-    type: object
-    properties:
-      Active:
-        type: boolean
-      Buckets: {
-        }
-      Column_Mapping: {
-        }
-      Customized_Key_Comparison:
-        type: string
-      Excluded_Columns_Names: {
-        }
-      Buckets_Method:
-        type: string
-      Pii_Columns:
-        type: string
-      Excluded_Rows_Sql: {
-        }
-      source_columns_to_Ignore_null: {
-        }
-      Source_Interface:
-        type: string
-      Source_Schema:
-        type: string
-      Source_Table_Name:
-        type: string
-      Source_Transformation_Function_Name: {
-        }
-      target_columns_to_Ignore_null: {
-        }
-      Target_Interface:
-        type: string
-      Target_Schema:
-        type: string
-      Target_Table_Name:
-        type: string
-      Target_Transformation_Function_Name: {
-        }
+  Const1.out.value:
+    type: array
+    items:
+      type: string
+  InnerFlowAsync2.out.results:
+    type: array
+    items:
+      type: object
+      properties:
+        values:
+          type: string
+  LoadFilesToBucketsMapper1.out.values:
+    type: array
+    items:
+      type: string
+  Const2.out.value:
+    type: array
+    items:
+      type: string

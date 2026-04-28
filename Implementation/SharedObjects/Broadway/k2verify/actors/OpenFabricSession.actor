@@ -23,7 +23,7 @@
             ]
         }
     ],
-    "actorClass": "com.k2view.cdbms.usercode.common.OpenFabricSession",
+    "actorClass": "com.k2view.cdbms.usercode.common.k2verify.OpenFabricSession",
     "tags": [
         "fabric"
     ]

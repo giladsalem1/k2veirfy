@@ -97,14 +97,14 @@ public class Logic extends UserCode {
                 Integer failedRecords = failedObj != null ? Integer.valueOf(failedObj.toString()) : 0;
                 Integer processedRecords = processedObj != null ? Integer.valueOf(processedObj.toString()): 0;
                 String errorCode = getGlobal("ERROR_CODE", "verify");
-                
-                
+
+
                 db(operationalInterface).execute(
                                 "update " + operationalSchema
                                         + ".task_execution_buckets set status='Failed' , end_time=?, error_info=?, total_records=?, processed_records=?, failed_records=? where task_id=? and execution_id=? and table_name=? and bucket_id=?",
                                 formattedDateTime, errorCode, totalRecords, processedRecords, failedRecords, taskId,
                                 executionId, tableName,
-                                IID);                                
+                                IID); 
 
         }
 

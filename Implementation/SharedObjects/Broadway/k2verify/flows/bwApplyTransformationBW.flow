@@ -277,7 +277,7 @@ stages:
             link:
               path: Columns/result
               iterate: Iterate
-            schema: string
+            schema: any
             mandatory: false
             createdBy: format
       MapBuild3:
@@ -309,7 +309,10 @@ stages:
         out:
           value:
             schema: string
+  Stage 20: {
+    }
   add FAILED_RECORD_IND column:
+    dependsOn: Stage 20
     actors:
       NotNull3:
         parent: NotNull
@@ -317,7 +320,7 @@ stages:
         in:
           value:
             link: ErrorHandler1/result
-      MapBuild4:
+      FailedIndMap:
         parent: MapBuild
         resetOnFirstIteration: true
         in:
@@ -330,6 +333,10 @@ stages:
         out:
           map:
             schema: '#ref'
+    split: '--------------------'
+  Stage 22:
+    else: true
+    dependsOn: Stage 20
   Stage 19:
     actors:
       MapBuild2:
@@ -359,11 +366,8 @@ stages:
               pos: 0
             - path: MapBuild2/map
               pos: 1
-            - path: MapBuild4/map
+            - path: FailedIndMap/map
               pos: 2
-        out:
-          map:
-            schema: '#ref'
   Stage 12:
     last: 1
     actors:
@@ -463,7 +467,7 @@ schemas:
         type: string
       SRC_SSN:
         type: string
-  MapBuild4.out.map:
+  FailedIndMap.out.map:
     type: object
     properties:
       SRC_FIRST_NAME:
@@ -480,113 +484,6 @@ schemas:
       SRC_CUSTOMER_ID:
         type: string
       SRC_SSN:
-        type: string
-  MapMerge1.out.map:
-    type: object
-    properties:
-      SRC_SSN_ORIG:
-        type: string
-      SRC_CUSTOMER_ID:
-        type: integer
-      SRC_CREATED_AT:
-        type: date
-      SRC_CHILDREN_COUNT: {
-        }
-      SRC_LOYALTY_POINTS:
-        type: integer
-      SRC_SIGNUP_DATE:
-        type: date
-      SRC_PREFERRED_LANGUAGE:
-        type: string
-      SRC_COUNTRY:
-        type: string
-      SRC_COMM_CHANNEL: {
-        }
-      SRC_FAVORITE_NUMBER: {
-        }
-      SRC_LAST_LOGIN_TZ: {
-        }
-      SRC_UPDATED_AT: {
-        }
-      SRC_TIMEZONE:
-        type: string
-      SRC_HOME_LAT: {
-        }
-      SRC_IS_VIP:
-        type: string
-      SRC_BALANCE:
-        type: integer
-      SRC_CREDIT_LIMIT:
-        type: integer
-      SRC_SMALL_FLAG: {
-        }
-      SRC_LAST_NAME:
-        type: string
-      SRC_RISK_SCORE:
-        type: integer
-      SRC_ROW_VERSION: {
-        }
-      SRC_FIRST_NAME:
-        type: string
-      SRC_MARKETING_OPT_IN: {
-        }
-      SRC_VALID_TO: {
-        }
-      SRC_NOTES: {
-        }
-      SRC_PREFERENCES_JSON: {
-        }
-      SRC_FLOAT_SCORE: {
-        }
-      SRC_AVATAR_RAW: {
-        }
-      SRC_VALID_FROM: {
-        }
-      SRC_DATE_OF_BIRTH: {
-        }
-      SRC_PROFILE_BLOB: {
-        }
-      SRC_HEIGHT_CM: {
-        }
-      SRC_LAST_LOGIN_TS: {
-        }
-      SRC_WEIGHT_KG: {
-        }
-      SRC_SSN: {
-        }
-      SRC_HOME_LON: {
-        }
-      SRC_DOUBLE_SCORE: {
-        }
-      SRC_MIDDLE_NAME: {
-        }
-      SRC_EMAIL:
-        type: string
-      SRC_ALT_EMAIL: {
-        }
-      SRC_PHONE:
-        type: string
-      SRC_ALT_PHONE: {
-        }
-      SRC_ADDRESS_LINE1:
-        type: string
-      SRC_ADDRESS_LINE2: {
-        }
-      SRC_CITY:
-        type: string
-      SRC_STATE_PROVINCE: {
-        }
-      SRC_POSTAL_CODE:
-        type: string
-      SRC_GENDER:
-        type: string
-      SRC_MARITAL_STATUS:
-        type: string
-      SRC_NATIONAL_ID: {
-        }
-      SRC_PASSPORT_NO: {
-        }
-      FAILED_RECORD_IND:
         type: string
   ArrayBuilder1.out.array:
     type: array

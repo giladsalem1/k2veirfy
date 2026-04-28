@@ -1,0 +1,188 @@
+tags: k2verify
+stages:
+  Flow params:
+    actors:
+      SEPERATOR:
+        parent: GetLUVariable
+        in:
+          luName:
+            const: verify
+          variableName:
+            const: K2VERIFY_CONF_SEPARATOR
+      File:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: value
+        out:
+          value:
+            schema: string
+  Format file name:
+    actors:
+      FileName:
+        parent: Replace
+        in:
+          search:
+            const: .csv
+          string:
+            link: File/value
+  Load source files to partitions:
+    transactional: false
+    actors:
+      LoadSrcFilesToBuckets:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadFilesToBuckets
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: src
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env_name:
+            external: source_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: srcInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+          fullFileName:
+            link: File/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            external: buckets_count
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          iids:
+            schema: string
+  Load target files to partitions:
+    transactional: false
+    actors:
+      LoadTarFilesToBuckets:
+        parent: InnerFlow
+        in:
+          flowName:
+            const: bwLoadFilesToBuckets
+          fileName:
+            link: FileName/string
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          task_id:
+            external: task_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          execution_id:
+            external: execution_id
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env:
+            const: tar
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          customized_key:
+            external: customized_key
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          delim:
+            link: SEPERATOR/variableValue
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          env_name:
+            external: target_env
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          interface:
+            external: tarInterface
+            schema: string
+            editor:
+              interfaceType:
+              - LOCAL
+              - SFTP
+              - filesystem
+              interfaces:
+              - file://
+              id: com.k2view.interface
+            mandatory: false
+            createdBy: flowName
+          fullFileName:
+            link: File/value
+            schema: string
+            mandatory: false
+            createdBy: flowName
+          buckets_count:
+            external: buckets_count
+            schema: string
+            mandatory: false
+            createdBy: flowName
+        out:
+          iids:
+            schema: string
+  IIDs:
+    transactional: false
+    actors:
+      ListOfIIDS:
+        parent: StringBuild
+        in:
+          input:
+            link: LoadSrcFilesToBuckets/iids
+        out:
+          string:
+            external: values
+  Stage 1:
+    transactional: false
+    actors:
+      DUMMY GET1:
+        parent: DbCommand
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: set K2VERIFY_CSV_MODE_DUMMY_GET='false';

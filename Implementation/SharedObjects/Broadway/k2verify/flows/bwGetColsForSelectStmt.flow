@@ -1,1841 +1,607 @@
-{
-    "tags": [
-        "d2d",
-        "d2d\flows",
-        "D2D",
-        "k2verify"
-    ],
-    "levels": [
-        {
-            "stages": [
-                {
-                    "name": "Stage 2",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "ColumnMapping",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "Tar ENV",
-                            "actorType": {
-                                "parentType": "Equals",
-                                "inputs": [
-                                    {
-                                        "name": "a",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "TAR"
-                                    },
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "Const2",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 3",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "ColumMapNotNull",
-                            "actorType": {
-                                "parentType": "NotEquals",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "ColumnMapping handling",
-                    "dependsOnList": [
-                        "Stage 3"
-                    ],
-                    "actors": [
-                        {
-                            "name": "And1",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "And",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Column names without ColumnMapping",
-                    "dependsOnList": [
-                        "Stage 3"
-                    ],
-                    "hasElse": true,
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 29",
-                    "dependsOnList": [
-                        "ColumnMapping handling"
-                    ],
-                    "actors": [
-                        {
-                            "name": "Split1",
-                            "actorType": {
-                                "parentType": "Split",
-                                "inputs": [
-                                    {
-                                        "name": "delimiter",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 32",
-                    "dependsOnList": [
-                        "Column names without ColumnMapping"
-                    ],
-                    "actors": [
-                        {
-                            "name": "Const1",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 33",
-                    "dependsOnList": [
-                        "Stage 29"
-                    ],
-                    "actors": [
-                        {
-                            "name": "mapping1",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 34",
-                    "dependsOnList": [
-                        "Stage 32"
-                    ],
-                    "actors": [
-                        {
-                            "name": "MapBuild3",
-                            "actorType": {
-                                "parentType": "MapBuild",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "map",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "LAST_NAME": {
-                                                    "type": "string"
-                                                },
-                                                "FIRST_NAME": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 35",
-                    "dependsOnList": [
-                        "Stage 33"
-                    ],
-                    "actors": [
-                        {
-                            "name": "Split2",
-                            "actorType": {
-                                "parentType": "Split",
-                                "inputs": [
-                                    {
-                                        "name": "delimiter",
-                                        "const": ":"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 36",
-                    "dependsOnList": [
-                        "Stage 34"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 26",
-                    "dependsOnList": [
-                        "Stage 35"
-                    ],
-                    "actors": [
-                        {
-                            "name": "orgCol1",
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "arr[0]"
-                                    },
-                                    {
-                                        "name": "arr",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "mappedCol1",
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "arr[1]"
-                                    },
-                                    {
-                                        "name": "arr",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 27",
-                    "dependsOnList": [
-                        "Stage 36"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 37",
-                    "dependsOnList": [
-                        "Stage 26"
-                    ],
-                    "actors": [
-                        {
-                            "name": "SRC Col1",
-                            "actorType": {
-                                "parentType": "Uppercase",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "TAR Col Map1",
-                            "actorType": {
-                                "parentType": "Uppercase",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 38",
-                    "dependsOnList": [
-                        "Stage 27"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 39",
-                    "dependsOnList": [
-                        "Stage 37"
-                    ],
-                    "isLast": 1,
-                    "actors": [
-                        {
-                            "name": "EqualsIgnoreCase2",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "EqualsIgnoreCase",
-                                "inputs": [
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "true"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "MapBuild1",
-                            "actorType": {
-                                "parentType": "MapBuild",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "map",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "LAST_NAME": {
-                                                    "type": "string"
-                                                },
-                                                "FIRST_NAME": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 6",
-                    "dependsOnList": [
-                        "Stage 37"
-                    ],
-                    "isLast": 1,
-                    "hasElse": true,
-                    "actors": [
-                        {
-                            "name": "MapBuild2",
-                            "actorType": {
-                                "parentType": "MapBuild",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "map",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "LAST_NAME": {
-                                                    "type": "string"
-                                                },
-                                                "FIRST_NAME": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 40",
-                    "dependsOnList": [
-                        "Stage 38"
-                    ],
-                    "isLast": 1,
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 10",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "Const3",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 21",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "JavaScript1",
-                            "actorType": {
-                                "parentType": "JavaScript",
-                                "inputs": [
-                                    {
-                                        "name": "script",
-                                        "const": "map.get(col);"
-                                    },
-                                    {
-                                        "name": "map",
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "LAST_NAME": {
-                                                    "type": "string"
-                                                },
-                                                "FIRST_NAME": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "col",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 8",
-                    "dependsOnList": [
-                        "Stage 21"
-                    ],
-                    "actors": [
-                        {
-                            "name": "NotNull1",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "NotNull",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 11",
-                    "dependsOnList": [
-                        "Stage 21"
-                    ],
-                    "hasElse": true,
-                    "actors": [
-                        {
-                            "name": "ColumnForSelect11",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "ColumnForAlias1",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 9",
-                    "dependsOnList": [
-                        "Stage 8"
-                    ],
-                    "actors": [
-                        {
-                            "name": "EqualsIgnoreCase1",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "EqualsIgnoreCase",
-                                "inputs": [
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "true"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "ColumnForSelect1",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "ColumnForAlias",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 13",
-                    "dependsOnList": [
-                        "Stage 8"
-                    ],
-                    "hasElse": true,
-                    "actors": [
-                        {
-                            "name": "ColumnForSelect12",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "ColumnForAlias2",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 12",
-                    "dependsOnList": [
-                        "Stage 11"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 1",
-                    "dependsOnList": [],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 4",
-                    "dependsOnList": [
-                        "Stage 1"
-                    ],
-                    "actors": [
-                        {
-                            "name": "EqualsIgnoreCase3",
-                            "condition": "result",
-                            "actorType": {
-                                "parentType": "EqualsIgnoreCase",
-                                "inputs": [
-                                    {
-                                        "name": "b",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "const": "DB2 (Db)"
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "check if db2",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "interface",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "table",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "schema",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 5",
-                    "dependsOnList": [
-                        "Stage 1"
-                    ],
-                    "hasElse": true,
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 14",
-                    "dependsOnList": [
-                        "Stage 4"
-                    ],
-                    "actors": [
-                        {
-                            "name": "ErrorHandler1",
-                            "onError": "result",
-                            "actorType": {
-                                "parentType": "ErrorHandler",
-                                "inputs": [
-                                    {
-                                        "name": "config",
-                                        "const": [
-                                            {
-                                                "exceptionKey": "java.sql.SQLException",
-                                                "conditions": {
-                                                    "errorCode": ""
-                                                },
-                                                "actions": {
-                                                    "suppress": false,
-                                                    "log": true,
-                                                    "flowName": "",
-                                                    "number_of_retries": "3",
-                                                    "retry_interval": "1000"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "DbCommand1",
-                            "actorType": {
-                                "parentType": "DbCommand",
-                                "inputs": [
-                                    {
-                                        "name": "interface",
-                                        "const": null
-                                    },
-                                    {
-                                        "name": "sql",
-                                        "const": "SELECT typename\nFROM syscat.columns\nWHERE tabname = '${@tablename}'\nAND tabschema = '${@schemaName}' AND colname='${@columnName}'"
-                                    },
-                                    {
-                                        "name": "tablename",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "schemaName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "columnName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "sql",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "result",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "TYPENAME": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 15",
-                    "dependsOnList": [
-                        "Stage 5"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 16",
-                    "dependsOnList": [
-                        "Stage 14"
-                    ],
-                    "actors": [
-                        {
-                            "name": "LuFunction1",
-                            "actorType": {
-                                "parentType": "LuFunction",
-                                "inputs": [
-                                    {
-                                        "name": "functionName",
-                                        "const": "fnhandleComplexDBColumns"
-                                    },
-                                    {
-                                        "name": "columnName",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "functionName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "dbType",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "createdBy": "functionName",
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "columnType",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "createdBy": "functionName",
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "convertedColType",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "Stage 17",
-                    "dependsOnList": [
-                        "Stage 15"
-                    ],
-                    "actors": []
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 7",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "Build Columns12",
-                            "actorType": {
-                                "parentType": "StringFormat",
-                                "inputs": [
-                                    {
-                                        "name": "format",
-                                        "const": " ${column}  as \"${env}_${map_column}\""
-                                    },
-                                    {
-                                        "name": "column",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "env",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    },
-                                    {
-                                        "name": "map_column",
-                                        "schema": {
-                                            "type": "string"
-                                        },
-                                        "mandatory": false
-                                    }
-                                ],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "Const8",
-                            "actorType": {
-                                "parentType": "Const",
-                                "inputs": [
-                                    {
-                                        "name": "value",
-                                        "const": null
-                                    }
-                                ],
-                                "outputs": [
-                                    {
-                                        "name": "value",
-                                        "schema": {
-                                            "type": "string"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "stages": [
-                {
-                    "name": "Stage 25",
-                    "dependsOnList": [],
-                    "actors": [
-                        {
-                            "name": "StringBuild1",
-                            "actorType": {
-                                "parentType": "StringBuild",
-                                "inputs": [],
-                                "outputs": []
-                            }
-                        },
-                        {
-                            "name": "ArrayBuilder1",
-                            "actorType": {
-                                "parentType": "ArrayBuilder",
-                                "inputs": [],
-                                "outputs": [
-                                    {
-                                        "name": "array",
-                                        "schema": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "connections": [
-        {
-            "leftPort": {
-                "actor": "ColumnMapping",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ColumMapNotNull",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnMapping",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Split1",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Tar ENV",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "And1",
-                "name": "b"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Const2",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Split1",
-                "name": "delimiter"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumMapNotNull",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "And1",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Split1",
-                "name": "strings"
-            },
-            "rightPort": {
-                "actor": "mapping1",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "MapBuild3",
-                "name": "key"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "MapBuild3",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "mapping1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Split2",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "MapBuild3",
-                "name": "map"
-            },
-            "rightPort": {
-                "actor": "JavaScript1",
-                "name": "map"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Split2",
-                "name": "strings"
-            },
-            "rightPort": {
-                "actor": "orgCol1",
-                "name": "arr"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Split2",
-                "name": "strings"
-            },
-            "rightPort": {
-                "actor": "mappedCol1",
-                "name": "arr"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "orgCol1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "SRC Col1",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "mappedCol1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "TAR Col Map1",
-                "name": "string"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "SRC Col1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "MapBuild1",
-                "name": "key"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "SRC Col1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "MapBuild2",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TAR Col Map1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "MapBuild1",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "TAR Col Map1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "MapBuild2",
-                "name": "key"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "MapBuild1",
-                "name": "map"
-            },
-            "rightPort": {
-                "actor": "JavaScript1",
-                "name": "map"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "MapBuild2",
-                "name": "map"
-            },
-            "rightPort": {
-                "actor": "JavaScript1",
-                "name": "map"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Const3",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "JavaScript1",
-                "name": "col"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const3",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ColumnForAlias1",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const3",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ColumnForSelect11",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const3",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ColumnForAlias",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "Const3",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ColumnForSelect12",
-                "name": "value"
-            },
-            "iterate": "Iterate"
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "NotNull1",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ColumnForSelect1",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "JavaScript1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "ColumnForAlias2",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect11",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect11",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Const8",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect11",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect11",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForAlias1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "map_column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Const8",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect1",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForAlias",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "map_column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect12",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect12",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Const8",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect12",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForSelect12",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "columnName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ColumnForAlias2",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "map_column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "check if db2",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "dbType"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "interface",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "interface"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "table",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "tablename"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "schema",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "DbCommand1",
-                "name": "schemaName"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "DbCommand1",
-                "name": "result"
-            },
-            "rightPort": {
-                "actor": "LuFunction1",
-                "name": "columnType"
-            },
-            "path": [
-                "TYPENAME"
-            ]
-        },
-        {
-            "leftPort": {
-                "actor": "LuFunction1",
-                "name": "convertedColType"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "column"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "Build Columns12",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "StringBuild1",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "Const8",
-                "name": "value"
-            },
-            "rightPort": {
-                "actor": "ArrayBuilder1",
-                "name": "input"
-            },
-            "arrayPosition": 0
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "column_mapping"
-            },
-            "rightPort": {
-                "actor": "ColumnMapping",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "env"
-            },
-            "rightPort": {
-                "actor": "Tar ENV",
-                "name": "b"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "delim"
-            },
-            "rightPort": {
-                "actor": "Const2",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "select_columns"
-            },
-            "rightPort": {
-                "actor": "Const1",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "colsFromPII"
-            },
-            "rightPort": {
-                "actor": "EqualsIgnoreCase2",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "select_columns"
-            },
-            "rightPort": {
-                "actor": "Const3",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "colsFromPII"
-            },
-            "rightPort": {
-                "actor": "EqualsIgnoreCase1",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "dbtype"
-            },
-            "rightPort": {
-                "actor": "EqualsIgnoreCase3",
-                "name": "a"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "dbtype"
-            },
-            "rightPort": {
-                "actor": "check if db2",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "interface"
-            },
-            "rightPort": {
-                "actor": "interface",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "table"
-            },
-            "rightPort": {
-                "actor": "table",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "schema"
-            },
-            "rightPort": {
-                "actor": "schema",
-                "name": "value"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "flowArgs",
-                "name": "env"
-            },
-            "rightPort": {
-                "actor": "Build Columns12",
-                "name": "env"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "StringBuild1",
-                "name": "string"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "columns_for_select"
-            }
-        },
-        {
-            "leftPort": {
-                "actor": "ArrayBuilder1",
-                "name": "array"
-            },
-            "rightPort": {
-                "actor": "flowArgs",
-                "name": "columns"
-            }
-        }
-    ]
-}
+tags: k2verify
+stages:
+  Stage 2:
+    actors:
+      ColumnMapping:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: column_mapping
+            schema: string
+        out:
+          value:
+            schema: string
+      Tar ENV:
+        parent: Equals
+        in:
+          a:
+            const: TAR
+            schema: string
+          b:
+            external: env
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: delim
+        out:
+          value:
+            schema: string
+  Stage 3:
+    actors:
+      ColumMapNotNull:
+        parent: NotEquals
+        in:
+          a:
+            link: ColumnMapping/value
+  ColumnMapping handling:
+    dependsOn: Stage 3
+    actors:
+      And1:
+        parent: And
+        condition: result
+        in:
+          b:
+            link: Tar ENV/result
+          a:
+            link: ColumMapNotNull/result
+    split: '--------------------'
+  Column names without ColumnMapping:
+    else: true
+    dependsOn: Stage 3
+  Stage 29:
+    dependsOn: ColumnMapping handling
+    actors:
+      Split1:
+        parent: Split
+        in:
+          delimiter:
+            const: null
+            link: Const2/value
+          string:
+            link: ColumnMapping/value
+    split: '--------------------'
+  Stage 32:
+    dependsOn: Column names without ColumnMapping
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: select_columns
+        out:
+          value:
+            schema: '#ref'
+  Stage 33:
+    dependsOn: Stage 29
+    actors:
+      mapping1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Split1/strings
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 34:
+    dependsOn: Stage 32
+    actors:
+      MapBuild3:
+        parent: MapBuild
+        in:
+          key:
+            link:
+              path: Const1/value
+              iterate: Iterate
+          value:
+            link:
+              path: Const1/value
+              iterate: Iterate
+        out:
+          map:
+            schema: '#ref'
+  Stage 35:
+    dependsOn: Stage 33
+    actors:
+      Split2:
+        parent: Split
+        in:
+          delimiter:
+            const: ':'
+          string:
+            link: mapping1/value
+    split: '--------------------'
+  Stage 36:
+    dependsOn: Stage 34
+  Stage 26:
+    dependsOn: Stage 35
+    actors:
+      orgCol1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[0]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+      mappedCol1:
+        parent: JavaScript
+        in:
+          script:
+            const: arr[1]
+          arr:
+            link: Split2/strings
+            schema: '#ref'
+            mandatory: false
+        out:
+          result:
+            schema: string
+    split: '--------------------'
+  Stage 27:
+    dependsOn: Stage 36
+  Stage 37:
+    dependsOn: Stage 26
+    actors:
+      SRC Col1:
+        parent: Uppercase
+        in:
+          string:
+            link: orgCol1/result
+      TAR Col Map1:
+        parent: Uppercase
+        in:
+          string:
+            link: mappedCol1/result
+    split: '--------------------'
+  Stage 38:
+    dependsOn: Stage 27
+  Stage 39:
+    last: 1
+    dependsOn: Stage 37
+    actors:
+      EqualsIgnoreCase2:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            external: colsFromPII
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            link: SRC Col1/string
+          value:
+            link: TAR Col Map1/string
+        out:
+          map:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 6:
+    last: 1
+    else: true
+    dependsOn: Stage 37
+    actors:
+      MapBuild2:
+        parent: MapBuild
+        in:
+          value:
+            link: SRC Col1/string
+          key:
+            link: TAR Col Map1/string
+        out:
+          map:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 40:
+    last: 1
+    dependsOn: Stage 38
+  Stage 10:
+    actors:
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: select_columns
+        out:
+          value:
+            schema: '#ref'
+  Stage 21:
+    actors:
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: map.get(col);
+          map:
+            link:
+            - MapBuild3/map
+            - MapBuild1/map
+            - MapBuild2/map
+            schema: '#ref'
+            mandatory: false
+          col:
+            link:
+              path: Const3/value
+              iterate: Iterate
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: string
+  Stage 8:
+    dependsOn: Stage 21
+    actors:
+      NotNull1:
+        parent: NotNull
+        condition: result
+        in:
+          value:
+            link: JavaScript1/result
+    split: '--------------------'
+  Stage 11:
+    else: true
+    dependsOn: Stage 21
+    actors:
+      ColumnForSelect11:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Const3/value
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+      ColumnForAlias1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Const3/value
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+  Stage 9:
+    dependsOn: Stage 8
+    actors:
+      EqualsIgnoreCase1:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: 'true'
+            schema: string
+          a:
+            external: colsFromPII
+      ColumnForSelect1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: JavaScript1/result
+        out:
+          value:
+            schema: string
+      ColumnForAlias:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Const3/value
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 13:
+    else: true
+    dependsOn: Stage 8
+    actors:
+      ColumnForSelect12:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Const3/value
+              iterate: Iterate
+        out:
+          value:
+            schema: string
+      ColumnForAlias2:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: JavaScript1/result
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 12:
+    dependsOn: Stage 11
+  Stage 1: {
+    }
+  Stage 4:
+    dependsOn: Stage 1
+    actors:
+      EqualsIgnoreCase3:
+        parent: EqualsIgnoreCase
+        condition: result
+        in:
+          b:
+            const: DB2 (Db)
+            schema: string
+          a:
+            external: dbtype
+      check if db2:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: dbtype
+        out:
+          value:
+            schema: string
+      interface:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: interface
+        out:
+          value:
+            schema: string
+      table:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: table
+        out:
+          value:
+            schema: string
+      schema:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: schema
+        out:
+          value:
+            schema: string
+    split: '--------------------'
+  Stage 5:
+    else: true
+    dependsOn: Stage 1
+  Stage 14:
+    dependsOn: Stage 4
+    actors:
+      RetryPhysicalError1:
+        parent: ErrorHandler
+        error: result
+        in:
+          config:
+            const:
+            - exceptionKey: java.sql.SQLException
+              conditions:
+                errorCode: ''
+              actions:
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
+                number_of_retries: '3'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: interface/value
+          sql:
+            const: |-
+              SELECT typename
+              FROM syscat.columns
+              WHERE tabname = '${@tablename}'
+              AND tabschema = '${@schemaName}' AND colname='${@columnName}'
+          tablename:
+            link: table/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          schemaName:
+            link: schema/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+          columnName:
+            link:
+            - ColumnForSelect11/value
+            - ColumnForSelect1/value
+            - ColumnForSelect12/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 15:
+    dependsOn: Stage 5
+  Stage 16:
+    dependsOn: Stage 14
+    actors:
+      LuFunction1:
+        parent: LuFunction
+        in:
+          functionName:
+            const: fnhandleComplexDBColumns
+          columnName:
+            link:
+            - ColumnForSelect11/value
+            - ColumnForSelect1/value
+            - ColumnForSelect12/value
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          dbType:
+            link: check if db2/value
+            schema: string
+            mandatory: false
+            createdBy: functionName
+          columnType:
+            link: DbCommand1/result/TYPENAME
+            schema: '#ref'
+            mandatory: false
+            createdBy: functionName
+        out:
+          convertedColType:
+            schema: string
+    split: '--------------------'
+  Stage 17:
+    dependsOn: Stage 15
+  Stage 7:
+    actors:
+      Build Columns12:
+        parent: StringFormat
+        in:
+          format:
+            const: ' ${column}  as "${env}_${map_column}"'
+          column:
+            link:
+            - ColumnForSelect11/value
+            - ColumnForSelect1/value
+            - ColumnForSelect12/value
+            - LuFunction1/convertedColType
+            schema: string
+            mandatory: false
+          env:
+            external: env
+            schema: string
+            mandatory: false
+          map_column:
+            link:
+            - ColumnForAlias1/value
+            - ColumnForAlias/value
+            - ColumnForAlias2/value
+            schema: string
+            mandatory: false
+      Const8:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+            - ColumnForSelect11/value
+            - ColumnForSelect1/value
+            - ColumnForSelect12/value
+        out:
+          value:
+            schema: string
+  Stage 25:
+    actors:
+      StringBuild1:
+        parent: StringBuild
+        in:
+          input:
+            link:
+              path: Build Columns12/string
+              pos: 0
+        out:
+          string:
+            external: columns_for_select
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+              path: Const8/value
+              pos: 0
+        out:
+          array:
+            external: columns
+            schema: '#ref'
+schemas:
+  Const1.out.value:
+    type: array
+    items:
+      type: string
+  MapBuild3.out.map:
+    type: object
+    properties:
+      LAST_NAME:
+        type: string
+      FIRST_NAME:
+        type: string
+  orgCol1.in.arr:
+    type: array
+    items:
+      type: string
+  mappedCol1.in.arr:
+    type: array
+    items:
+      type: string
+  MapBuild1.out.map:
+    type: object
+    properties:
+      LAST_NAME:
+        type: string
+      FIRST_NAME:
+        type: string
+  MapBuild2.out.map:
+    type: object
+    properties:
+      LAST_NAME:
+        type: string
+      FIRST_NAME:
+        type: string
+  Const3.out.value:
+    type: array
+    items:
+      type: string
+  JavaScript1.in.map:
+    type: object
+    properties:
+      LAST_NAME:
+        type: string
+      FIRST_NAME:
+        type: string
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        TYPENAME:
+          type: string
+  LuFunction1.in.columnType:
+    type: array
+    items:
+      type: string
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: string

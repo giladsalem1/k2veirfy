@@ -17,7 +17,76 @@ stages:
         in:
           value:
             external: task_id
+  Stage 7:
+    actors:
+      DbFetchField1:
+        parent: DbFetchField
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: select source_interface from ${@schema_name}.tasks where task_id
+              =${task_id}
+          schema_name:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: ToString1/string
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: string
   Stage 2:
+    actors:
+      DbCommand2:
+        parent: DbCommand
+        in:
+          interface:
+            const: K2VERIFY_OPERATIONAL_DB
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
+          sql:
+            const: |-
+              select
+                lower(source_interface) || '.' || lower(source_schema) || '.' || lower(source_table) as full_name,
+                bucket_count
+              from ${@schema}.k2verify_table_count where source_interface = ${source_interface};
+          schema:
+            link: K2VERIFY_OPERATIONAL_INTERFACE1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          source_interface:
+            link: DbFetchField1/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+  Stage 3:
+    last: 1
+    actors:
+      MapBuild1:
+        parent: MapBuild
+        in:
+          key:
+            link:
+              path: DbCommand2/result/full_name
+              iterate: Iterate
+          value:
+            link:
+              path: DbCommand2/result/bucket_count
+              iterate: Iterate
+        out:
+          map:
+            schema: '#ref'
+  Stage 4:
     actors:
       DbCommand1:
         parent: DbCommand
@@ -41,13 +110,130 @@ stages:
             createdBy: sql
         out:
           result:
-            external: result
             schema: '#ref'
-  Stage 3: {
-    }
-  Stage 4: {
-    }
+  Stage 5:
+    actors:
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            link:
+              path: DbCommand1/result/table_properties
+              iterate: Iterate
+        out:
+          object:
+            schema: '#ref'
+  Stage 6:
+    dependsOn: Stage 5
+    actors:
+      JavaScript3:
+        parent: JavaScript
+        condition: result
+        in:
+          script:
+            const: |-
+              if(originalBucket ==='0' && autoCalculated){
+                  true
+              }
+              else{
+                  false
+              }
+          originalBucket:
+            link: JsonParser1/object/buckets
+            schema: any
+            mandatory: false
+          autoCalculated:
+            link: JsonParser1/object/autoCalculated
+            schema: any
+            mandatory: false
+      JavaScript1:
+        parent: JavaScript
+        in:
+          script:
+            const: |-
+              var key = interfaceName.toLowerCase() + '.' +
+                        srcTableName.split('.')[0].toLowerCase() + '.' +
+                        srcTableName.split('.')[1].toLowerCase();
+
+              ({
+                src: srcTableName,
+                tar: tarTableName,
+                buckets: map.containsKey(key) ? map.get(key) : originalBucket,
+                autoCalculated: true
+              });
+          map:
+            link: MapBuild1/map
+            schema: '#ref'
+            mandatory: false
+          srcTableName:
+            link: JsonParser1/object/src
+            schema: string
+            mandatory: false
+          interfaceName:
+            link: DbFetchField1/result
+            schema: string
+            mandatory: false
+          tarTableName:
+            link: JsonParser1/object/tar
+            schema: string
+            mandatory: false
+          originalBucket:
+            link: JsonParser1/object/buckets
+            schema: string
+            mandatory: false
+        out:
+          result:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 8:
+    else: true
+    dependsOn: Stage 5
+    actors:
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: null
+            link: JsonParser1/object
+        out:
+          value:
+            schema: '#ref'
+  Stage 9:
+    actors:
+      ArrayBuilder1:
+        parent: ArrayBuilder
+        in:
+          input:
+            link:
+            - JavaScript1/result
+            - Const1/value
+        out:
+          array:
+            external: array
+            schema: '#ref'
 schemas:
+  DbCommand2.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        full_name:
+          type: string
+        bucket_count:
+          type: integer
+  MapBuild1.out.map:
+    type: object
+    properties:
+      oracle_prod.customer.device_inventory:
+        type: integer
+      oracle_prod.customer.cust_a:
+        type: integer
+      oracle_prod.customer.customer_profile:
+        type: integer
+      oracle_prod.customer.cust_src:
+        type: integer
+      oracle_prod.customer.customer_src:
+        type: integer
   DbCommand1.out.result:
     type: array
     items:
@@ -55,3 +241,50 @@ schemas:
       properties:
         table_properties:
           type: string
+  JsonParser1.out.object:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string
+      autoCalculated:
+        type: boolean
+  JavaScript1.in.map:
+    type: object
+    properties:
+      oracle_prod.customer.device_inventory:
+        type: integer
+  JavaScript1.out.result:
+    type: object
+    properties:
+      table:
+        type: string
+      bucket:
+        type: string
+  Const1.out.value:
+    type: object
+    properties:
+      src:
+        type: string
+      tar:
+        type: string
+      buckets:
+        type: string
+      autoCalculated:
+        type: boolean
+  ArrayBuilder1.out.array:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          type: string
+        tar:
+          type: string
+        buckets:
+          type: integer
+        autoCalculated:
+          type: boolean

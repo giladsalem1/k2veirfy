@@ -18,6 +18,15 @@ stages:
             const: k2verify
           variableName:
             const: K2VERIFY_CONF_SEPARATOR
+      environment:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: environment
+        out:
+          value:
+            schema: string
   Stage 2:
     dependsOn: Stage 1
     actors:
@@ -155,6 +164,10 @@ stages:
             schema: string
             mandatory: false
             createdBy: functionName
+          environment:
+            link: environment/value
+            schema: any
+            mandatory: false
         out:
           result:
             schema: '#ref'

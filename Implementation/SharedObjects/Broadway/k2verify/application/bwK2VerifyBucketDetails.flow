@@ -78,7 +78,7 @@ stages:
             createdBy: sql
           schema_name:
             link: K2VERIFY_OPERATIONAL_SCHEMA/result
-            schema: any
+            schema: string
             mandatory: false
             createdBy: sql
         out:

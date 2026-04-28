@@ -1,4 +1,4 @@
-tags: d2d,d2dv2,D2D,k2verify
+tags: k2verify
 stages:
   Flow params:
     actors:
@@ -171,21 +171,25 @@ stages:
   Stage 5:
     transactional: false
     actors:
-      PlaceHolderErrorHandler:
+      RetryPhysicalError1:
         parent: ErrorHandler
         error: result
         in:
           config:
             const:
-            - exceptionKey: java.lang.Exception
+            - exceptionKey: java.sql.SQLException
               conditions:
-                message: ''
+                errorCode: ''
               actions:
-                suppress: false
-                log: false
-                flowName: ''
+                suppress: true
+                log: true
+                flowName: bwPhysicalError
                 number_of_retries: '3'
-                retry_interval: '3000'
+                retry_interval: '1000'
+          physical_error_type:
+            const: DATABASE_OPERATION_FAILED
+            schema: string
+            mandatory: false
       SRC BuketRows:
         parent: InnerFlow
         in:

@@ -198,6 +198,11 @@ stages:
             schema: string
             mandatory: false
             createdBy: flowName
+          task_id:
+            link: TaskID/number
+            schema: any
+            mandatory: false
+            createdBy: flowName
         out:
           tableParams:
             schema: '#ref'
@@ -247,15 +252,16 @@ stages:
     transactional: false
     dependsOn: Execluded columns
     actors:
-      CSV Mode:
-        parent: Equals
+      JavaScript1:
+        parent: JavaScript
         condition: result
         in:
-          b:
-            const: LocalFileSystem
-            schema: string
-          a:
+          script:
+            const: dbtype.indexOf('FileSystem') > -1 || dbtype =='SFTP'
+          dbtype:
             link: K2VERIFY_INTERFACE_SRC_TYPE/result
+            schema: any
+            mandatory: false
       FabricAsInterafce:
         parent: Const
         in:
@@ -540,12 +546,12 @@ stages:
             createdBy: flowName
           source_columns_to_Ignore_null:
             link: TableInfo/value/source_columns_to_Ignore_null
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
           target_columns_to_Ignore_null:
             link: TableInfo/value/target_columns_to_Ignore_null
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
           bucketMethod:
@@ -575,7 +581,7 @@ stages:
             createdBy: flowName
           target_transformation_function:
             link: TableInfo/value/Target_Transformation_Function_Name
-            schema: string
+            schema: any
             mandatory: false
             createdBy: flowName
           interfaceType:
@@ -593,10 +599,12 @@ stages:
             mandatory: false
             createdBy: flowName
           source_env_contains_sensitive_data:
+            link: K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
             createdBy: flowName
           target_env_contains_sensitive_data:
+            link: K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA/result
             schema: any
             mandatory: false
             createdBy: flowName
@@ -611,7 +619,7 @@ stages:
             link: TmeBeforPGCopy/date
   Update time before PG Copy:
     actors:
-      RetryQuery13:
+      RetryPhysicalError1:
         parent: ErrorHandler
         error: result
         in:
@@ -672,7 +680,7 @@ stages:
             createdBy: sql
   Copy bucket data to pg:
     actors:
-      HandlePGCopyError1:
+      HandlePGCopy:
         parent: ErrorHandler
         error: result
         in:
@@ -743,7 +751,7 @@ stages:
             link: TimeAfterPGCopy/date
   Update time after PG Copy:
     actors:
-      RetryQuery131:
+      RetryPhysicalError2:
         parent: ErrorHandler
         error: result
         in:

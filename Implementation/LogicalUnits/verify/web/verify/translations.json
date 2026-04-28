@@ -39,14 +39,15 @@
   "k2verifyExecution.toasts.fetchBucketFailed": "Failed to fetch partition details for the selected table.",
   "k2verifyResults.noDataTitle": "No data available",
   "k2verifyResults.noDataSubtitle": "This page was opened without execution context.",
-
   "k2verifyResults.tableLevelTitle": "Table Level Summary",
+  "k2verifyResults.fileLevelTitle": "File Level Summary",
   "k2verifyResults.columnLevelTitle": "Column Level Summary",
   "k2verifyResults.recordDetailsTitle": "Record Details",
   "k2verifyResults.loadingDetails":"Preparing Download",
   "k2verifyResults.downloadReport":"Download Report",
 
   "k2verifyResults.tableLabel": "Table:",
+  "k2verifyResults.fileLabel": "Input:",
   "k2verifyResults.columnLevelHint": "Click on a metric button in the table above to view column-level details",
   "k2verifyResults.recordDetailsHint": "Select metrics from the table above to view detailed records",
 
@@ -199,6 +200,7 @@
 "k2verifyExpandedRowEditor.noSchemasFound": "No schemas found",
 "k2verifyExpandedRowEditor.noTablesFound": "No tables found",
 "k2verifyExpandedRowEditor.validation.requiredFields": "Please fill in all required fields.",
+"k2verifyExpandedRowEditor.placeholders.partitions_assignment_method":"Select a method",
 "k2verifyExpandedRowEditor.advancedEdit.title": "Advanced Edit",
 "k2verifyExpandedRowEditor.advancedEdit.submit": "Submit",
 "k2verifyExpandedRowEditor.advancedEdit.discard": "Discard",

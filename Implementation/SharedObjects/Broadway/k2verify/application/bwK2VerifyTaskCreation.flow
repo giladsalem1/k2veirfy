@@ -157,8 +157,9 @@ stages:
         parent: DbLoad
         in:
           interface:
-            const: null
+            const: K2VERIFY_OPERATIONAL_DB
             link: K2VERIFY_OPERATIONAL_INTERFACE/result
+            default: true
           schema:
             const: null
             link: K2VERIFY_OPERATIONAL_INTERFACE1/result
@@ -168,15 +169,11 @@ stages:
             const:
             - task_title
             - task_description
+            - properties
             - source_interface
             - target_interface
-            - properties
             - created_by
-            - updated_by
-            - updated_at
-          keys:
-            const:
-            - task_id
+            - selection_method
           dialect:
             const: postgres
           task_title:
@@ -204,19 +201,16 @@ stages:
             schema: string
             mandatory: false
             createdBy: schema
-          updated_by:
-            schema: any
-            mandatory: false
-            createdBy: schema
-          updated_at:
-            schema: any
-            mandatory: false
-            createdBy: schema
           properties:
             link: JsonStringify1/string
             schema: string
             mandatory: false
             createdBy: fields
+          selection_method:
+            link: JsonParser1/object/K2VERIFY_SELECTION_METHOD
+            schema: any
+            mandatory: false
+            createdBy: table
       DbFetchField1:
         parent: DbFetchField
         in:
@@ -335,12 +329,22 @@ schemas:
               type: string
             buckets:
               type: string
-      K2VERIFY_MAXWORKERSPERNODE:
-        type: integer
+      K2VERIFY_PRE_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_POST_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
       K2VERIFY_LOGPASS:
         type: boolean
       K2VERIFY_PII_ONLY_COMPARISON:
         type: boolean
+      K2VERIFY_SELECTION_METHOD:
+        type: string
   JavaScript3.in.obj:
     type: object
     properties:
@@ -410,6 +414,8 @@ schemas:
         type: boolean
       K2VERIFY_PII_ONLY_COMPARISON:
         type: boolean
+      K2VERIFY_SELECTION_METHOD:
+        type: string
   Const3.out.value:
     type: array
     items:

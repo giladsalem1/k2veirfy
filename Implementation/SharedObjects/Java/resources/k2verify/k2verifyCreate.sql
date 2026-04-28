@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS ${@schema}.tasks
     created_at         timestamp without time zone NOT NULL DEFAULT now(),
     updated_by         text,
     updated_at         timestamp without time zone,
+    selection_method   text,
     CONSTRAINT tasks_pkey PRIMARY KEY (task_id)
 );
 
@@ -253,15 +254,14 @@ CREATE TABLE IF NOT EXISTS ${@schema}.task_execution_buckets
     src_bucket_rows_duration                 integer                                               ,
     tar_bucket_rows_duration                 integer                                               ,
     lu_function_duration                     integer                                               ,
-
+ 
     CONSTRAINT task_execution_buckets_pk PRIMARY KEY (task_id, execution_id, table_name, bucket_id),
     CONSTRAINT task_exec_buckets_fk FOREIGN KEY (task_id, execution_id, table_name) REFERENCES ${@schema}.task_execution_tables (task_id, execution_id, table_name) ON
     UPDATE
       CASCADE ON
     DELETE
-      CASCADE 
+      CASCADE
 );
-
 
 CREATE INDEX IF NOT EXISTS task_exec_buckets_tbl_lstatus_idx
 ON ${@schema}.task_execution_buckets (task_id, execution_id, table_name, lower(status) DESC, bucket_id);
@@ -290,8 +290,9 @@ CREATE TABLE IF NOT EXISTS ${@schema}.verify_configuration (
     partitions_count INTEGER,
     partitions_assignment_method TEXT,
  
-    PRIMARY KEY (source_table_name, target_table_name)
+    PRIMARY KEY (source_table_name, target_table_name, source_interface, target_interface, source_schema,target_schema )
 );
+
 
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_count  (
   source_interface  text   NOT NULL,
@@ -308,7 +309,6 @@ CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_table_count  (
     PRIMARY KEY (source_interface, source_schema, source_table)
 );
 
-
 CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_error_codes  (
   error_code  text   NOT NULL,
   error_desc     text   NOT NULL,
@@ -318,10 +318,8 @@ CREATE TABLE IF NOT EXISTS ${@schema}.k2verify_error_codes  (
 );
 
 insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('EXCESSIVE_COMPARISON_FAILURES','Verify process was aborted because the number of record comparison failures exceeded the allowed limit, indicating repeated errors during the comparison stage');
---"Too many record comparisons failed during processing, causing the job to stop."        "Execution stopped after exceeding the maximum allowed number of comparison failures, indicating repeated errors during source-to-target record comparison."
 
 insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('EXCESSIVE_RECORD_MISMATCHES','The process was aborted because the number of mismatched records exceeded the allowed limit, indicating significant discrepancies between source and target data');
---"Too many records did not match between source and target."            "Execution stopped after exceeding the maximum allowed number of record mismatches during comparison.
 
 insert into ${@schema}.k2verify_error_codes (error_code,error_desc) values ('DATABASE_OPERATION_FAILED','A database operation failed due to an SQL-related error, such as a missing object, timeout, permission issue, or other execution failure');
 

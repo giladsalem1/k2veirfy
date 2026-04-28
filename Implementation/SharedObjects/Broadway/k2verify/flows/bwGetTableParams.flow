@@ -41,6 +41,8 @@ stages:
             const: |2-
                select
               active as "Active",
+              source_environment as source_environment,
+              target_environment as target_environment,
               partitions_count as "Buckets",
               column_name_mapping as  "Column_Mapping",
               comparison_keys as "Customized_Key_Comparison",
@@ -98,6 +100,57 @@ stages:
         out:
           result:
             schema: '#ref'
+      task_id:
+        parent: Const
+        in:
+          value:
+            const: null
+            external: task_id
+        out:
+          value:
+            schema: string
+  Stage 7:
+    dependsOn: Stage 6
+    actors:
+      IsNull2:
+        parent: IsNull
+        condition: result
+        in:
+          value:
+            link: DbFetchFirstRow1/result/source_environment
+      DbCommand1:
+        parent: DbCommand
+        in:
+          interface:
+            const: null
+            link: K2VERIFY_OPERATIONAL_INTERFACE/result
+          sql:
+            const: select properties from ${@schema}.tasks where task_id=${task_id}
+          schema:
+            link: K2VERIFY_OPERATIONAL_SCHEMA/result
+            schema: string
+            mandatory: false
+            createdBy: sql
+          task_id:
+            link: task_id/value
+            schema: string
+            mandatory: false
+            createdBy: sql
+        out:
+          result:
+            schema: '#ref'
+      JsonParser1:
+        parent: JsonParser
+        in:
+          stream:
+            link: DbCommand1/result/properties
+        out:
+          object:
+            schema: '#ref'
+    split: '--------------------'
+  Stage 8:
+    else: true
+    dependsOn: Stage 6
   Stage 1:
     actors:
       bwGetPiiColumns1:
@@ -165,6 +218,13 @@ stages:
               id: com.k2view.mTableKey
             mandatory: false
             createdBy: flowName
+          environment:
+            link:
+            - DbFetchFirstRow1/result/source_environment
+            - JsonParser1/object/K2VERIFY_ENV_SRC
+            schema: any
+            mandatory: false
+            createdBy: flowName
         out:
           pk_columns:
             schema: string
@@ -209,15 +269,15 @@ stages:
         in:
           Source_Table_Name:
             external: Source_Table_Name
-            schema: any
+            schema: string
             mandatory: false
           Source_Interface:
             external: Source_Interface
-            schema: any
+            schema: string
             mandatory: false
           Source_Schema:
             external: Source_Schema
-            schema: any
+            schema: string
             mandatory: false
           Source_Transformation_Function_Name:
             schema: any
@@ -227,15 +287,15 @@ stages:
             mandatory: false
           Target_Table_Name:
             external: Target_Table_Name
-            schema: any
+            schema: string
             mandatory: false
           Target_Interface:
             external: Target_Interface
-            schema: any
+            schema: string
             mandatory: false
           Target_Schema:
             external: Target_Schema
-            schema: any
+            schema: string
             mandatory: false
           Target_Transformation_Function_Name:
             schema: any
@@ -245,11 +305,11 @@ stages:
             mandatory: false
           Customized_Key_Comparison:
             link: bwGetPKColumns1/pk_columns
-            schema: any
+            schema: string
             mandatory: false
           Pii_Columns:
             link: bwGetPiiColumns1/pii_columns
-            schema: any
+            schema: string
             mandatory: false
           Excluded_Columns_Names:
             schema: any
@@ -262,7 +322,7 @@ stages:
             mandatory: false
           Buckets:
             external: Buckets
-            schema: any
+            schema: string
             mandatory: false
           Buckets_Method:
             const: bwGetBucketRows
@@ -275,6 +335,7 @@ stages:
         out:
           map:
             external: tableParams
+            schema: '#ref'
   Stage 4:
     dependsOn: Stage 2
     actors:
@@ -303,32 +364,14 @@ stages:
     split: '--------------------'
   Stage 5:
     dependsOn: Stage 3
-  Stage 7: {
-    }
-  Stage 8: {
-    }
-  Stage 9: {
-    }
-  Stage 10: {
-    }
-  Stage 11: {
-    }
-  Stage 12: {
-    }
-  Stage 13: {
-    }
-  Stage 14: {
-    }
-  Stage 15: {
-    }
-  Stage 16: {
-    }
 schemas:
   DbFetchFirstRow1.out.result:
     type: object
     properties:
       Active:
         type: boolean
+      source_environment:
+        type: string
       Buckets:
         type: integer
       Column_Mapping:
@@ -363,11 +406,90 @@ schemas:
         type: string
       Target_Transformation_Function_Name:
         type: string
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        properties:
+          type: string
+  JsonParser1.out.object:
+    type: object
+    properties:
+      K2VERIFY_TASK_TITLE:
+        type: string
+      K2VERIFY_TASK_DESCRIPTION:
+        type: string
+      K2VERIFY_INTERFACE_SRC:
+        type: string
+      K2VERIFY_INTERFACE_TAR:
+        type: string
+      K2VERIFY_ENV_SRC:
+        type: string
+      K2VERIFY_ENV_TAR:
+        type: string
+      K2VERIFY_SRC_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_TAR_CONTAINS_SENSITIVE_DATA:
+        type: boolean
+      K2VERIFY_PRE_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_POST_EXECUTION_PROCESSES:
+        type: array
+        items: {
+          }
+      K2VERIFY_MAXWORKERSPERNODE: {
+        }
+      K2VERIFY_LOGPASS:
+        type: boolean
+      K2VERIFY_PII_ONLY_COMPARISON:
+        type: boolean
   MapCreate2.out.map:
     type: object
     properties:
       Buckets:
         type: integer
+  MapCreate1.out.map:
+    type: object
+    properties:
+      Source_Table_Name:
+        type: string
+      Source_Interface:
+        type: string
+      Source_Schema:
+        type: string
+      Source_Transformation_Function_Name: {
+        }
+      source_columns_to_Ignore_null: {
+        }
+      Target_Table_Name:
+        type: string
+      Target_Interface:
+        type: string
+      Target_Schema:
+        type: string
+      Target_Transformation_Function_Name: {
+        }
+      target_columns_to_Ignore_null: {
+        }
+      Customized_Key_Comparison:
+        type: string
+      Pii_Columns:
+        type: string
+      Excluded_Columns_Names: {
+        }
+      Excluded_Rows_Sql: {
+        }
+      Column_Mapping: {
+        }
+      Buckets:
+        type: string
+      Buckets_Method:
+        type: string
+      Active:
+        type: string
   MapMerge1.out.map:
     type: object
     properties:
