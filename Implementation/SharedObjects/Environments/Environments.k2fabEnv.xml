@@ -107,6 +107,650 @@
           <Value>10000</Value>
           <Comment></Comment>
         </Global>
+        <Global name="AI_DB_INTERFACE" luName="TDM_TableLevel">
+          <Value>AI_DB</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="AI_ENVIRONMENT" luName="TDM_TableLevel">
+          <Value>AI</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="BE_ID" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="clone_id" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="COMBO_MAX_COUNT" luName="TDM_TableLevel">
+          <Value>100</Value>
+          <Comment>Maximum values of combo box input object</Comment>
+        </Global>
+        <Global name="CREATE_AI_K2SYSTEM_DB" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="CREATE_PHYSICAL_FK_IN_MDB_EXPORT_SCHEMA" luName="TDM_TableLevel">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="GET_RESERVED_ENTITIES_LIMIT" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment>The max number of retrieved entities from TDM_RESERVED_ENTITIES, if set to zero then no limit</Comment>
+        </Global>
+        <Global name="LOAD_MASKING_FLAG" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MASKING_CACHE_TTL" luName="TDM_TableLevel">
+          <Value>2592000</Value>
+          <Comment>The TTL for masking cache</Comment>
+        </Global>
+        <Global name="MAX_NUMBER_OF_ENTITIES_IN_LIST" luName="TDM_TableLevel">
+          <Value>100</Value>
+          <Comment>The maximum number of entities to be returned to be displayed in list of entities</Comment>
+        </Global>
+        <Global name="POP_FULL_LU_HIERARCHY_IN_TDM_LU" luName="TDM_TableLevel">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="REPLACE_SEQ_BY_LUI_SYNC" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_TYPE" luName="TDM_TableLevel">
+          <Value>Days</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_VALUE" luName="TDM_TableLevel">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="SEQ_CACHE_INTERFACE" luName="TDM_TableLevel">
+          <Value>POSTGRESQL_ADMIN</Value>
+          <Comment>The interface to be used for storing the cache of Masking</Comment>
+        </Global>
+        <Global name="SYNTHETIC_ENVIRONMENT" luName="TDM_TableLevel">
+          <Value>Synthetic</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TABLE_LEVEL_SEPARATOR" luName="TDM_TableLevel">
+          <Value>|</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TASK_TYPE" luName="TDM_TableLevel">
+          <Value>EXTRACT</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_BATCH_LIMIT" luName="TDM_TableLevel">
+          <Value>-1</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_CLONING_DATA" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DATAFLUX_TASK" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment>Indicator to mark the task as dataflux or not</Comment>
+        </Global>
+        <Global name="TDM_DELETE_BEFORE_LOAD" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment>Indicator to delete the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_DELETE_ONLY_TASK" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DELETE_TABLES_PREFIX" luName="TDM_TableLevel">
+          <Value>TAR_</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_INSERT_TO_TARGET" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment>Indicator to insert the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_TYPE" luName="TDM_TableLevel">
+          <Value>Days</Value>
+          <Comment>Each Instance can have a TTL, this global holds the type of the TTL and it can have one of the following values:Minutes, Hours, Days, Weeks, or Years</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_VALUE" luName="TDM_TableLevel">
+          <Value>10</Value>
+          <Comment>The value of the TTL based on the type defined in TDM_LU_RETENTION_PERIOD_TYPE. Populate this global with zero or empty value to avoid setting a TTL on the TDM LUIs.</Comment>
+        </Global>
+        <Global name="TDM_PARAMETERS_SEPARATOR" luName="TDM_TableLevel">
+          <Value>&lt;#&gt;</Value>
+          <Comment>The separator to be used for parsing the values of Parameters</Comment>
+        </Global>
+        <Global name="TDM_POPULATE_JMX_STATS" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment>Indicates whether to run add TDM statitics</Comment>
+        </Global>
+        <Global name="TDM_REF_UPD_SIZE" luName="TDM_TableLevel">
+          <Value>1000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_REPLACE_SEQUENCES" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_RESERVE_IND" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SEQ_REPORT" luName="TDM_TableLevel">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_ENVIRONMENT_NAME" luName="TDM_TableLevel">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_PRODUCT_VERSION" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment>Source product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_SUMMARY_REPORT_LIMIT" luName="TDM_TableLevel">
+          <Value>10000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SUPPRESS_TEST_CONNECTION" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SYNC_SOURCE_DATA" luName="TDM_TableLevel">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TAR_ENV_NAME" luName="TDM_TableLevel">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TARGET_PRODUCT_VERSION" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment>Target product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_TASK_EXE_ID" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TASK_ID" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_USING_CATALOG_SEQUENCES" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_VERSION_TASK_EXECUTION_ID" luName="TDM_TableLevel">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDMDB_SCHEMA" luName="TDM_TableLevel">
+          <Value>k2tdm_${ClusterID}</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="UPDATE_MDB_EXPORTED_SCHEMA" luName="TDM_TableLevel">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_FABRIC_ROLES" luName="TDM_TableLevel">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_NAME" luName="TDM_TableLevel">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="AI_DB_INTERFACE" luName="TDM_LIBRARY">
+          <Value>AI_DB</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="AI_ENVIRONMENT" luName="TDM_LIBRARY">
+          <Value>AI</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="BE_ID" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="clone_id" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="COMBO_MAX_COUNT" luName="TDM_LIBRARY">
+          <Value>100</Value>
+          <Comment>Maximum values of combo box input object</Comment>
+        </Global>
+        <Global name="CREATE_AI_K2SYSTEM_DB" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="CREATE_PHYSICAL_FK_IN_MDB_EXPORT_SCHEMA" luName="TDM_LIBRARY">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="GET_RESERVED_ENTITIES_LIMIT" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment>The max number of retrieved entities from TDM_RESERVED_ENTITIES, if set to zero then no limit</Comment>
+        </Global>
+        <Global name="LOAD_MASKING_FLAG" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MASKING_CACHE_TTL" luName="TDM_LIBRARY">
+          <Value>2592000</Value>
+          <Comment>The TTL for masking cache</Comment>
+        </Global>
+        <Global name="MAX_NUMBER_OF_ENTITIES_IN_LIST" luName="TDM_LIBRARY">
+          <Value>100</Value>
+          <Comment>The maximum number of entities to be returned to be displayed in list of entities</Comment>
+        </Global>
+        <Global name="POP_FULL_LU_HIERARCHY_IN_TDM_LU" luName="TDM_LIBRARY">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="REPLACE_SEQ_BY_LUI_SYNC" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_TYPE" luName="TDM_LIBRARY">
+          <Value>Days</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_VALUE" luName="TDM_LIBRARY">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="ROOT_COLUMN_NAME" luName="TDM_LIBRARY">
+          <Value></Value>
+          <Comment>The column name of the entity id. The name and the order of the root column name must be aligned with root_table_name. For example- if you populate two tables in root_Table_name (separated by a comma), you must populate also two values in this global where the first column referes to the first table name the second column refers to the second table name</Comment>
+        </Global>
+        <Global name="ROOT_TABLE_NAME" luName="TDM_LIBRARY">
+          <Value></Value>
+          <Comment>The name of the main source LU table or tables. You can populate several tables separated by a comma.</Comment>
+        </Global>
+        <Global name="SEQ_CACHE_INTERFACE" luName="TDM_LIBRARY">
+          <Value>POSTGRESQL_ADMIN</Value>
+          <Comment>The interface to be used for storing the cache of Masking</Comment>
+        </Global>
+        <Global name="SYNTHETIC_ENVIRONMENT" luName="TDM_LIBRARY">
+          <Value>Synthetic</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TASK_TYPE" luName="TDM_LIBRARY">
+          <Value>EXTRACT</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_BATCH_LIMIT" luName="TDM_LIBRARY">
+          <Value>-1</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_CLONING_DATA" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DATAFLUX_TASK" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment>Indicator to mark the task as dataflux or not</Comment>
+        </Global>
+        <Global name="TDM_DELETE_BEFORE_LOAD" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment>Indicator to delete the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_DELETE_ONLY_TASK" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DELETE_TABLES_PREFIX" luName="TDM_LIBRARY">
+          <Value>TAR_</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_INSERT_TO_TARGET" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment>Indicator to insert the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_TYPE" luName="TDM_LIBRARY">
+          <Value>Days</Value>
+          <Comment>Each Instance can have a TTL, this global holds the type of the TTL and it can have one of the following values:Minutes, Hours, Days, Weeks, or Years</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_VALUE" luName="TDM_LIBRARY">
+          <Value>10</Value>
+          <Comment>The value of the TTL based on the type defined in TDM_LU_RETENTION_PERIOD_TYPE. Populate this global with zero or empty value to avoid setting a TTL on the TDM LUIs.</Comment>
+        </Global>
+        <Global name="TDM_PARAMETERS_SEPARATOR" luName="TDM_LIBRARY">
+          <Value>&lt;#&gt;</Value>
+          <Comment>The separator to be used for parsing the values of Parameters</Comment>
+        </Global>
+        <Global name="TDM_POPULATE_JMX_STATS" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment>Indicates whether to run add TDM statitics</Comment>
+        </Global>
+        <Global name="TDM_REF_UPD_SIZE" luName="TDM_LIBRARY">
+          <Value>1000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_REPLACE_SEQUENCES" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_RESERVE_IND" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SEQ_REPORT" luName="TDM_LIBRARY">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_ENVIRONMENT_NAME" luName="TDM_LIBRARY">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_PRODUCT_VERSION" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment>Source product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_SUMMARY_REPORT_LIMIT" luName="TDM_LIBRARY">
+          <Value>10000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SUPPRESS_TEST_CONNECTION" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SYNC_SOURCE_DATA" luName="TDM_LIBRARY">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TAR_ENV_NAME" luName="TDM_LIBRARY">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TARGET_PRODUCT_VERSION" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment>Target product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_TASK_EXE_ID" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TASK_ID" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_USING_CATALOG_SEQUENCES" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_VERSION_TASK_EXECUTION_ID" luName="TDM_LIBRARY">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDMDB_SCHEMA" luName="TDM_LIBRARY">
+          <Value>k2tdm_${ClusterID}</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="UPDATE_MDB_EXPORTED_SCHEMA" luName="TDM_LIBRARY">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_FABRIC_ROLES" luName="TDM_LIBRARY">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_NAME" luName="TDM_LIBRARY">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="AI_DB_INTERFACE" luName="TDM">
+          <Value>AI_DB</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="AI_ENVIRONMENT" luName="TDM">
+          <Value>AI</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="BE_ID" luName="TDM">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="clone_id" luName="TDM">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="COMBO_MAX_COUNT" luName="TDM">
+          <Value>100</Value>
+          <Comment>Maximum values of combo box input object</Comment>
+        </Global>
+        <Global name="CREATE_AI_K2SYSTEM_DB" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="CREATE_PHYSICAL_FK_IN_MDB_EXPORT_SCHEMA" luName="TDM">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="CREATE_TDMDB" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="GET_RESERVED_ENTITIES_LIMIT" luName="TDM">
+          <Value>0</Value>
+          <Comment>The max number of retrieved entities from TDM_RESERVED_ENTITIES, if set to zero then no limit</Comment>
+        </Global>
+        <Global name="INSTANCES_RANDOM_MAX" luName="TDM">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="INSTANCES_RANDOM_MIN" luName="TDM">
+          <Value>1</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="LOAD_MASKING_FLAG" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="MASKING_CACHE_TTL" luName="TDM">
+          <Value>2592000</Value>
+          <Comment>The TTL for masking cache</Comment>
+        </Global>
+        <Global name="MAX_NUMBER_OF_ENTITIES_IN_LIST" luName="TDM">
+          <Value>100</Value>
+          <Comment>The maximum number of entities to be returned to be displayed in list of entities</Comment>
+        </Global>
+        <Global name="POP_FULL_LU_HIERARCHY_IN_TDM_LU" luName="TDM">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="REPLACE_SEQ_BY_LUI_SYNC" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_TYPE" luName="TDM">
+          <Value>Days</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="RESERVE_RETENTION_PERIOD_VALUE" luName="TDM">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="SEQ_CACHE_INTERFACE" luName="TDM">
+          <Value>POSTGRESQL_ADMIN</Value>
+          <Comment>The interface to be used for storing the cache of Masking</Comment>
+        </Global>
+        <Global name="SYNTHETIC_ENVIRONMENT" luName="TDM">
+          <Value>Synthetic</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="SYNTHETIC_INDICATOR" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TARGET_TDM_VERSION" luName="TDM">
+          <Value>9.4.0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TASK_TYPE" luName="TDM">
+          <Value>EXTRACT</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_BATCH_LIMIT" luName="TDM">
+          <Value>-1</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_CLONING_DATA" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DATAFLUX_TASK" luName="TDM">
+          <Value>false</Value>
+          <Comment>Indicator to mark the task as dataflux or not</Comment>
+        </Global>
+        <Global name="TDM_DEBUG_MODE" luName="TDM">
+          <Value>true</Value>
+          <Comment>This flag is used to enble running sync in Studio</Comment>
+        </Global>
+        <Global name="TDM_DELETE_BEFORE_LOAD" luName="TDM">
+          <Value>false</Value>
+          <Comment>Indicator to delete the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_DELETE_ONLY_TASK" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DELETE_TABLES_PREFIX" luName="TDM">
+          <Value>TAR_</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_DEPLOY_ENVIRONMENTS" luName="TDM">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_INSERT_TO_TARGET" luName="TDM">
+          <Value>false</Value>
+          <Comment>Indicator to insert the instance to target DB</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_TYPE" luName="TDM">
+          <Value>Days</Value>
+          <Comment>Each Instance can have a TTL, this global holds the type of the TTL and it can have one of the following values:Minutes, Hours, Days, Weeks, or Years</Comment>
+        </Global>
+        <Global name="TDM_LU_RETENTION_PERIOD_VALUE" luName="TDM">
+          <Value>10</Value>
+          <Comment>The value of the TTL based on the type defined in TDM_LU_RETENTION_PERIOD_TYPE. Populate this global with zero or empty value to avoid setting a TTL on the TDM LUIs.</Comment>
+        </Global>
+        <Global name="TDM_PARAMETERS_SEPARATOR" luName="TDM">
+          <Value>&lt;#&gt;</Value>
+          <Comment>The separator to be used for parsing the values of Parameters</Comment>
+        </Global>
+        <Global name="TDM_POPULATE_JMX_STATS" luName="TDM">
+          <Value>false</Value>
+          <Comment>Indicates whether to run add TDM statitics</Comment>
+        </Global>
+        <Global name="TDM_REF_UPD_SIZE" luName="TDM">
+          <Value>1000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_REPLACE_SEQUENCES" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_RESERVE_IND" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SEQ_REPORT" luName="TDM">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_ENVIRONMENT_NAME" luName="TDM">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SOURCE_PRODUCT_VERSION" luName="TDM">
+          <Value>0</Value>
+          <Comment>Source product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_SUMMARY_REPORT_LIMIT" luName="TDM">
+          <Value>10000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SUPPRESS_TEST_CONNECTION" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_SYNC_SOURCE_DATA" luName="TDM">
+          <Value>true</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TAR_ENV_NAME" luName="TDM">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TARGET_PRODUCT_VERSION" luName="TDM">
+          <Value>0</Value>
+          <Comment>Target product version to override by task execution process</Comment>
+        </Global>
+        <Global name="TDM_TASK_EXE_ID" luName="TDM">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_TASK_ID" luName="TDM">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_USING_CATALOG_SEQUENCES" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_VERSION_TASK_EXECUTION_ID" luName="TDM">
+          <Value>0</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDMDB_SCHEMA" luName="TDM">
+          <Value>k2tdm_${ClusterID}</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="UPDATE_MDB_EXPORTED_SCHEMA" luName="TDM">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_FABRIC_ROLES" luName="TDM">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="USER_NAME" luName="TDM">
+          <Value>admin</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="DEFAULT_PARTITION_COUNT" luName="">
+          <Value>10</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="EXECUTE_VERIFY_TASK_ID" luName="">
+          <Value></Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="LOG_PROGRESS_EVERY_N_RECORDS" luName="">
+          <Value>1000</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_K2VERIFY_LOGPASS" luName="">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_K2VERIFY_MAXWORKERSPERNODE" luName="">
+          <Value>5</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_K2VERIFY_NUM_OF_BUCKETS" luName="">
+          <Value>5</Value>
+          <Comment></Comment>
+        </Global>
+        <Global name="TDM_K2VERIFY_PII_ONLY_COMPARISON" luName="">
+          <Value>false</Value>
+          <Comment></Comment>
+        </Global>
       </GlobalsList>
       <GenericInterfacesList>
         <GenericInterface type="LOCAL" enabled="true" version="">
@@ -156,6 +800,32 @@
             </Property>
             <Property name="Data">
               <Value>/opt/apps/fabric/workspace</Value>
+            </Property>
+          </Properties>
+        </GenericInterface>
+        <GenericInterface type="HTTP" enabled="true" version="">
+          <Name>getZip</Name>
+          <Properties>
+            <Property name="ProtocolType">
+              <Value>HTTPS</Value>
+            </Property>
+            <Property name="HOST">
+              <Value>k2verify-prod-12-solutions.eu-west3-gcp.cloud.k2view.com</Value>
+            </Property>
+            <Property name="PORT">
+              <Value>443</Value>
+            </Property>
+            <Property name="Path">
+              <Value>/app</Value>
+            </Property>
+            <Property name="AuthenticationType">
+              <Value>Bearer</Value>
+            </Property>
+            <Property name="Token">
+              <Value>~encs2~7qAjmp4orn/gv/+yagWP66fPuj6ybbKT04E4gUFXf7OWJr4g</Value>
+            </Property>
+            <Property name="TokenTimeout">
+              <Value>0</Value>
             </Property>
           </Properties>
         </GenericInterface>
