@@ -1,0 +1,204 @@
+stages:
+  Stage 1:
+    actors:
+      Http1:
+        parent: Http
+        disabled: true
+      DbCommand1:
+        parent: DbCommand
+        disabled: true
+        in:
+          interface:
+            const: fabric
+          sql:
+            const: clusterid
+        out:
+          result:
+            schema: '#ref'
+      Const1:
+        parent: Const
+        in:
+          value:
+            const: https://
+            schema: string
+        out:
+          value:
+            schema: string
+      Const2:
+        parent: Const
+        in:
+          value:
+            const: .eu-west3-gcp.cloud.k2view.com/api/lu/verify?zip=true
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 2:
+    actors:
+      Replace1:
+        parent: Replace
+        in:
+          search:
+            const: _
+          replace:
+            const: '-'
+          string:
+            link: DbCommand1/result/cluster_id
+  Stage 3:
+    actors:
+      StringBuild1:
+        parent: StringBuild
+        disabled: true
+        in:
+          delimiter:
+            const: ''
+          input:
+            link:
+            - path: Const1/value
+              pos: 0
+            - path: Replace1/string
+              pos: 1
+            - path: Const2/value
+              pos: 2
+  Stage 4:
+    actors:
+      Http2:
+        parent: Http
+        in:
+          interface:
+            const: getZip
+          path:
+            const: /api/lu/verify?zip=true
+          method:
+            const: GET
+        out:
+          header:
+            schema: '#ref'
+  Stage 5:
+    actors:
+      Unzip1:
+        parent: Unzip
+        in:
+          stream:
+            link: Http2/stream
+  Stage 6:
+    actors:
+      Const3:
+        parent: Const
+        in:
+          value:
+            const: null
+            link:
+              path: Unzip1/files
+              iterate: Iterate
+        out:
+          value:
+            schema: '#ref'
+      Const4:
+        parent: Const
+        disabled: true
+        in:
+          value:
+            const: bwK2VerifyDeleteTask.flow
+            schema: string
+        out:
+          value:
+            schema: string
+      Const6:
+        parent: Const
+        in:
+          value:
+            const: fabric/lib/provided
+            schema: string
+        out:
+          value:
+            schema: string
+      Const5:
+        parent: Const
+        in:
+          value:
+            const: iif-filter.jar
+            schema: string
+        out:
+          value:
+            schema: string
+  Stage 8:
+    actors:
+      Concat1:
+        parent: Concat
+        in:
+          delimiter:
+            const: /
+          elements:
+            link:
+            - path: Const6/value
+              pos: 0
+            - path: Const5/value
+              pos: 1
+  Stage 7:
+    actors:
+      Equals1:
+        parent: Equals
+        condition: result
+        in:
+          a:
+            link: Const3/value/name
+          b:
+            link:
+            - Const4/value
+            - Const5/value
+      FileWrite1:
+        parent: FileWrite
+        in:
+          interface:
+            const: fs_workspace
+          stream:
+            link: Const3/value/stream
+          path:
+            link: Concat1/string
+  Stage 9: {
+    }
+schemas:
+  DbCommand1.out.result:
+    type: array
+    items:
+      type: object
+      properties:
+        cluster_id:
+          type: string
+  Http2.out.header:
+    type: object
+    properties:
+      connection:
+        type: string
+      content-disposition:
+        type: string
+      Content-Length:
+        type: integer
+      content-type:
+        type: string
+      Date:
+        type: date
+      strict-transport-security:
+        type: string
+  Const3.out.value:
+    type: object
+    properties:
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+      compressedSize:
+        type: integer
+      creationTime:
+        type: integer
+      lastAccessTime:
+        type: integer
+      lastModifiedTime:
+        type: integer
+      stream:
+        type: array
+        items:
+          type: blob

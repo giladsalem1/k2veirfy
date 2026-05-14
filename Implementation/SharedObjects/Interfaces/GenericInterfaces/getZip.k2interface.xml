@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GenericInterface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="HTTP" displayName="" enabled="true" version="1.4">
+    <Name>getZip</Name>
+    <Properties>
+        <Property name="ProtocolType">
+            <Value>HTTPS</Value>
+        </Property>
+        <Property name="HOST">
+            <Value>k2verify-prod-12-solutions.eu-west3-gcp.cloud.k2view.com</Value>
+        </Property>
+        <Property name="PORT">
+            <Value>443</Value>
+        </Property>
+        <Property name="Path">
+            <Value>/app</Value>
+        </Property>
+        <Property name="AuthenticationType">
+            <Value>Bearer</Value>
+        </Property>
+        <Property name="Token">
+            <Value>~encs2~7qAjmp4orn/gv/+yagWP66fPuj6ybbKT04E4gUFXf7OWJr4g</Value>
+        </Property>
+        <Property name="TokenTimeout">
+            <Value>0</Value>
+        </Property>
+    </Properties>
+</GenericInterface>
